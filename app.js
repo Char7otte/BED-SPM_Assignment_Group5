@@ -3,6 +3,10 @@ const path = require("path");
 const sql = require("mssql");
 const dotenv = require("dotenv");
 
+//import functions from alertRoutes
+const alertController = require("./alert/controllers/alertController");
+const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
+
 dotenv.config();
 
 const app = express();
@@ -13,6 +17,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.engine("html", require("ejs").renderFile);
+
+
+//routes for alerts
+app.get("/alerts", alertController.getAllAlerts);
+app.get("/alerts/:id", validateAlertId, alertController.getAlertById);
+app.post("/alerts", validateAlert, alertController.createAlert);
+app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert);
+app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert);
+
 
 app.listen(port, () => {
     console.log("Server running on port " + port);
