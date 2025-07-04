@@ -31,7 +31,7 @@ async function getDailyMedications(date) {
 async function getWeeklyMedications(startDate, endDate) {
     let connection; 
     try {
-        connection = await.sql.connect(dbConfig);
+        connection = await sql.connect(dbConfig);
         const query = "SELECT U.Name, M.MedicationName, M.MedicationDate, M.MedicationTime, M.MedicationDosage, M.MedicationNotes, M.MedicationReminders, M.PrescriptionStartDate, M.PrescriptionEndDate, M.IsTaken FROM Medications M JOIN Users U ON M.UserID = U.UserID WHERE U.Name = @name AND M.MedicationDate BETWEEN @startDate AND @endDate";
         const request = connection.request();
         request.input("name", sql.NVarChar, name);
