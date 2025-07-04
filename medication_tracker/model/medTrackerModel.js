@@ -1,13 +1,16 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
-async function getDailyMedications(date) {
+async function getDailyMedicationByUser(userId, date) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
-        const query = "SELECT U.Name, M.MedicationName, M.MedicationDate, M.MedicationTime, M.MedicationDosage, M.MedicationNotes M.MedicationReminders, M.PrescriptionStartDate, M.PrescriptionEndDate, M.IsTaken FROM Medications M JOIN Users U ON M.UserID = U.UserID WHERE U.Name = @name";
+        const query = `SELECT M.MedicationName, M.MedicationTime, M.MedicationDosage, M.MedicationNotes, M.IsTaken
+                       FROM Medications M
+                       JOIN Users U ON M.UserID = U.UserID
+                       WHERE U.UserID = @userId AND M.MedicationDate = @date`;
         const request = connection.request();
-        request.input("name", sql.NVarChar, name);
+        request.input("userId", sql.Int, userId);
         request.input("date", sql.Date, date);
         const result = await request.query(query);
         return result.recordset;
@@ -92,7 +95,7 @@ async function createMedication(medicationDate) {
 }
 
 module.exports = {
-    getDailyMedications,
+    getDailyMedicationByUser,
     getWeeklyMedications,
     createMedication
 };
