@@ -108,8 +108,64 @@ async function createMedication(medicationData) {
     }
 }
 
+async function updateMedication(medicationId, medicationData) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET MedicationName = @medicationName,
+                MedicationDate = @medicationDate,
+                MedicationTime = @medicationTime,
+                MedicationDosage = @medicationDosage,
+                MedicationNotes = @medicationNotes,
+                MedicationReminders = @medicationReminders,
+                PrescriptionStartDate = @prescriptionStartDate,
+                PrescriptionEndDate = @prescriptionEndDate,
+                IsTaken = @isTaken
+            WHERE MedicationID = @medicationId AND UserID = @userId
+            `;
+
+            const request = connection.request();
+            request.input("medicationId", sql.Int, medicationId);
+            request.input("medicationName", sql.NVarChar, medicationData.medicationName);
+            request.input("medicationDate", sql.Date, medicationData.medicationDate);
+            request.input("medicationTime", sql.Time, medicationData.medicationTime);
+            request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
+            request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
+            request.input("medicationReminders", sql.NVarChar, medicationData.medicationReminders);
+            request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
+            request.input("prescriptionEndDate", sql.Date, medicationData.prescriptionEndDate);
+            request.input("isTaken", sql.Bit, medicationData.isTaken);
+            request.input("userId", sql.Int, medicationData.userId);
+
+            const result = await request.query(query);
+            
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, ...medicationData };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getDailyMedicationByUser,
     getWeeklyMedicationByUser,
-    createMedication
+    createMedication,
+    updateMedication
 };
