@@ -8,7 +8,8 @@ async function getDailyMedicationByUser(userId, date) {
         const query = `SELECT M.MedicationName, M.MedicationTime, M.MedicationDate, M.MedicationDosage, M.MedicationNotes, M.IsTaken
                        FROM Medications M
                        JOIN Users U ON M.UserID = U.UserID
-                       WHERE U.UserID = @userId AND M.MedicationDate = @date`;
+                       WHERE U.UserID = @userId AND M.MedicationDate = @date
+                       `;
         const request = connection.request();
         request.input("userId", sql.Int, userId);
         request.input("date", sql.Date, date);
@@ -31,13 +32,18 @@ async function getDailyMedicationByUser(userId, date) {
     }
 }
 
-async function getWeeklyMedications(startDate, endDate) {
+async function getWeeklyMedicationByUser(userId, startDate, endDate) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
-        const query = "SELECT U.Name, M.MedicationName, M.MedicationDate, M.MedicationTime, M.MedicationDosage, M.MedicationNotes, M.MedicationReminders, M.PrescriptionStartDate, M.PrescriptionEndDate, M.IsTaken FROM Medications M JOIN Users U ON M.UserID = U.UserID WHERE U.Name = @name AND M.MedicationDate BETWEEN @startDate AND @endDate";
+        const query = `
+            SELECT M.MedicationName, M.MedicationTime, M.MedicationDate, M.MedicationDosage, M.MedicationNotes, M.IsTaken
+            FROM Medications M
+            JOIN Users U ON M.UserID = U.UserID
+            WHERE U.UserID = @userId AND M.MedicationDate BETWEEN @startDate AND @endDate
+            `;
         const request = connection.request();
-        request.input("name", sql.NVarChar, name);
+        request.input("userId", sql.NVarChar, userId);
         request.input("startDate", sql.Date, startDate);
         request.input("endDate", sql.Date, endDate);
         const result = await request.query(query);
@@ -96,6 +102,6 @@ async function createMedication(medicationDate) {
 
 module.exports = {
     getDailyMedicationByUser,
-    getWeeklyMedications,
+    getWeeklyMedicationByUser,
     createMedication
 };
