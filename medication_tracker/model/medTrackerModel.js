@@ -65,22 +65,30 @@ async function getWeeklyMedicationByUser(userId, startDate, endDate) {
     }
 }
 
-async function createMedication(medicationDate) {
+async function createMedication(medicationData) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "INSERT INTO Medications (UserID, MedicationName, MedicationDate, MedicationTime, MedicationDosage, MedicationNotes, MedicationReminders, PrescriptionStartDate, PrescriptionEndDate, IsTaken) VALUES (@userID, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)";
+        const query = 
+            `INSERT INTO Medications 
+            (UserID, MedicationName, MedicationDate, MedicationTime, MedicationDosage, MedicationNotes, MedicationReminders, PrescriptionStartDate, PrescriptionEndDate, IsTaken)
+            VALUES 
+            (@userID, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
+            `;
+    
         const request = connection.request();
-        request.input("userID", sql.Int, medicationDate.userID);
-        request.input("medicationName", sql.NVarChar, medicationDate.medicationName);
-        request.input("medicationDate", sql.Date, medicationDate.medicationDate);
-        request.input("medicationTime", sql.Time, medicationDate.medicationTime);
-        request.input("medicationDosage", sql.NVarChar, medicationDate.medicationDosage);
-        request.input("medicationNotes", sql.NVarChar, medicationDate.medicationNotes);
-        request.input("medicationReminders", sql.NVarChar, medicationDate.medicationReminders);
-        request.input("prescriptionStartDate", sql.Date, medicationDate.prescriptionStartDate);
-        request.input("prescriptionEndDate", sql.Date, medicationDate.prescriptionEndDate);
-        request.input("isTaken", sql.Bit, medicationDate.isTaken);
+
+        request.input("userID", sql.Int, medicationData.userID);
+        request.input("medicationName", sql.NVarChar, medicationData.medicationName);
+        request.input("medicationDate", sql.Date, medicationData.medicationDate);
+        request.input("medicationTime", sql.Time, medicationData.medicationTime);
+        request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
+        request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
+        request.input("medicationReminders", sql.NVarChar, medicationData.medicationReminders);
+        request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
+        request.input("prescriptionEndDate", sql.Date, medicationData.prescriptionEndDate);
+        request.input("isTaken", sql.Bit, medicationData.isTaken);
+
         const result = await request.query(query);
         return result.recordset[0];
     }
