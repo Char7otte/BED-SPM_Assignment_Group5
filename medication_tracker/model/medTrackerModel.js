@@ -5,7 +5,7 @@ async function getDailyMedicationByUser(userId, date) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
-        const query = `SELECT M.MedicationName, M.MedicationTime, M.MedicationDosage, M.MedicationNotes, M.IsTaken
+        const query = `SELECT M.MedicationName, M.MedicationTime, M.MedicationDate, M.MedicationDosage, M.MedicationNotes, M.IsTaken
                        FROM Medications M
                        JOIN Users U ON M.UserID = U.UserID
                        WHERE U.UserID = @userId AND M.MedicationDate = @date`;
