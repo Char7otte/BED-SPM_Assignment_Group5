@@ -163,9 +163,46 @@ async function updateMedication(medicationId, medicationData) {
     }
 }
 
+async function deleteMedication(medicationId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = 
+            `DELETE FROM Medications 
+            WHERE MedicationID = @medicationId AND UserID = @userId
+            `;
+        
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, userId };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getDailyMedicationByUser,
     getWeeklyMedicationByUser,
     createMedication,
-    updateMedication
+    updateMedication,
+    deleteMedication
 };
