@@ -9,6 +9,8 @@ dotenv.config();
 const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 
+//Import chat functions
+const chatController = require("./chat/controllers/chatController");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,6 +29,11 @@ app.post("/alerts", validateAlert, alertController.createAlert);
 app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert);
 app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert);
 
+//Charlotte's Chat routes
+app.get("/chats", chatController.getAllChats);
+app.get("/chats/:chatID", chatController.getChatByID);
+app.post("/chats/create/:userID", chatController.createChat);
+app.delete("/chats/:chatID", chatController.deleteChat);
 
 app.listen(port, () => {
     console.log("Server running on port " + port);
