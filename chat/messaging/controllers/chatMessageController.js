@@ -25,10 +25,23 @@ async function createMessage(req, res) {
     }
 }
 
+async function editMessage(req, res) {
+    try {
+        const chatID = req.params.chatID;
+        const { messageID, message } = req.body;
+        const isEdited = await chatMessageModel.editMessage(chatID, messageID, message);
+        if (!isEdited) return res.status(400).send("Error editting message");
+        return res.status(204).end();
+    } catch (error) {
+        console.log("Controller error: ", error);
+        return res.status(500).send("Error updating message");
+    }
+}
+
 async function deleteMessage(req, res) {
     try {
         const chatID = req.params.chatID;
-        const messageID = req.params.messageID;
+        const { messageID } = req.body;
         const isDeleted = await chatMessageModel.deleteMessage(chatID, messageID);
         if (!isDeleted) return res.status(400).send("Error deleting message");
         return res.status(204).end();
@@ -41,5 +54,6 @@ async function deleteMessage(req, res) {
 module.exports = {
     getAllMessagesInAChat,
     createMessage,
+    editMessage,
     deleteMessage,
 };

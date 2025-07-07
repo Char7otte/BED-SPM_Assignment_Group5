@@ -47,6 +47,31 @@ async function createMessage(chatID, senderID, message) {
     }
 }
 
+async function editMessage(chatID, messageID, newMessage) {
+    let connection;
+    try {
+        connection = await sql.connect(config);
+        const query = `
+        UPDATE ChatMessage 
+        SET Message = @newMessage 
+        WHERE ChatID = @chatID AND MessageID = @messageID`;
+        const request = connection.request();
+        request.input("chatID", chatID).input("messageID", messageID).input("newMessage", newMessage);
+        const result = await request.query(query);
+        return result.rowsAffected != 0;
+    } catch (error) {
+        console.error("Database error:", error);
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (error) {
+                console.error("Error closing connection:", error);
+            }
+        }
+    }
+}
+
 async function deleteMessage(chatID, messageID) {
     let connection;
     try {
@@ -72,5 +97,6 @@ async function deleteMessage(chatID, messageID) {
 module.exports = {
     getAllMessagesInAChat,
     createMessage,
+    editMessage,
     deleteMessage,
 };

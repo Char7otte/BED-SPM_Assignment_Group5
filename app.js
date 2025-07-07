@@ -38,7 +38,8 @@ app.delete("/chats/:chatID", chatController.deleteChat);
 
 app.get("/chats/:chatID", chatMessageController.getAllMessagesInAChat);
 app.post("/chats/:chatID", chatMessageController.createMessage);
-app.delete("/chats/:chatID/:messageID", chatMessageController.deleteMessage);
+app.delete("/chats/:chatID", chatMessageController.deleteMessage);
+app.patch("/chats/:chatID", chatMessageController.editMessage);
 
 app.listen(port, () => {
     console.log("Server running on port " + port);
