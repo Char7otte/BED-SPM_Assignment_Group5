@@ -11,6 +11,7 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
+const chatMessageController = require("./chat/messaging/controllers/chatMessageController");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,9 +32,13 @@ app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert);
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
-app.get("/chats/:chatID", chatController.getChatByID);
+// app.get("/chats/:chatID", chatController.getChatByID);
 app.post("/chats/create/:userID", chatController.createChat);
 app.delete("/chats/:chatID", chatController.deleteChat);
+
+app.get("/chats/:chatID", chatMessageController.getAllMessagesInAChat);
+app.post("/chats/:chatID", chatMessageController.createMessage);
+app.delete("/chats/:chatID/:messageID", chatMessageController.deleteMessage);
 
 app.listen(port, () => {
     console.log("Server running on port " + port);
