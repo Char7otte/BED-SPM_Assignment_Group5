@@ -3,11 +3,12 @@ const path = require("path");
 const sql = require("mssql");
 const dotenv = require("dotenv");
 
+dotenv.config();
+
 //import functions from alertRoutes
 const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
