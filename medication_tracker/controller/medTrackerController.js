@@ -65,3 +65,30 @@ async function getDailyMedicationByUser(req, res) {
         res.status(500).json({ error: "Error retrieving daily medications" });
     }
 }
+
+async function getWeeklyMedicationByUser(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+        if (!startDate || !endDate) {
+            return res.status(400).json({ error: "Start and end date query parameters are required" });
+        }
+
+        const weeklyMedications = await medTrackerModel.getWeeklyMedicationByUser(userId, startDate, endDate);
+
+        if (!weeklyMedications || weeklyMedications.length === 0) {
+            return res.status(404).json({ error: "No weekly medications found for this user in the specified date range" });
+        }
+
+        res.json(weeklyMedications);
+    }
+    catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving weekly medications" });
+    }
+}
