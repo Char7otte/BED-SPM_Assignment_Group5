@@ -13,6 +13,10 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/messaging/controllers/chatMessageController");
 
+//import note taker functions
+const noteTakerController = require("./note_taker/controller/noteTakerController");
+// add validateNote here
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -40,6 +44,11 @@ app.get("/chats/:chatID", chatMessageController.getAllMessagesInAChat);
 app.post("/chats/:chatID", chatMessageController.createMessage);
 app.delete("/chats/:chatID", chatMessageController.deleteMessage);
 app.patch("/chats/:chatID", chatMessageController.editMessage);
+
+// Asher's Not Taker routes
+app.get("/notes", noteTakerController.getAllNotes);
+app.get("/notes/:id", noteTakerController.getNoteById);
+// add other routes here
 
 app.listen(port, () => {
     console.log("Server running on port " + port);

@@ -27,6 +27,9 @@ async function getNoteById(req, res) {
     }
 }
 
+// Create a new note
+
+
 // Update an existing note
 
 
