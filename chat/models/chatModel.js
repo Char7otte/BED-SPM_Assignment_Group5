@@ -75,7 +75,7 @@ async function deleteChat(chatID) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `DELETE FROM Chats WHERE chata_id = @chatID`;
+        const query = `DELETE FROM Chats WHERE chat_id = @chatID`;
         const request = connection.request();
         request.input("chatID", chatID);
         const result = await request.query(query);
