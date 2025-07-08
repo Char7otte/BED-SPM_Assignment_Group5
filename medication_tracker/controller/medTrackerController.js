@@ -167,3 +167,23 @@ async function tickOffMedication(req, res) {
         res.status(500).json({ error: "Error ticking off medication" });
     }
 }
+
+async function searchMedicationByName(req, res) {
+    try {
+        const name = req.query.name;
+        
+        if (!name) {
+            return res.status(400).json({ error: "Medication name query parameter is required" });
+        }
+
+        const medications = await medTrackerModel.searchMedicationByName(name);
+
+        if (!medications || medications.length === 0) {
+            return res.status(404).json({ error: "No medications found with the specified name" });
+        }
+    }
+    catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error searching medications" });
+    }
+}
