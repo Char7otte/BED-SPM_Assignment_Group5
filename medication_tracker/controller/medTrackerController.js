@@ -3,10 +3,14 @@ const medTrackerModel = require('../model/medTrackerModel');
 async function getMedicationById(req, res) {
     try {
         const id = parseInt(req.params.id);
+        const userId = parseInt(req.params.userId);
         if (isNaN(id)) {
             return res.status(400).json({ error: "Invalid medication ID" });
         }
-
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+        
         const medication = await medTrackerModel.getMedicationById(id);
 
         if (!medication) {
