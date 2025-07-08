@@ -228,11 +228,40 @@ async function tickOffMedication(medicationId, userId) {
     }
 }
 
+async function searchMedicationByName(userId, medicationName) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            FROM Medications
+            WHERE user_id = @userId AND medication_name LIKE @medicationName
+        `;
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("medicationName", sql.NVarChar, `%${medicationName}%`); // Allows partial matches
+        const result = await request.query(query);
+        return result.recordset; // Return all matching medications
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getDailyMedicationByUser,
     getWeeklyMedicationByUser,
     createMedication,
     updateMedication,
     deleteMedication,
-    tickOffMedication
+    tickOffMedication,
+    searchMedicationByName
 };
