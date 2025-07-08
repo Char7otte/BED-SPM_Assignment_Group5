@@ -187,3 +187,15 @@ async function searchMedicationByName(req, res) {
         res.status(500).json({ error: "Error searching medications" });
     }
 }
+
+module.exports = {
+    getMedicationById,
+    getAllMedicationByUser,
+    getDailyMedicationByUser,
+    getWeeklyMedicationByUser,
+    createMedication,
+    updateMedication,
+    deleteMedication,
+    tickOffMedication,
+    searchMedicationByName
+};
