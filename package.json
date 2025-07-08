@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Char7otte/the-old-people-app#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
