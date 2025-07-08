@@ -37,6 +37,36 @@ async function getMedicationById(medicationId, userId) {
     }
 }
 
+async function getAllMedicationByUser(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            FROM Medications
+            WHERE user_id = @userId
+        `;
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+        return result.recordset; // Return all medications for the user
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 async function getDailyMedicationByUser(userId, date) {
     let connection; 
     try {
@@ -294,6 +324,7 @@ async function searchMedicationByName(userId, medicationName) {
 
 module.exports = {
     getMedicationById,
+    getAllMedicationByUser,
     getDailyMedicationByUser,
     getWeeklyMedicationByUser,
     createMedication,
