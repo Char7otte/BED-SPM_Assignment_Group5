@@ -192,10 +192,47 @@ async function deleteMedication(medicationId, userId) {
     }
 }
 
+async function tickOffMedication(medicationId, userId) {
+    let connection; 
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET is_taken = 1, updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, userId, isTaken: true };
+    }
+    catch {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getDailyMedicationByUser,
     getWeeklyMedicationByUser,
     createMedication,
     updateMedication,
-    deleteMedication
+    deleteMedication,
+    tickOffMedication
 };
