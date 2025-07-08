@@ -5,7 +5,11 @@ async function getAllChats() {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `SELECT * FROM Chat`;
+        const query = `
+        SELECT c.ChatID, c.HelpeeID, u.username, c.Status, c.CreatedDateTime, c.LastActivityDateTime
+        FROM Chat c
+        INNER JOIN Users u 
+        ON c.HelpeeID = u.user_id`;
         const request = connection.request();
         const result = await request.query(query);
         return result.recordset;
