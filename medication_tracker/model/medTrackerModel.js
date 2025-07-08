@@ -293,6 +293,7 @@ async function searchMedicationByName(userId, medicationName) {
 }
 
 module.exports = {
+    getMedicationById,
     getDailyMedicationByUser,
     getWeeklyMedicationByUser,
     createMedication,
