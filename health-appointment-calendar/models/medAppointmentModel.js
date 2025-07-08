@@ -1,0 +1,208 @@
+const sql = require("mssql");
+const dbConfig = require("../../dbConfig");
+
+// Get all appointments
+async function getAllAppointments() {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const query = 
+    `SELECT appointment_date, appointment_title, doctor, start_time, end_time, location, notes 
+     FROM MedAppointments 
+     ORDER BY appointment_date, start_time`; 
+    const request = connection.request();
+    const result = await request.query(query);
+    return result.recordset;
+    
+    } catch(error){
+        console.error("Database error in getAllAppointments:", error);
+        throw error;
+    } finally{
+        if(connection){
+            try{
+                await connection.close();
+            } catch(err){
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Get appointment by date 
+async function getAppointmentByDate(date) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const query = 
+    `SELECT appointment_date, appointment_title, doctor, start_time, end_time, location, notes 
+     FROM MedAppointments 
+     WHERE appointment_date = @appointment_date 
+     ORDER BY start_time`; 
+    const request = connection.request();
+    request.input("appointment_date", date);
+    const result = await request.query(query);
+
+    if (result.recordset.length === 0) {
+      return null; // Appointment not found
+    }
+
+    return result.recordset[0];
+  } catch (error) {
+    console.error("Database error in getAppointmentByDate:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+// Get appointment by id
+async function getAppointmentById(id) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const query = 
+    `SELECT appointment_date, appointment_title, doctor, start_time, end_time, location, notes 
+     FROM MedAppointments 
+     WHERE appointment_id = @appointment_id`;
+    const request = connection.request();
+    request.input("appointment_id", id);
+    const result = await request.query(query);
+
+    if (result.recordset.length === 0) {
+      return null; // Appointment not found
+    }
+
+    return result.recordset[0];
+  } catch (error) {
+    console.error("Database error in getAppointmentById:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+// Create new appointment
+async function createAppointment(appointmentData) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const query =
+      `INSERT INTO MedAppointments (user_id, appointment_date, appointment_title, doctor, start_time, end_time, location, notes) 
+       VALUES (@user_id, @appointment_date, @appointment_title, @doctor, @start_time, @end_time, @location, @notes); 
+       SELECT SCOPE_IDENTITY() AS appointment_id;`;
+    const request = connection.request();
+    request.input("user_id", appointmentData.user_id);
+    request.input("appointment_date", appointmentData.appointment_date);
+    request.input("appointment_title", appointmentData.appointment_title);
+    request.input("doctor", appointmentData.doctor);
+    request.input("start_time", appointmentData.start_time);
+    request.input("end_time", appointmentData.end_time);
+    request.input("location", appointmentData.location);
+    request.input("notes", appointmentData.notes);
+    const result = await request.query(query);
+
+    const newAppointmentId = result.recordset[0].appointment_id;
+    return await getAppointmentById(newAppointmentId);
+
+    } catch(error){
+        console.error("Database error in createAppointment:", error);
+        throw error;
+    } finally{
+        if(connection){
+            try{
+                await connection.close();
+            } catch(err){
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Update appointment by id
+async function updateAppointment(id, appointmentData){
+    let connection;
+    try{
+        connection = await sql.connect(dbConfig);
+        const query = 
+        `UPDATE MedAppointments 
+         SET appointment_date = @appointment_date, appointment_title = @appointment_title, doctor = @doctor, start_time = @start_time, end_time = @end_time, location = @location, notes = @notes 
+         WHERE appointment_id = @appointment_id`;
+        const request = connection.request();
+        request.input("appointment_id", id);
+        request.input("appointment_date", appointmentData.appointment_date);
+        request.input("appointment_title", appointmentData.appointment_title);
+        request.input("doctor", appointmentData.doctor);
+        request.input("start_time", appointmentData.start_time);
+        request.input("end_time", appointmentData.end_time);
+        request.input("location", appointmentData.location);
+        request.input("notes", appointmentData.notes);
+        const result = await request.query(query);
+
+        if(result.rowsAffected[0] === 0){
+            return null; // Appointment not found
+        }
+
+        return await getAppointmentById(id);
+    } catch(error){
+        console.error("Database error in updateAppointment:", error);
+        throw error;
+    } finally{
+        if(connection){
+            try{
+                await connection.close();
+            } catch(err){
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Delete appointment by id
+async function deleteAppointment(id){
+    let connection;
+    try{
+        connection = await sql.connect(dbConfig);
+        const query = "DELETE FROM MedAppointments WHERE appointment_id = @appointment_id";
+        const request = connection.request();
+        request.input("appointment_id", id);
+        const result = await request.query(query);
+
+        if(result.rowsAffected[0] === 0){
+            return null; // Appointment not found
+        }
+        return true; //return success response to prevent error
+    } catch(error){
+        console.error("Database error in deleteAppointment:", error);
+        throw error;
+    } finally{
+        if(connection){
+            try{
+                await connection.close();
+            } catch(err){
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+
+module.exports = {
+  getAllAppointments,
+  getAppointmentByDate,
+  getAppointmentById,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment,
+};
