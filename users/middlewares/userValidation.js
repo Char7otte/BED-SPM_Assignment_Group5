@@ -1,0 +1,155 @@
+const jwt = require('jsonwebtoken');
+const joi = require('joi');
+
+
+function validateUserInput(req, res, next) {
+  const schema = joi.object({
+    username: joi.string().min(3).max(30).required(),
+    phone_number: joi.string().required(),
+    password: joi.string().min(6).max(100).required(),
+    age: joi.number().integer().min(0).required(),
+    gender: joi.string().valid('Male', 'Female', 'Other').required(),
+    role: joi.string().valid('A', 'U', 'V')
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  next();
+}
+
+function verifyJWT(req, res, next) {
+  const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const authorizedRoles = {
+      //user
+      'POST /users/register': ['A', 'U'], // Admin and User can register
+      'PUT /users/changepassword/[0-9]+': ['A', 'U'], // Admin and User can change password
+      'GET /users/username/[a-zA-Z0-9]+': ['A', 'U'], // Admin and User can get user by username
+      //user management
+      'GET /users': ['A'], // Only Admin can get all users
+      'PUT /users/updatedetail/[0-9]+': ['A'], // Admin can update user details
+      'DELETE /users/[0-9]+': ['A'] // Only Admin can delete users
+
+      // Add more endpoints and roles as needed
+    };
+
+    req.user = decoded;
+    next();
+  });
+}
+
+module.exports = {
+  validateUserInput,
+  verifyJWT
+};
+
+
+// --bed_spm db v1.05
+// CREATE DATABASE bed_spm
+
+// -- Users table
+// CREATE TABLE Users (
+//     user_id INT PRIMARY KEY IDENTITY(1,1),
+//     username NVARCHAR(100) NOT NULL,
+//     phone_number NVARCHAR(15) NOT NULL,
+//     password NVARCHAR(255) NOT NULL,
+//     joined_date DATE NOT NULL DEFAULT GETDATE(),
+//     age INT NOT NULL,
+//     gender NVARCHAR(10) CHECK (gender IN ('Male', 'Female', 'Other')) NOT NULL,
+//     role CHAR(1) NOT NULL DEFAULT 'U'
+//         CONSTRAINT chk_user_role CHECK (role IN ('A', 'U', 'V')) -- A = Admin, U = User, V = Volunteer
+// );
+
+// -- MedAppointments table 
+// CREATE TABLE MedAppointments (
+//     appointment_id     INT PRIMARY KEY IDENTITY(1,1),
+//     user_id            INT NOT NULL,  
+//     appointment_date   DATE NOT NULL,
+//     appointment_title  VARCHAR(50) NOT NULL,
+//     doctor             VARCHAR(50) NOT NULL,
+//     start_time         TIME NOT NULL,
+//     end_time           TIME NOT NULL,
+//     location           VARCHAR(100) NOT NULL,
+//     notes              VARCHAR(500),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id)
+// );
+
+// -- Alert table
+// CREATE TABLE Alert (
+//     AlertID INT PRIMARY KEY IDENTITY(1,1),
+//     Title VARCHAR(255) NOT NULL,
+//   Category VARCHAR(50),
+//     Message VARCHAR(500),
+//     Date DATETIME NOT NULL DEFAULT GETDATE(),
+//     Severity VARCHAR(50)
+// );
+
+// -- ReadStatus table
+// CREATE TABLE ReadStatus (
+//     user_id INT NOT NULL,
+//     AlertID INT NOT NULL,
+//     ReadStatus BIT NOT NULL,  -- 1 = Read, 0 = Unread
+//     PRIMARY KEY (user_id, AlertID),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id),
+//     FOREIGN KEY (AlertID) REFERENCES Alert(AlertID)
+// );
+
+// CREATE TABLE Medications (
+//     user_id INT NOT NULL, 
+//     medication_id INT IDENTITY(1,1) PRIMARY KEY,
+//     medication_name NVARCHAR(255) NOT NULL,
+//     medication_date DATE NOT NULL,
+//     medication_time TIME NOT NULL,
+//     medication_dosage NVARCHAR(100),
+//     medication_notes NVARCHAR(MAX),
+//     medication_reminders BIT DEFAULT 0,
+//     prescription_startdate DATE,
+//     prescription_enddate DATE,
+//     is_taken BIT DEFAULT 0,
+//     created_at DATETIME DEFAULT GETDATE(),
+//     updated_at DATETIME DEFAULT GETDATE(),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id)
+// );
+
+// CREATE TABLE Chat (
+//     ChatID INT IDENTITY(1,1) PRIMARY KEY,
+//     HelpeeID INT NOT NULL,
+//     Status VARCHAR(10) CHECK (Status IN ('Closed', 'Open', 'Responded')) NOT NULL DEFAULT 'Open',
+//     CreatedDateTime DATETIME2 NOT NULL DEFAULT GETDATE(),
+//     LastActivityDatetime DATETIME2 NOT NULL DEFAULT GETDATE(),
+//   FOREIGN KEY (HelpeeID) REFERENCES Users(user_id)
+// );
+
+// CREATE TABLE ChatLog (
+//     ChatID INT NOT NULL,
+//     LogID INT IDENTITY(1,1),
+//     Text NVARCHAR(MAX) NOT NULL,
+//     SenderID INT NOT NULL,
+//     SentDateTime DATETIME2 NOT NULL DEFAULT GETDATE(),
+//   FOREIGN KEY (ChatID) REFERENCES Chat(ChatID),
+//   FOREIGN KEY (SenderID) REFERENCES Users(user_id),
+//     CONSTRAINT PK_ChatLog PRIMARY KEY (ChatID, LogID)
+// );
+
+// -- notes table for note taker feature
+// CREATE TABLE Notes (
+//     NoteID INT IDENTITY(1,1) PRIMARY KEY,
+//     user_id INT NOT NULL,
+//     NoteTitle VARCHAR(50) NOT NULL,
+//     NoteContent VARCHAR(1028) NOT NULL, -- number
+//     CreatedDate DATE NOT NULL,
+//     LastEditedDate DATE NOT NULL DEFAULT GETDATE(),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id)
+// );
