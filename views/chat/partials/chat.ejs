@@ -1,9 +1,11 @@
-<a href="/chats/<%= chatID %>">
-    <div class="card p-4">
-        <p>ChatID: <%= chatID %></p>
-        <p>HelpeeID: <%= helpeeID %></p>
-        <p>Status: <%= status %></p>
-        <p>Created Time: <%= createdDateTime %></p>
-        <p>Last Activity: <%= lastActivityDateTime %></p>
-    </div>
-</a>
+<div class="card">
+    <a href="/chats/<%= chatID %>">
+        <div class="card-content">
+            <p>ChatID: <%= chatID %></p>
+            <!-- <p>HelpeeID: <%= helpeeID %></p> -->
+            <p>Status: <%= status %></p>
+            <p>Created Time: <%= createdDateTime %></p>
+            <p>Last Activity: <%= lastActivityDateTime %></p>
+        </div>
+    </a>
+</div>
