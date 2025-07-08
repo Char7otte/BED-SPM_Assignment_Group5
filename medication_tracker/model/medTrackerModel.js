@@ -1,6 +1,42 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
+async function getMedicationById(medicationId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = ` 
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            FROM Medications
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null; // Medication not found
+        }
+
+        return result.recordset[0];
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 async function getDailyMedicationByUser(userId, date) {
     let connection; 
     try {
