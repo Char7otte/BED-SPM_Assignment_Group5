@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const medTrackerController = require("./controllers/medTrackerController");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -12,7 +14,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.engine("html", require("ejs").renderFile);
+app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);
+app.get("/medications/:userId", medTrackerController.getAllMedicationByUser);
+app.get("/medications/:userId/:date", medTrackerController.getDailyMedicationByUser);
+app.get("medications/:userId/:startDate/:endDate", medTrackerController.getWeeklyMedicationByUser);
+app.post("/medications", medTrackerController.createMedication);
+app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
+app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
+app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
+app.get("/medications/:userId/:medicationId/by-name", medTrackerController.getTickOffMedication);
 
 app.listen(port, () => {
     console.log("Server running on port " + port);
@@ -28,3 +38,4 @@ process.on("SIGINT", async () => {
     console.log("Database connections closed");
     process.exit(0);
 });
+
