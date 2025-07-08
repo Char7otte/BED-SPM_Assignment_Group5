@@ -9,4 +9,7 @@
             <p>Last Activity: <%= lastActivityDateTime %></p>
         </div>
     </a>
+    <footer class="card-footer">
+        <form method="POST" action="/chats/<%= chatID %>?_method=DELETE" class="card-footer-item delete-chat-form"><button>Delete</button></form>
+    </footer>
 </div>
