@@ -11,7 +11,6 @@ async function getAllChats() {
         ON c.helpee_id = u.user_id`;
         const request = connection.request();
         const result = await request.query(query);
-        console.log(result);
         return result.recordset;
     } catch (error) {
         console.error("Database error:", error);
