@@ -92,3 +92,15 @@ async function getWeeklyMedicationByUser(req, res) {
         res.status(500).json({ error: "Error retrieving weekly medications" });
     }
 }
+
+async function createMedication(req, res) {
+    try {
+        const newMedication = await medTrackerModel.createMedication(req.body);
+        res.status(201).json(newMedication); 
+    }
+    catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error creating medication" });
+    }
+}
+
