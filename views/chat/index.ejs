@@ -18,8 +18,8 @@
                             <div class="grid">
                                 <%for (const c of chatData) {%>
                                 <div class="cell">
-                                    <%- include("./partials/chat", {chatID: c.ChatID, helpeeID: c.HelpeeID, status: c.Status, createdDateTime:
-                                    c.CreatedDateTime, lastActivityDateTime: c.LastActivityDateTime }) %>
+                                    <%- include("./partials/chat", {chatID: c.ChatID, helpeeID: c.HelpeeID, username: c.username, status: c.Status,
+                                    createdDateTime: c.CreatedDateTime, lastActivityDateTime: c.LastActivityDateTime }) %>
                                 </div>
                                 <%}%>
                             </div>
