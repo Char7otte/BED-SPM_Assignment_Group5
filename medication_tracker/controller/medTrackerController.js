@@ -20,3 +20,24 @@ async function getMedicationById(req, res) {
         res.status(500).json({ error: "Error retrieving medication" });
     }
 }
+
+async function getAllMedicationByUser(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const medications = await medTrackerModel.getAllMedicationByUser(userId);
+
+        if (!medications || medications.length === 0) {
+            return res.status(404).json({ error: "No medications found for this user" });
+        }
+
+        res.json(medications);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving medications" });
+    }
+}
+
