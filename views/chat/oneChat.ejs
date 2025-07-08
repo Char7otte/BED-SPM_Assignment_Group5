@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <%- include("../partials/head")%>
+        <title>Viewing chat <%= chatID %></title>
+    </head>
+    <body>
+        <%- include("../partials/navbar")%>
+        <main>
+            <div class="container">
+                <div class="columns">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h1 class="title">You are in Chat <%= chatID %>.</h1>
+                        <div class="fixed-grid has-1-cols">
+                            <div class="grid">
+                                <%for (const m of messageData) {%>
+                                <div class="cell">
+                                    <%- include("./partials/chatMessageCard",{senderID: m.SenderID, message: m.Message, sentDateTime: m.SentDateTime})
+                                    %>
+                                </div>
+                                <%}%>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <%- include("../partials/footer.ejs")%>
+    </body>
+</html>
