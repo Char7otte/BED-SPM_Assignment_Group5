@@ -5,11 +5,11 @@ async function getDailyMedicationByUser(userId, date) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
-        const query = `SELECT M.MedicationName, M.MedicationTime, M.MedicationDate, M.MedicationDosage, M.MedicationNotes, M.IsTaken
-                       FROM Medications M
-                       JOIN Users U ON M.UserID = U.UserID
-                       WHERE U.UserID = @userId AND M.MedicationDate = @date
-                       `;
+        const query = `
+            SELECT M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
+            FROM Medications M
+            WHERE M.user_id = @userId AND M.medication_date = @date
+        `;
         const request = connection.request();
         request.input("userId", sql.Int, userId);
         request.input("date", sql.Date, date);
@@ -37,13 +37,12 @@ async function getWeeklyMedicationByUser(userId, startDate, endDate) {
     try {
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT M.MedicationName, M.MedicationTime, M.MedicationDate, M.MedicationDosage, M.MedicationNotes, M.IsTaken
+            SELECT M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
             FROM Medications M
-            JOIN Users U ON M.UserID = U.UserID
-            WHERE U.UserID = @userId AND M.MedicationDate BETWEEN @startDate AND @endDate
-            `;
+            WHERE M.user_id = @userId AND M.medication_date BETWEEN @startDate AND @endDate
+        `;
         const request = connection.request();
-        request.input("userId", sql.NVarChar, userId);
+        request.input("userId", sql.Int, userId);
         request.input("startDate", sql.Date, startDate);
         request.input("endDate", sql.Date, endDate);
         const result = await request.query(query);
@@ -69,22 +68,20 @@ async function createMedication(medicationData) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = 
-            `INSERT INTO Medications 
-            (UserID, MedicationName, MedicationDate, MedicationTime, MedicationDosage, MedicationNotes, MedicationReminders, PrescriptionStartDate, PrescriptionEndDate, IsTaken)
+        const query = `
+            INSERT INTO Medications 
+            (user_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken)
             VALUES 
-            (@userID, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
-            `;
-    
+            (@userId, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
+        `;
         const request = connection.request();
-
-        request.input("userID", sql.Int, medicationData.userID);
+        request.input("userId", sql.Int, medicationData.userId);
         request.input("medicationName", sql.NVarChar, medicationData.medicationName);
         request.input("medicationDate", sql.Date, medicationData.medicationDate);
         request.input("medicationTime", sql.Time, medicationData.medicationTime);
         request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
         request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
-        request.input("medicationReminders", sql.NVarChar, medicationData.medicationReminders);
+        request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
         request.input("prescriptionEndDate", sql.Date, medicationData.prescriptionEndDate);
         request.input("isTaken", sql.Bit, medicationData.isTaken);
@@ -114,37 +111,35 @@ async function updateMedication(medicationId, medicationData) {
         connection = await sql.connect(dbConfig);
         const query = `
             UPDATE Medications
-            SET MedicationName = @medicationName,
-                MedicationDate = @medicationDate,
-                MedicationTime = @medicationTime,
-                MedicationDosage = @medicationDosage,
-                MedicationNotes = @medicationNotes,
-                MedicationReminders = @medicationReminders,
-                PrescriptionStartDate = @prescriptionStartDate,
-                PrescriptionEndDate = @prescriptionEndDate,
-                IsTaken = @isTaken
-            WHERE MedicationID = @medicationId AND UserID = @userId
-            `;
+            SET medication_name = @medicationName,
+                medication_date = @medicationDate,
+                medication_time = @medicationTime,
+                medication_dosage = @medicationDosage,
+                medication_notes = @medicationNotes,
+                medication_reminders = @medicationReminders,
+                prescription_startdate = @prescriptionStartDate,
+                prescription_enddate = @prescriptionEndDate,
+                is_taken = @isTaken,
+                updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, medicationData.userId);
+        request.input("medicationName", sql.NVarChar, medicationData.medicationName);
+        request.input("medicationDate", sql.Date, medicationData.medicationDate);
+        request.input("medicationTime", sql.Time, medicationData.medicationTime);
+        request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
+        request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
+        request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
+        request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
+        request.input("prescriptionEndDate", sql.Date, medicationData.prescriptionEndDate);
+        request.input("isTaken", sql.Bit, medicationData.isTaken);
 
-            const request = connection.request();
-            request.input("medicationId", sql.Int, medicationId);
-            request.input("medicationName", sql.NVarChar, medicationData.medicationName);
-            request.input("medicationDate", sql.Date, medicationData.medicationDate);
-            request.input("medicationTime", sql.Time, medicationData.medicationTime);
-            request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
-            request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
-            request.input("medicationReminders", sql.NVarChar, medicationData.medicationReminders);
-            request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
-            request.input("prescriptionEndDate", sql.Date, medicationData.prescriptionEndDate);
-            request.input("isTaken", sql.Bit, medicationData.isTaken);
-            request.input("userId", sql.Int, medicationData.userId);
-
-            const result = await request.query(query);
-            
+        const result = await request.query(query);
         if (result.rowsAffected[0] === 0) {
             return null;
         }
-
         return { medicationId, ...medicationData };
     }
     catch (error) {
@@ -167,11 +162,10 @@ async function deleteMedication(medicationId, userId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = 
-            `DELETE FROM Medications 
-            WHERE MedicationID = @medicationId AND UserID = @userId
-            `;
-        
+        const query = `
+            DELETE FROM Medications 
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
         const request = connection.request();
         request.input("medicationId", sql.Int, medicationId);
         request.input("userId", sql.Int, userId);
@@ -180,7 +174,6 @@ async function deleteMedication(medicationId, userId) {
         if (result.rowsAffected[0] === 0) {
             return null;
         }
-
         return { medicationId, userId };
     }
     catch (error) {
