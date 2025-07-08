@@ -12,7 +12,7 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
-const chatMessageController = require("./chat/messaging/controllers/chatMessageController");
+const chatMessageController = require("./chat/controllers/chatMessageController");
 
 const app = express();
 const port = process.env.PORT || 3000;

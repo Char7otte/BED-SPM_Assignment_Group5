@@ -1,5 +1,5 @@
 const sql = require("mssql");
-const config = require("../../../dbConfig");
+const config = require("../../dbConfig");
 
 async function getAllMessagesInAChat(chatID) {
     let connection;

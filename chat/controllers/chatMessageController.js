@@ -4,7 +4,7 @@ async function getAllMessagesInAChat(req, res) {
     try {
         const chatID = req.params.chatID;
         const messages = await chatMessageModel.getAllMessagesInAChat(chatID);
-        return res.render("chat/messaging/index", { chatID, messageData: messages });
+        return res.render("chat/oneChat", { chatID, messageData: messages });
     } catch (error) {
         console.log("Controller error: ", error);
         return res.status(500).send("Error getting chat messages");

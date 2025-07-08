@@ -3,7 +3,7 @@ const chatModel = require("../models/chatModel");
 async function getAllChats(req, res) {
     try {
         const chats = await chatModel.getAllChats();
-        return res.render("chat/index", { chatData: chats });
+        return res.render("chat/allChats", { chatData: chats });
     } catch (error) {
         console.log("Controller error: ", error);
         return res.status(500).send("Error retrieving chats");
