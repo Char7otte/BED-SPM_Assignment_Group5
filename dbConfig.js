@@ -1,6 +1,6 @@
 module.exports = {
-    user: "123",
-    password: "123",
+    user: "12345",
+    password: "12345",
     server: "DESKTOP-4RFAEEN/SQLEXPRESS",
     database: "bed_spm",
     trustServerCertificate: true,
