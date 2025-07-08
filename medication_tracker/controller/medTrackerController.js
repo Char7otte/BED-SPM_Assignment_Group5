@@ -181,6 +181,8 @@ async function searchMedicationByName(req, res) {
         if (!medications || medications.length === 0) {
             return res.status(404).json({ error: "No medications found with the specified name" });
         }
+
+        res.json(medications);
     }
     catch (error) {
         console.error("Controller error:", error);
