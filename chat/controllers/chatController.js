@@ -33,7 +33,7 @@ async function createChat(req, res) {
         const newChat = await chatModel.getChatByID(newChatID);
 
         if (!newChat) return res.status(404).send("Error creating chat.");
-        return res.status(201).json(newChat);
+        return res.redirect(`/chats/${newChatID}`);
     } catch (error) {
         console.log("Controller error: ", error);
         return res.status(500).send("Error creating chat");
