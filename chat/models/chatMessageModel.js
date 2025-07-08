@@ -1,11 +1,11 @@
 const sql = require("mssql");
-const config = require("../../../dbConfig");
+const config = require("../../dbConfig");
 
 async function getAllMessagesInAChat(chatID) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `SELECT * FROM ChatMessage WHERE ChatID = @chatID ORDER BY MessageID asc`;
+        const query = `SELECT * FROM ChatMessages WHERE chat_id = @chatID ORDER BY message_id asc`;
         const request = connection.request();
         request.input("chatID", chatID);
         const result = await request.query(query);
@@ -28,7 +28,7 @@ async function createMessage(chatID, senderID, message) {
     try {
         connection = await sql.connect(config);
         const query = `
-        INSERT INTO ChatMessage (ChatID, SenderID, Message)
+        INSERT INTO ChatMessages (chat_id, sender_id, message)
         VALUES(@chatID, @senderID, @message)`;
         const request = connection.request();
         request.input("chatID", chatID).input("senderID", senderID).input("message", message);
@@ -52,9 +52,9 @@ async function editMessage(chatID, messageID, newMessage) {
     try {
         connection = await sql.connect(config);
         const query = `
-        UPDATE ChatMessage 
-        SET Message = @newMessage 
-        WHERE ChatID = @chatID AND MessageID = @messageID`;
+        UPDATE ChatMessages 
+        SET message = @newMessage 
+        WHERE chat_id = @chatID AND message_id = @messageID`;
         const request = connection.request();
         request.input("chatID", chatID).input("messageID", messageID).input("newMessage", newMessage);
         const result = await request.query(query);
@@ -76,7 +76,7 @@ async function deleteMessage(chatID, messageID) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `DELETE FROM ChatMessage WHERE ChatID = @chatID AND MessageID = @messageID`;
+        const query = `DELETE FROM ChatMessages WHERE chat_id = @chatID AND message_id = @messageID`;
         const request = connection.request();
         request.input("chatID", chatID).input("messageID", messageID);
         const result = await request.query(query);

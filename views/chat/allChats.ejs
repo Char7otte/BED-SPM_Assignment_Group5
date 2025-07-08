@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <%- include("../partials/head")%>
+        <title>All Chats</title>
+    </head>
+    <body>
+        <%- include("../partials/navbar")%>
+        <main>
+            <div class="container">
+                <div class="columns">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h1 class="title">Chats</h1>
+                        <form action="/chats/create/1" class="mb-5" method="POST">
+                            <div class="field"><button class="button is-primary">Start a new chat</button></div>
+                        </form>
+                        <div class="fixed-grid has-1-cols">
+                            <div class="grid">
+                                <%for (const c of chatData) {%>
+                                <div class="cell">
+                                    <%- include("./partials/chatCard", {chatID: c.chat_id, helpeeID: c.helpee_id, username: c.username, status:
+                                    c.status, createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time }) %>
+                                </div>
+                                <%}%>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <%- include("../partials/footer.ejs")%>
+        <script src="/js/deleteContent.js"></script>
+    </body>
+</html>
