@@ -1,7 +1,7 @@
 const express = require("express");
-const path = require("path");
 const sql = require("mssql");
 const dotenv = require("dotenv");
+const path = require("path");
 
 dotenv.config();
 
@@ -22,20 +22,15 @@ app.post("/medications", medTrackerController.createMedication);
 app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
 app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
 app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
-app.get("/medications/:userId/:medicationId/by-name", medTrackerController.getTickOffMedication);
+app.get("/medications/:userId/:medicationId/by-name", medTrackerController.searchMedicationByName);
 
 app.listen(port, () => {
-    console.log("Server running on port " + port);
-});
-
-app.get("/", async (req, res) => {
-    res.render("./index.html");
+  console.log(`Server running on port ${port}`);
 });
 
 process.on("SIGINT", async () => {
-    console.log("Server is gracefully shutting down");
-    await sql.close();
-    console.log("Database connections closed");
-    process.exit(0);
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
 });
-
