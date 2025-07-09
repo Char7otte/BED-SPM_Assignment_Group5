@@ -14,10 +14,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/medications/:userId/:id", medTrackerController.getMedicationById);
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
 app.get("/medications/user/:userId/:daily", medTrackerController.getDailyMedicationByUser);
-app.get("medications/user/:userId/:weekly", medTrackerController.getWeeklyMedicationByUser);
+app.get("/medications/user/:userId/:weekly", medTrackerController.getWeeklyMedicationByUser);
+app.get("/medications/:userId/:id", medTrackerController.getMedicationById);
 app.post("/medications", medTrackerController.createMedication);
 app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
 app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
