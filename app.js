@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const medTrackerController = require("./controllers/medTrackerController");
+const medTrackerController = require("./controller/medTrackerController");
 
 const app = express();
 const port = process.env.PORT || 3000;
