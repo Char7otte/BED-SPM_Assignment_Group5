@@ -48,7 +48,7 @@ async function getAllMedicationByUser(req, res) {
 async function getDailyMedicationByUser(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-        const date = req.query.date;
+        let date = req.query.date;
 
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
@@ -56,6 +56,15 @@ async function getDailyMedicationByUser(req, res) {
         if (!date) {
             return res.status(400).json({ error: "Date query parameter is required" });
         }
+        
+        const today = new Date();
+        const currentDate = today.toISOString().split('T')[0];
+        
+        if (date !== currentDate) {
+            await medTrackerModel.updateMedicationDatesToCurrent(userId, currentDate);
+            date = currentDate;
+        }
+        
         const dailyMedications = await medTrackerModel.getDailyMedicationByUser(userId, date);
 
         if (!dailyMedications || dailyMedications.length === 0) {

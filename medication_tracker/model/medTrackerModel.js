@@ -327,6 +327,38 @@ async function searchMedicationByName(userId, medicationName) {
     }
 }
 
+async function updateMedicationDatesToCurrent(userId, currentDate) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications 
+            SET medication_date = @currentDate
+            WHERE user_id = @userId
+        `;
+        
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("currentDate", sql.Date, currentDate);
+        const result = await request.query(query);
+        
+        return result.rowsAffected[0] > 0;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -336,5 +368,6 @@ module.exports = {
     updateMedication,
     deleteMedication,
     tickOffMedication,
-    searchMedicationByName
+    searchMedicationByName,
+    updateMedicationDatesToCurrent
 };
