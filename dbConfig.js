@@ -8,4 +8,4 @@ module.exports = {
       port: parseInt(process.env.DB_PORT), // Default SQL Server port
       connectionTimeout: 60000, // Connection timeout in milliseconds
     },
-  };
+};

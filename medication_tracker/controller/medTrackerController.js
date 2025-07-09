@@ -11,7 +11,7 @@ async function getMedicationById(req, res) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
         
-        const medication = await medTrackerModel.getMedicationById(id);
+        const medication = await medTrackerModel.getMedicationById(id, userId);
 
         if (!medication) {
             return res.status(404).json({ error: "Medication not found" });
