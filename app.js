@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/medications/:id", medTrackerController.getMedicationById);
+app.get("/medications/:userId/:id", medTrackerController.getMedicationById);
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
 app.get("/medications/user/:userId/:daily", medTrackerController.getDailyMedicationByUser);
 app.get("medications/user/:userId/:weekly", medTrackerController.getWeeklyMedicationByUser);
