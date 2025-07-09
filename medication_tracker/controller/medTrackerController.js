@@ -140,13 +140,17 @@ async function updateMedication(req, res) {
 
 async function deleteMedication(req, res) {
     try {
-        const id = parseInt(req.params.id);
+        const medicationId = parseInt(req.params.medicationId);
+        const userId = parseInt(req.params.userId);
 
-        if (isNaN(id)) {
+        if (isNaN(medicationId)) {
             return res.status(400).json({ error: "Invalid medication ID" });
         }
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
 
-        const deleted = await medTrackerModel.deleteMedication(id);
+        const deleted = await medTrackerModel.deleteMedication(medicationId, userId);
 
         if (!deleted) {
             return res.status(404).json({ error: "Medication not found" });
