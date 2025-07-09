@@ -34,3 +34,17 @@ HTML files go in views.
 | `POST` Create a new message      | `/chats/{chatID}/`       | `ChatID` of the chat                   | TO ADD          |
 | `PATCH`Edit a message            | `/chats/{chatID}/`       | `ChatID` of the chat                   | TO ADD          |
 | `DELETE`Delete a message         | `/chats/{chatID}/`       | `ChatID` of the chat                   | TO ADD          |
+
+### User Management API
+
+| Method   | URL                                 | User Type   | Path Parameters        | Body Parameters                   | Function Used        |
+|----------|--------------------------------------|-------------|-------------------------|------------------------------------|-----------------------|
+| `POST`   | `/users/register`                    | User        |                         | `username`, `password`, `email`   | `createUser`          |
+| `POST`   | `/users/login`                       | All         |                         | `username`, `password`            | `loginUser`           |
+| `PUT`    | `/users/changepassword/:id`          | All         | `id` (User ID)          | `newPassword`                     | `changePassword`      |
+| `GET`    | `/users`                             | Admin       |                         |                                    | `getAllUsers`         |
+| `GET`    | `/users/username/:username`          | Admin       | `username`              |                                    | `getUserByUsername`   |
+| `PUT`    | `/users/updatedetail/:id`            | Admin        | `id` (User ID)          | `username`, `email`, etc.         | `updateUser`          |
+| `DELETE` | `/users/:id`                         | Admin       | `id` (User ID)          |                                    | `deleteUser`          |
+
+
