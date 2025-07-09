@@ -141,16 +141,16 @@ async function createMedication(medicationData) {
             (@userId, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
         `;
         const request = connection.request();
-        request.input("userId", sql.Int, medicationData.userId);
-        request.input("medicationName", sql.NVarChar, medicationData.medicationName);
-        request.input("medicationDate", sql.Date, medicationData.medicationDate);
-        request.input("medicationTime", sql.Time, medicationData.medicationTime);
-        request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
-        request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
-        request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
-        request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
-        request.input("prescriptionEndDate", sql.Date, medicationData.prescriptionEndDate);
-        request.input("isTaken", sql.Bit, medicationData.isTaken);
+        request.input("userId", sql.Int, medicationData.user_id);
+        request.input("medicationName", sql.NVarChar, medicationData.medication_name);
+        request.input("medicationDate", sql.Date, medicationData.medication_date);
+        request.input("medicationTime", sql.VarChar, medicationData.medication_time);
+        request.input("medicationDosage", sql.NVarChar, medicationData.medication_dosage);
+        request.input("medicationNotes", sql.NVarChar, medicationData.medication_notes);
+        request.input("medicationReminders", sql.Bit, medicationData.medication_reminders);
+        request.input("prescriptionStartDate", sql.Date, medicationData.prescription_startdate);
+        request.input("prescriptionEndDate", sql.Date, medicationData.prescription_enddate);
+        request.input("isTaken", sql.Bit, medicationData.is_taken);
 
         const result = await request.query(query);
         return result.recordset[0];
