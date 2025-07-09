@@ -137,6 +137,7 @@ async function createMedication(medicationData) {
         const query = `
             INSERT INTO Medications 
             (user_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken)
+            OUTPUT INSERTED.*
             VALUES 
             (@userId, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
         `;
@@ -153,6 +154,11 @@ async function createMedication(medicationData) {
         request.input("isTaken", sql.Bit, medicationData.is_taken);
 
         const result = await request.query(query);
+    
+        if (result.recordset.length === 0) {
+            throw new Error("Medication creation failed, no rows inserted.");
+        }
+
         return result.recordset[0];
     }
     catch (error) {
