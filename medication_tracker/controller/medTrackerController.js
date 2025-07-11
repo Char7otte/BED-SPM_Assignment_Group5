@@ -48,25 +48,21 @@ async function getAllMedicationByUser(req, res) {
 async function getDailyMedicationByUser(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-        const date = req.query.date;
 
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
         
-        if (!date) {
-            return res.status(400).json({ error: "Date query parameter is required" });
-        }
-        
-        const dailyMeds = await medTrackerModel.getDailyMedicationByUser(userId, date);
+        const result = await medTrackerModel.getDailyMedicationByUser(userId);
 
-        res.json(dailyMeds);
+        if (result.medications.length === 0) {
+            return res.status(404).json({ error: "No medications found for this user on the specified date" });
+        }
+
+        res.json(result);
     } 
     catch (error) {
-        res.status(500).json({ 
-            error: "Failed to get daily medications",
-            details: error.message 
-        });
+        res.status(500).json({ error: "Failed to get daily medications" });
     }
 };
 

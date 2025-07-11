@@ -67,20 +67,21 @@ async function getAllMedicationByUser(userId) {
     }
 }
 
-async function getDailyMedicationByUser(userId, date) {
+async function getDailyMedicationByUser(userId) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
 
         const currentDate = new Date().toISOString().split('T')[0];
+
         const updateQuery = `
             UPDATE Medications 
             SET medication_date = @currentDate,
                 updated_at = GETDATE()
             WHERE user_id = @userId
-              AND medication_date < @currentDate
               AND is_taken = 0
               AND @currentDate BETWEEN prescription_startdate AND prescription_enddate
+              AND medication_date < @currentDate
         `;
 
         const updateRequest = connection.request();
@@ -89,19 +90,20 @@ async function getDailyMedicationByUser(userId, date) {
         const updateResult = await updateRequest.query(updateQuery);
 
         const getQuery = `
-            SELECT M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
+            SELECT M.medication_id, M.medication_name, M.medication_time, M.medication_dosage, M.prescription_startdate, M.prescription_enddate, M.medication_notes, M.is_taken
             FROM Medications M
-            WHERE M.user_id = @userId AND M.medication_date = @date
+            WHERE M.user_id = @userId AND M.medication_date = @currentDate
+            ORDER BY medication_time ASC
         `;  
+
         const getRequest = connection.request();
         getRequest.input("userId", sql.Int, userId);
-        getRequest.input("date", sql.Date, date);
+        getRequest.input("currentDate", sql.Date, currentDate);
         const result = await getRequest.query(getQuery);
         
         return {
-            date: date,
+            date: currentDate,
             medications: result.recordset,
-            autoUpdated: updateResult.rowsAffected[0]
         }
     }
     catch (error) {
