@@ -86,7 +86,7 @@ async function getDailyMedicationByUser(userId, date) {
         const updateRequest = connection.request();
         updateRequest.input("userId", sql.Int, userId);
         updateRequest.input("currentDate", sql.Date, currentDate);
-        await updateRequest.query(updateQuery);
+        const updateResult = await updateRequest.query(updateQuery);
 
         const getQuery = `
             SELECT M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
@@ -95,13 +95,13 @@ async function getDailyMedicationByUser(userId, date) {
         `;  
         const getRequest = connection.request();
         getRequest.input("userId", sql.Int, userId);
-        getRequest.input("currentDate", sql.Date, currentDate);
+        getRequest.input("date", sql.Date, date);
         const result = await getRequest.query(getQuery);
         
         return {
-            date: currentDate,
+            date: date,
             medications: result.recordset,
-            autoUpdated: result.rowsAffected[0]
+            autoUpdated: updateResult.rowsAffected[0]
         }
     }
     catch (error) {
@@ -364,6 +364,5 @@ module.exports = {
     updateMedication,
     deleteMedication,
     tickOffMedication,
-    searchMedicationByName,
-    updateMedicationDatesToCurrent
+    searchMedicationByName
 };
