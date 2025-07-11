@@ -2,16 +2,16 @@ const medTrackerModel = require('../model/medTrackerModel');
 
 async function getMedicationById(req, res) {
     try {
-        const id = parseInt(req.params.id);
+        const medicationId = parseInt(req.params.medicationId);
         const userId = parseInt(req.params.userId);
-        if (isNaN(id)) {
+        if (isNaN(medicationId)) {
             return res.status(400).json({ error: "Invalid medication ID" });
         }
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
         
-        const medication = await medTrackerModel.getMedicationById(id, userId);
+        const medication = await medTrackerModel.getMedicationById(medicationId, userId);
 
         if (!medication) {
             return res.status(404).json({ error: "Medication not found" });
@@ -119,12 +119,17 @@ async function createMedication(req, res) {
 
 async function updateMedication(req, res) {
     try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)) {
+        const medicationId = parseInt(req.params.medicationId);
+        const userId = parseInt(req.params.userId);
+        
+        if (isNaN(medicationId)) {
             return res.status(400).json({ error: "Invalid medication ID" });
         }
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
 
-        const updatedMedication = await medTrackerModel.updateMedication(id, req.body);
+        const updatedMedication = await medTrackerModel.updateMedication(medicationId, req.body);
 
         if (!updatedMedication) {
             return res.status(404).json({ error: "Medication not found" });
@@ -166,12 +171,17 @@ async function deleteMedication(req, res) {
 
 async function tickOffMedication(req, res) {
     try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)) {
+        const medicationId = parseInt(req.params.medicationId);
+        const userId = parseInt(req.params.userId);
+        
+        if (isNaN(medicationId)) {
             return res.status(400).json({ error: "Invalid medication ID" });
         }
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
 
-        const tickedOffMedication = await medTrackerModel.tickOffMedication(id);
+        const tickedOffMedication = await medTrackerModel.tickOffMedication(medicationId, userId);
 
         if (!tickedOffMedication) {
             return res.status(404).json({ error: "Medication not found" });
