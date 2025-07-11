@@ -71,16 +71,38 @@ async function getDailyMedicationByUser(userId, date) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
-        const query = `
+
+        const currentDate = new Date().toISOString().split('T')[0];
+        const updateQuery = `
+            UPDATE Medications 
+            SET medication_date = @currentDate,
+                updated_at = GETDATE()
+            WHERE user_id = @userId
+              AND medication_date < @currentDate
+              AND is_taken = 0
+              AND @currentDate BETWEEN prescription_startdate AND prescription_enddate
+        `;
+
+        const updateRequest = connection.request();
+        updateRequest.input("userId", sql.Int, userId);
+        updateRequest.input("currentDate", sql.Date, currentDate);
+        await updateRequest.query(updateQuery);
+
+        const getQuery = `
             SELECT M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
             FROM Medications M
             WHERE M.user_id = @userId AND M.medication_date = @date
-        `;
-        const request = connection.request();
-        request.input("userId", sql.Int, userId);
-        request.input("date", sql.Date, date);
-        const result = await request.query(query);
-        return result.recordset;
+        `;  
+        const getRequest = connection.request();
+        getRequest.input("userId", sql.Int, userId);
+        getRequest.input("currentDate", sql.Date, currentDate);
+        const result = await getRequest.query(getQuery);
+        
+        return {
+            date: currentDate,
+            medications: result.recordset,
+            autoUpdated: result.rowsAffected[0]
+        }
     }
     catch (error) {
         console.error("Database error:", error);
@@ -322,38 +344,6 @@ async function searchMedicationByName(userId, medicationName) {
         console.error("Database error:", error);
         throw error;
     } 
-    finally {
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (err) {
-                console.error("Error closing connection:", err);
-            }
-        }
-    }
-}
-
-async function updateMedicationDatesToCurrent(userId, currentDate) {
-    let connection;
-    try {
-        connection = await sql.connect(dbConfig);
-        const query = `
-            UPDATE Medications 
-            SET medication_date = @currentDate
-            WHERE user_id = @userId
-        `;
-        
-        const request = connection.request();
-        request.input("userId", sql.Int, userId);
-        request.input("currentDate", sql.Date, currentDate);
-        const result = await request.query(query);
-        
-        return result.rowsAffected[0] > 0;
-    }
-    catch (error) {
-        console.error("Database error:", error);
-        throw error;
-    }
     finally {
         if (connection) {
             try {
