@@ -1,4 +1,16 @@
 module.exports = {
+    user: "sa",
+    password: "AsherTest@123",
+    server: "localhost",
+    database: "bed_spm",
+    trustServerCertificate: true,
+    options: {
+        port: 1433, // Default SQL Server port
+        connectionTimeout: 60000, // Connection timeout in milliseconds
+    },
+};
+/*
+module.exports = {
     user: "123",
     password: "123",
     server: "DESKTOP-4RFAEEN/SQLEXPRESS",
@@ -9,3 +21,5 @@ module.exports = {
         connectionTimeout: 60000, // Connection timeout in milliseconds
     },
 };
+
+*/

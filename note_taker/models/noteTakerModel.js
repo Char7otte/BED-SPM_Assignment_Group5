@@ -8,7 +8,7 @@ async function getAllNotes() {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
-        const result = await connection.request().query("SELECT * FROM Notes");
+        const result = await connection.request().query("SELECT * FROM Notes;");
         return result.recordset;
     } catch (error) {
         console.error("Database error in getAllNotes:", error); // More specific error logging
@@ -24,14 +24,7 @@ async function getAllNotes() {
     }
 }
 
-/*
 // get note by id
-
-const sql = require("mssql");
-const dbConfig = require("../dbConfig");
-
-// ... existing model functions ...
-
 async function searchNotes(searchTerm) {
     let connection; // Declare connection outside try for finally access
     try {
@@ -41,14 +34,15 @@ async function searchNotes(searchTerm) {
         const query = `
     SELECT *
     FROM Notes
-    WHERE username LIKE '%' + @searchTerm + '%'
-        OR email LIKE '%' + @searchTerm + '%'
+    WHERE NoteTitle LIKE @searchTerm
+        OR NoteContent LIKE @searchTerm
     `;
 
         const request = connection.request();
-        request.input("searchTerm", sql.NVarChar, searchTerm); // Explicitly define type
+        request.input("searchTerm", sql.NVarChar, `%${searchTerm}%`); // Explicitly define type
         const result = await request.query(query);
         return result.recordset;
+        // logic if no notes have searchTerm
     } catch (error) {
         console.error("Database error in searchNotes:", error); // More specific error logging
         throw error; // Re-throw the error for the controller to handle
@@ -74,12 +68,10 @@ module.exports = {
 
 //delete note
 
-*/
-
 // module.exports to export model functions
 module.exports = {
     getAllNotes,
-    // getNoteById,
+    searchNotes,
     // createNote,
     // updateNote,
     // deleteNote

@@ -3,7 +3,7 @@ const noteTakerModel = require("../models/noteTakerModel.js");
 // Get all notes
 async function getAllNotes(req, res) {
     try {
-        const notes = await notesModel.getAllNotes();
+        const notes = await noteTakerModel.getAllNotes();
         res.json(notes);
     } catch (error) {
         console.error("Controller error:", error);
@@ -11,13 +11,14 @@ async function getAllNotes(req, res) {
     }
 }
 
-// Get note by ID
-async function getNoteById(req, res) {
+// search Notes by searchTerm
+async function searchNotes(req, res) {
     try {
-        const id = parseInt(req.params.id);
-        const note = await noteModel.getNoteById(id);
-        if (!note) {
-            return res.status(404).json({ error: "Note not found" });
+        const searchTerm = req.params.search?.trim();
+        console.log("Searching for notes with term:", searchTerm);
+        const note = await noteTakerModel.searchNotes(searchTerm);
+        if (!note || note.length === 0) {
+            return res.status(404).json({ error: `There are no notes with ${searchTerm}` });
         }
 
         res.json(note);
@@ -35,3 +36,9 @@ async function getNoteById(req, res) {
 
 // Delete a note
 
+module.exports = {
+    getAllNotes,
+    searchNotes,
+    //getNoteById,
+    // add other functions here
+};
