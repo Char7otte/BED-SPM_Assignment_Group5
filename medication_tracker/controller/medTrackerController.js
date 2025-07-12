@@ -75,7 +75,7 @@ async function getWeeklyMedicationByUser(req, res) {
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
-        
+
         const weeklyMedications = await medTrackerModel.getWeeklyMedicationByUser(userId, startDate, endDate);
 
         if (!weeklyMedications || weeklyMedications.length === 0) {
@@ -113,7 +113,12 @@ async function updateMedication(req, res) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
 
-        const updatedMedication = await medTrackerModel.updateMedication(medicationId, req.body);
+        const medicationData = {
+        ...req.body,
+        userId: userId
+        };
+
+        const updatedMedication = await medTrackerModel.updateMedication(medicationId, medicationData);
 
         if (!updatedMedication) {
             return res.status(404).json({ error: "Medication not found" });

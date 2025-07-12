@@ -183,7 +183,7 @@ async function getWeeklyMedicationByUser(userId, startDate = null, endDate = nul
         request.input("userId", sql.Int, userId);
         request.input("startDate", sql.Date, startDate);
         request.input("endDate", sql.Date, endDate);
-        
+
         const result = await request.query(query);
         return result.recordset;
     }
@@ -273,7 +273,7 @@ async function updateMedication(medicationId, medicationData) {
         request.input("userId", sql.Int, medicationData.userId);
         request.input("medicationName", sql.NVarChar, medicationData.medicationName);
         request.input("medicationDate", sql.Date, medicationData.medicationDate);
-        request.input("medicationTime", sql.Time, medicationData.medicationTime);
+        request.input("medicationTime", sql.VarChar, medicationData.medicationTime);
         request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
         request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
         request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
