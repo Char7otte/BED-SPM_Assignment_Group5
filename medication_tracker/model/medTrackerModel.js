@@ -76,8 +76,7 @@ async function getDailyMedicationByUser(userId) {
 
         const updateQuery = `
             UPDATE Medications 
-            SET medication_date = @currentDate,
-                updated_at = GETDATE()
+            SET medication_date = @currentDate, updated_at = GETDATE()
             WHERE user_id = @userId
               AND is_taken = 0
               AND @currentDate BETWEEN prescription_startdate AND prescription_enddate
@@ -122,19 +121,69 @@ async function getDailyMedicationByUser(userId) {
     }
 }
 
-async function getWeeklyMedicationByUser(userId, startDate, endDate) {
-    let connection; 
+async function getCurrentWeekRange() {
+    let connection;
     try {
         connection = await sql.connect(dbConfig);
+        const today = new Date();
+        const day = today.getDay();
+        const diffToMonday = day === 0 ? -6 : 1 - day;
+
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + diffToMonday);
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        return {
+            startDate: monday.toISOString().split('T')[0],
+            endDate: sunday.toISOString().split('T')[0]
+        }
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function getWeeklyMedicationByUser(userId, startDate = null, endDate = null) {
+    let connection; 
+    try {
+        if (!startDate || !endDate) {
+            const range = await getCurrentWeekRange();
+            startDate = range.startDate;
+            endDate = range.endDate;
+        }
+        else {
+            startDate = new Date(startDate).toISOString().split('T')[0];
+            endDate = new Date(endDate).toISOString().split('T')[0];
+        }
+
+        connection = await sql.connect(dbConfig);
         const query = `
-            SELECT M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
+            SELECT M.medication_date, M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
             FROM Medications M
             WHERE M.user_id = @userId AND M.medication_date BETWEEN @startDate AND @endDate
+            ORDER BY M.medication_date, M.medication_time
         `;
+
         const request = connection.request();
         request.input("userId", sql.Int, userId);
         request.input("startDate", sql.Date, startDate);
         request.input("endDate", sql.Date, endDate);
+        
         const result = await request.query(query);
         return result.recordset;
     }

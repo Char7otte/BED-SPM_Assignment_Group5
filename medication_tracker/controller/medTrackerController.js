@@ -69,16 +69,13 @@ async function getDailyMedicationByUser(req, res) {
 async function getWeeklyMedicationByUser(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-        const startDate = req.query.startDate;
-        const endDate = req.query.endDate;
+        const startDate = req.query.startDate || null;
+        const endDate = req.query.endDate || null;
 
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
-        if (!startDate || !endDate) {
-            return res.status(400).json({ error: "Start and end date query parameters are required" });
-        }
-
+        
         const weeklyMedications = await medTrackerModel.getWeeklyMedicationByUser(userId, startDate, endDate);
 
         if (!weeklyMedications || weeklyMedications.length === 0) {
