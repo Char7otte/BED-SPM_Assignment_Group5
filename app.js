@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
-app.get("/medications/search", medTrackerController.searchMedicationByName);
+app.get("/medications/user/:userId/search", medTrackerController.searchMedicationByName);
 app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
 
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);

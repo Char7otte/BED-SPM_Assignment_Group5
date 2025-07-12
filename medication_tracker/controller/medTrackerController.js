@@ -186,13 +186,18 @@ async function tickOffMedication(req, res) {
 
 async function searchMedicationByName(req, res) {
     try {
+        const userId = parseInt(req.params.userId);
         const name = req.query.name;
+        
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
         
         if (!name) {
             return res.status(400).json({ error: "Medication name query parameter is required" });
         }
 
-        const medications = await medTrackerModel.searchMedicationByName(name);
+        const medications = await medTrackerModel.searchMedicationByName(userId, name);
 
         if (!medications || medications.length === 0) {
             return res.status(404).json({ error: "No medications found with the specified name" });
