@@ -1,16 +1,18 @@
 const sql = require("mssql");
 const dbConfig = require("../../dbConfig");
 
-// Get all appointments
-async function getAllAppointments() {
+// Get all appointments for a user
+async function getAllAppointmentsByUser(userId) {
   let connection;
   try {
     connection = await sql.connect(dbConfig);
     const query = 
     `SELECT appointment_date, appointment_title, doctor, start_time, end_time, location, notes 
      FROM MedAppointments 
-     ORDER BY appointment_date, start_time`; 
+     WHERE user_id = @user_id
+     ORDER BY appointment_date, start_time ASC`; // Order by date and time
     const request = connection.request();
+    request.input("user_id", userId);
     const result = await request.query(query);
     return result.recordset;
     
@@ -29,17 +31,18 @@ async function getAllAppointments() {
 }
 
 // Get appointment by date 
-async function getAppointmentByDate(date) {
+async function getAppointmentByDate(date, userId) {
   let connection;
   try {
     connection = await sql.connect(dbConfig);
     const query = 
     `SELECT appointment_date, appointment_title, doctor, start_time, end_time, location, notes 
      FROM MedAppointments 
-     WHERE appointment_date = @appointment_date 
+     WHERE appointment_date = @appointment_date AND user_id = @user_id
      ORDER BY start_time`; 
     const request = connection.request();
     request.input("appointment_date", date);
+    request.input("user_id", userId);
     const result = await request.query(query);
 
     if (result.recordset.length === 0) {
@@ -61,7 +64,7 @@ async function getAppointmentByDate(date) {
   }
 }
 
-// Get appointment by id
+// Get appointment by appointment id
 async function getAppointmentById(id) {
   let connection;
   try {
@@ -94,7 +97,7 @@ async function getAppointmentById(id) {
 }
 
 // Create new appointment
-async function createAppointment(appointmentData) {
+async function createAppointment(userId, appointmentData) {
   let connection;
   try {
     connection = await sql.connect(dbConfig);
@@ -103,7 +106,7 @@ async function createAppointment(appointmentData) {
        VALUES (@user_id, @appointment_date, @appointment_title, @doctor, @start_time, @end_time, @location, @notes); 
        SELECT SCOPE_IDENTITY() AS appointment_id;`;
     const request = connection.request();
-    request.input("user_id", appointmentData.user_id);
+    request.input("user_id", userId);
     request.input("appointment_date", appointmentData.appointment_date);
     request.input("appointment_title", appointmentData.appointment_title);
     request.input("doctor", appointmentData.doctor);
@@ -130,17 +133,18 @@ async function createAppointment(appointmentData) {
     }
 }
 
-// Update appointment by id
-async function updateAppointment(id, appointmentData){
+// Update appointment by appointment id
+async function updateAppointment(id, userId, appointmentData){
     let connection;
     try{
         connection = await sql.connect(dbConfig);
         const query = 
         `UPDATE MedAppointments 
          SET appointment_date = @appointment_date, appointment_title = @appointment_title, doctor = @doctor, start_time = @start_time, end_time = @end_time, location = @location, notes = @notes 
-         WHERE appointment_id = @appointment_id`;
+         WHERE appointment_id = @appointment_id AND user_id = @user_id`;
         const request = connection.request();
         request.input("appointment_id", id);
+        request.input("user_id", userId);
         request.input("appointment_date", appointmentData.appointment_date);
         request.input("appointment_title", appointmentData.appointment_title);
         request.input("doctor", appointmentData.doctor);
@@ -169,14 +173,15 @@ async function updateAppointment(id, appointmentData){
     }
 }
 
-// Delete appointment by id
-async function deleteAppointment(id){
+// Delete appointment by appointment id
+async function deleteAppointment(id, userId) {
     let connection;
-    try{
+    try {
         connection = await sql.connect(dbConfig);
-        const query = "DELETE FROM MedAppointments WHERE appointment_id = @appointment_id";
+        const query = "DELETE FROM MedAppointments WHERE appointment_id = @appointment_id AND user_id = @user_id";
         const request = connection.request();
         request.input("appointment_id", id);
+        request.input("user_id", userId);
         const result = await request.query(query);
 
         if(result.rowsAffected[0] === 0){
@@ -199,7 +204,7 @@ async function deleteAppointment(id){
 
 
 module.exports = {
-  getAllAppointments,
+  getAllAppointmentsByUser,
   getAppointmentByDate,
   getAppointmentById,
   createAppointment,

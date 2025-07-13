@@ -5,14 +5,14 @@ const Joi = BaseJoi.extend(JoiDate);
 
 // Validation schema for appointments (used for POST/PUT)
 const medAppointmentSchema = Joi.object({
-  //do i include user_id in the schema? if yes, do I also add it for update/PUT sql
-    user_id: Joi.string().min(1).max(50).required().messages({
-        "string.base": "User ID must be a string",
-        "string.empty": "User ID cannot be empty",
-        "string.min": "User ID must be at least 1 character long",
-        "string.max": "User ID cannot exceed 50 characters",
-        "any.required": "User ID is required",
-    }),
+  // do i include user_id in the schema? if yes, do I also add it for update/PUT sql
+  //   user_id: Joi.string().min(1).max(50).required().messages({
+  //       "string.base": "User ID must be a string",
+  //       "string.empty": "User ID cannot be empty",
+  //       "string.min": "User ID must be at least 1 character long",
+  //       "string.max": "User ID cannot exceed 50 characters",
+  //       "any.required": "User ID is required",
+  //   }),
     appointment_date: Joi.date().format('YYYY-MM-DD').required()
     .custom((value, helpers) => {
       const today = new Date();
@@ -77,6 +77,43 @@ function validateMedAppointment(req, res, next) {
       .map((detail) => detail.message)
       .join(", ");
     return res.status(400).json({ error: errorMessage });
+  }
+
+  next();
+}
+
+// Middleware to check if user can access the specified user's appointments
+function validateUserAccess(req, res, next) {
+  const requestedUserId = parseInt(req.params.user_id);
+  const authenticatedUserId = req.user.id; // From JWT token
+  const userRole = req.user.role; // From JWT token
+
+  // Admin can access any user's appointments
+  if (userRole === 'A') {
+    return next();
+  }
+
+  // Users can only access their own appointments
+  if (authenticatedUserId === requestedUserId) {
+    return next();
+  }
+
+  // If user is trying to access someone else's appointments
+  return res.status(403).json({ 
+    error: "Access denied. You can only view your own appointments." 
+  });
+}
+
+// Middleware to validate user ID from URL parameters
+function validateMedAppointmentUserId(req, res, next) {
+  // Parse the user ID from request parameters
+  const userId = parseInt(req.params.user_id);
+
+  // Check if the parsed user ID is a valid positive number
+  if (isNaN(userId) || userId <= 0) {
+    return res
+      .status(400)
+      .json({ error: "Invalid user ID. ID must be a positive number" });
   }
 
   next();
