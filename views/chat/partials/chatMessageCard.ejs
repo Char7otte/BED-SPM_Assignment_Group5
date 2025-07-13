@@ -1,5 +1,14 @@
-<div class="card p-4">
+<div class="card p-4 message-card">
     <p>Sender ID: <%= senderID %></p>
     <p>Message: <%= message %></p>
     <p>Time: <%= sentDateTime %></p>
+    <form action="/chats/<%= chatID %>?_method=PATCH" method="POST" class="edit-message-form">
+        <input type="hidden" name="messageID" value="<%= messageID %>" />
+        <input type="hidden" name="message" value="<%= message %>" />
+        <button class="button" type="submit">Edit</button>
+    </form>
+    <form action="/chats/<%= chatID %>?_method=DELETE" method="POST" class="delete-message-form">
+        <input type="hidden" name="messageID" value="<%= messageID %>" />
+        <button class="button" type="submit">Delete</button>
+    </form>
 </div>
