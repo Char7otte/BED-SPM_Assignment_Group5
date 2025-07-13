@@ -14,10 +14,18 @@ const userController = require("./users/controllers/userController");
 const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
 
 
-
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
+
+
+//import medical appointment functions 
+const medAppointmentController = require("./health-appointment-calendar/controllers/medAppointmentController");
+const {
+  validateMedAppointment,
+  validateMedAppointmentId,
+} = require("./health-appointment-calendar/middlewares/medAppointmentValidation");
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -58,6 +66,14 @@ app.get("/chats/:chatID", chatMessageController.getAllMessagesInAChat);
 app.post("/chats/:chatID", chatMessageController.createMessage);
 app.delete("/chats/:chatID", chatMessageController.deleteMessage);
 app.patch("/chats/:chatID", chatMessageController.editMessage);
+
+
+//routes for medical appointments
+app.get("/med-appointments", medAppointmentController.getAllAppointments);
+app.get("/med-appointments/:date", medAppointmentController.getAppointmentByDate);
+app.post("/med-appointments", validateMedAppointment, medAppointmentController.createAppointment);
+app.put("/med-appointments/:appointment_id", validateMedAppointmentId, validateMedAppointment, medAppointmentController.updateAppointment);
+app.delete("/med-appointments/:appointment_id", validateMedAppointmentId, medAppointmentController.deleteAppointment);
 
 
 app.listen(port, () => {
