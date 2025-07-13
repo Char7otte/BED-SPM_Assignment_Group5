@@ -25,6 +25,8 @@ app.get("/", (req, res) => {
 // Asher's Note Taker routes
 //app.get("/notes", noteTakerController.getAllNotes);
 app.get("/notes", noteTakerController.searchNotes);
+app.post("/notes", noteTakerController.createNote);
+app.delete("/notes/:id", noteTakerController.deleteNote);
 // add other routes here
 
 app.listen(port, () => {

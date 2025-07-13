@@ -24,7 +24,7 @@ async function getAllNotes() {
     }
 }
 
-// get note by id
+// get note by search term
 async function searchNotes(searchTerm) {
     let connection; // Declare connection outside try for finally access
     try {
@@ -57,22 +57,71 @@ async function searchNotes(searchTerm) {
     }
 }
 
-module.exports = {
-    // ... existing exports ...
-    searchNotes,
-};
-
 // create note
+async function createNote(noteData) {
+    let connection; // Declare connection outside try for finally access
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            INSERT INTO Notes (user_id, NoteTitle, NoteContent, CreatedDate, LastEditedDate)
+            VALUES (@user_id, @NoteTitle, @NoteContent, GETDATE(), GETDATE());
+            SELECT SCOPE_IDENTITY() AS NoteID; -- Get the ID of the newly inserted note
+        `;
+        const request = connection.request();
+        request.input("user_id", sql.Int, noteData.user_id);
+        request.input("NoteTitle", sql.NVarChar, noteData.NoteTitle);
+        request.input("NoteContent", sql.NVarChar, noteData.NoteContent);
+        const result = await request.query(query);
+        return { id: result.recordset[0].NoteID, ...noteData }; // Return the new note with its ID
+    } catch (error) {
+        console.error("Database error in createNote:", error); // More specific error logging
+        throw error; // Re-throw the error for the controller to handle
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection after createNote:", err);
+            }
+        }
+    }
+}
 
 // update note
 
 //delete note
+async function deleteNote(noteId) {
+    let connection; // Declare connection outside try for finally access
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            DELETE FROM Notes
+            WHERE NoteID = @noteId;
+        `;
+        const request = connection.request();
+        request.input("noteId", sql.Int, noteId);
+        await request.query(query);
+        return { message: "Note deleted successfully" };
+    } catch (error) {
+        console.error("Database error in deleteNote:", error); // More specific error logging
+        throw error; // Re-throw the error for the controller to handle
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection after deleteNote:", err);
+            }
+        }
+    }
+
+}
 
 // module.exports to export model functions
 module.exports = {
     getAllNotes,
     searchNotes,
-    // createNote,
+    createNote,
     // updateNote,
-    // deleteNote
+    deleteNote
 }
