@@ -11,12 +11,13 @@
                 <div class="columns">
                     <div class="column is-half is-offset-one-quarter">
                         <h1 class="title">You are in Chat <%= chatID %>.</h1>
-                                    <%- include("./partials/chatMessageCard",{senderID: m.SenderID, message: m.Message, sentDateTime: m.SentDateTime})
                         <section class="messages">
                             <div class="fixed-grid has-1-cols">
                                 <div class="grid">
                                     <%for (const m of messageData) {%>
                                     <div class="cell">
+                                        <%- include("./partials/chatMessageCard",{chatID, messageID:m.message_id, senderID: m.sender_id, message:
+                                        m.message, sentDateTime: m.sent_date_time}) %>
                                     </div>
                                     <%}%>
                                 </div>
