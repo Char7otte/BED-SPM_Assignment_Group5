@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 });
 
 // Asher's Note Taker routes
-app.get("/notes", noteTakerController.getAllNotes);
+//app.get("/notes", noteTakerController.getAllNotes);
 app.get("/notes", noteTakerController.searchNotes);
 // add other routes here
 

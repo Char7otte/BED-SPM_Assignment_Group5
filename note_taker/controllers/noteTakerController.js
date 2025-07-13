@@ -14,10 +14,16 @@ async function getAllNotes(req, res) {
 // search Notes by searchTerm
 async function searchNotes(req, res) {
     try {
-        const searchTerm = req.params.search?.trim();
+        const searchTerm = req.query.search?.trim();
+        console.log("Search term:", `"${searchTerm}"`);
+        // check if searchTerm is empty
+        if (searchTerm === "") {
+            return res.status(400).json({ error: "Search term cannot be empty" });
+        }
         console.log("Searching for notes with term:", searchTerm);
         const note = await noteTakerModel.searchNotes(searchTerm);
-        if (!note || note.length === 0) {
+        // check if there are notes with the searchTerm
+        if (!note) {
             return res.status(404).json({ error: `There are no notes with ${searchTerm}` });
         }
 
