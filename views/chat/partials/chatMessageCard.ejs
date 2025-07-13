@@ -2,4 +2,8 @@
     <p>Sender ID: <%= senderID %></p>
     <p>Message: <%= message %></p>
     <p>Time: <%= sentDateTime %></p>
+    <form action="/chats/<%= chatID %>?_method=DELETE" method="POST" class="delete-message-form">
+        <input type="hidden" name="messageID" value="<%= messageID %>" />
+        <button class="button" type="submit">Delete</button>
+    </form>
 </div>
