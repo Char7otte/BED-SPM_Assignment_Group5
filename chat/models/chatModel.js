@@ -8,7 +8,8 @@ async function getAllChats() {
         const query = `SELECT c.chat_id, c.helpee_id, u.username, c.status, c.created_date_time, c.last_activity_date_time
         FROM Chats c
         INNER JOIN Users u
-        ON c.helpee_id = u.user_id`;
+        ON c.helpee_id = u.user_id
+        WHERE is_deleted = 0`;
         const request = connection.request();
         const result = await request.query(query);
         return result.recordset;
@@ -75,7 +76,7 @@ async function deleteChat(chatID) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `DELETE FROM Chats WHERE chat_id = @chatID`;
+        const query = `UPDATE Chats SET is_deleted = 1 WHERE chat_id = @chatID`;
         const request = connection.request();
         request.input("chatID", chatID);
         const result = await request.query(query);
