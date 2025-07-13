@@ -18,8 +18,8 @@ const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
 
 //import medical appointment functions
-const medAppointmentController = require("./health-appointment-calendar/controllers/medAppointmentController");
-const { validateMedAppointment, validateMedAppointmentId } = require("./health-appointment-calendar/middlewares/medAppointmentValidation");
+const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
+const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
 
 
 const app = express();

@@ -5,14 +5,6 @@ const Joi = BaseJoi.extend(JoiDate);
 
 // Validation schema for appointments (used for POST/PUT)
 const medAppointmentSchema = Joi.object({
-  // do i include user_id in the schema? if yes, do I also add it for update/PUT sql
-  //   user_id: Joi.string().min(1).max(50).required().messages({
-  //       "string.base": "User ID must be a string",
-  //       "string.empty": "User ID cannot be empty",
-  //       "string.min": "User ID must be at least 1 character long",
-  //       "string.max": "User ID cannot exceed 50 characters",
-  //       "any.required": "User ID is required",
-  //   }),
     appointment_date: Joi.date().format('YYYY-MM-DD').required()
     .custom((value, helpers) => {
       const today = new Date();
