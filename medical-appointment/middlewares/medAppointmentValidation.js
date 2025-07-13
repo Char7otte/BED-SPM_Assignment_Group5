@@ -74,43 +74,6 @@ function validateMedAppointment(req, res, next) {
   next();
 }
 
-// Middleware to check if user can access the specified user's appointments
-function validateUserAccess(req, res, next) {
-  const requestedUserId = parseInt(req.params.user_id);
-  const authenticatedUserId = req.user.id; // From JWT token
-  const userRole = req.user.role; // From JWT token
-
-  // Admin can access any user's appointments
-  if (userRole === 'A') {
-    return next();
-  }
-
-  // Users can only access their own appointments
-  if (authenticatedUserId === requestedUserId) {
-    return next();
-  }
-
-  // If user is trying to access someone else's appointments
-  return res.status(403).json({ 
-    error: "Access denied. You can only view your own appointments." 
-  });
-}
-
-// Middleware to validate user ID from URL parameters
-function validateMedAppointmentUserId(req, res, next) {
-  // Parse the user ID from request parameters
-  const userId = parseInt(req.params.user_id);
-
-  // Check if the parsed user ID is a valid positive number
-  if (isNaN(userId) || userId <= 0) {
-    return res
-      .status(400)
-      .json({ error: "Invalid user ID. ID must be a positive number" });
-  }
-
-  next();
-}
-
 // Middleware to validate appointment ID from URL parameters (for PUT, DELETE)
 function validateMedAppointmentId(req, res, next) {
   // Parse the ID from request parameters
