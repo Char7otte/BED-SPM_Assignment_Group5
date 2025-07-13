@@ -18,7 +18,7 @@ async function createMessage(req, res) {
         const isSent = await chatMessageModel.createMessage(chatID, senderID, message);
 
         if (!isSent) return res.status(400).send("Error sending message");
-        return res.status(201).send("Message sent!");
+        return res.redirect(`/chats/${chatID}`);
     } catch (error) {
         console.log("Controller error: ", error);
         return res.status(500).send("Error sending message");
@@ -31,7 +31,7 @@ async function editMessage(req, res) {
         const { messageID, message } = req.body;
         const isEdited = await chatMessageModel.editMessage(chatID, messageID, message);
         if (!isEdited) return res.status(400).send("Error editting message");
-        return res.status(204).end();
+        return res.redirect(`/chats/${chatID}`);
     } catch (error) {
         console.log("Controller error: ", error);
         return res.status(500).send("Error updating message");
