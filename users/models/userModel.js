@@ -65,7 +65,7 @@ async function getUserByUsername(username) {
     let conn;
     try {
         conn = await sql.connect(dbConfig);
-        const query = "SELECT user_id, username, phone_number, password, joined_date, age FROM Users WHERE username = @username";
+        const query = "SELECT user_id, username, phone_number, password, joined_date, age, gender, role FROM Users WHERE username = @username";
         const result = await conn.request()
             .input("username", sql.NVarChar, username)
             .query(query);

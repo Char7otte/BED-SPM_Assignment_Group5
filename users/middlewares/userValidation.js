@@ -40,10 +40,40 @@ function verifyJWT(req, res, next) {
       //user management
       'GET /users': ['A'], // Only Admin can get all users
       'PUT /users/updatedetail/[0-9]+': ['A'], // Admin can update user details
-      'DELETE /users/[0-9]+': ['A'] // Only Admin can delete users
+      'DELETE /users/[0-9]+': ['A'], // Only Admin can delete users
 
-      // Add more endpoints and roles as needed
+      // Medical appointments - Only Users can access
+      'GET /med-appointments': ['U'],
+      'GET /med-appointments/.*': ['U'], // Match any date format
+      'POST /med-appointments': ['U'],
+      'PUT /med-appointments/[0-9]+': ['U'],
+      'DELETE /med-appointments/[0-9]+': ['U']
     };
+
+    // Check if the current route requires role-based authorization
+    const currentRoute = `${req.method} ${req.path}`;
+    
+    const matchingRole = Object.keys(authorizedRoles).find(route => {
+      // Only replace [a-zA-Z0-9]+ with [\\w-]+, keep [0-9]+ as is
+      let regexPattern = route.replace(/\[a-zA-Z0-9\]\+/g, '[\\w-]+');
+      regexPattern = regexPattern.replace(/\[0-9\]\+/g, '[0-9]+');
+      const regex = new RegExp(`^${regexPattern}$`);
+      return regex.test(currentRoute);
+    });
+
+    if (matchingRole) {
+      const requiredRoles = authorizedRoles[matchingRole];
+      const userRole = decoded.role;
+      
+      if (!requiredRoles.includes(userRole)) {
+        return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+      }
+    } else {
+      // For medical appointment routes, if no explicit authorization rule is found, deny access
+      if (currentRoute.includes('/med-appointments')) {
+        return res.status(403).json({ message: 'Access denied. No authorization rule defined for this route.' });
+      }
+    }
 
     req.user = decoded;
     next();
