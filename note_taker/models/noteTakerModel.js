@@ -40,7 +40,7 @@ async function getNotesById(noteId) {
         const request = connection.request();
         request.input("noteId", sql.Int, noteId);
         const result = await request.query(query);
-        return result.recordset;
+        return result.recordset[0]; // Return the first note found (there should only be one)
         // logic if no notes with id is found
     } catch (error) {
         console.error("Database error in getNotesById:", error); // More specific error logging

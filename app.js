@@ -29,6 +29,7 @@ app.get("/notes/:id", noteTakerController.getNotesById);
 app.post("/notes", noteTakerController.createNote);
 app.delete("/notes/:id", noteTakerController.deleteNote);
 app.put("/notes/:id", noteTakerController.updateNote);
+app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 // add other routes here
 
 app.listen(port, () => {

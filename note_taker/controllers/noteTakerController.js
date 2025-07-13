@@ -117,12 +117,49 @@ async function deleteNote(req, res) {
     }
 }
 
+// more functionality
+
+// export note functions
+// export note as .md file
+async function exportNoteAsMarkdown(req, res) {
+    try {
+        const noteId = req.params.id;
+        console.log("Exporting note with ID:", noteId);
+
+        // basic validation for noteId
+        if (!noteId) {
+            return res.status(400).json({ error: "Note ID is required" });
+        }
+
+        const note = await noteTakerModel.getNotesById(noteId);
+        console.log("Fetched note:", note);
+        if (!note) {
+            return res.status(404).json({ error: "Note not found" });
+        }
+
+        // Logic to convert note to markdown format
+        const markdownContent = `# ${note.NoteTitle}\n\n${note.NoteContent}`;
+
+        // Set headers for file download
+        res.setHeader('Content-disposition', `attachment; filename=Note-${note.NoteTitle}-${noteId}.md`);
+        res.setHeader('Content-type', 'text/markdown');
+
+        res.send(markdownContent);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error exporting note" });
+    }
+}
+
 // module exports
 module.exports = {
+    // basic crud operations
     getAllNotes,
     getNotesById,
     searchNotes,
     createNote,
     updateNote,
-    deleteNote
+    deleteNote,
+    // export functions
+    exportNoteAsMarkdown
 };
