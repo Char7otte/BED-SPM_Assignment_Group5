@@ -179,6 +179,43 @@ async function deleteNote(noteId) {
 
 }
 
+// bulk actions
+// bulk delete notes
+async function bulkDeleteNotes(noteIds) {
+    let connection; // Declare connection outside try for finally access
+    try {
+        connection = await sql.connect(dbConfig);
+        const request = connection.request();
+
+        //
+        const allNoteIds = noteIds.map((id, index) => {
+            const aNoteId = `id${index}`;
+            request.input(aNoteId, sql.Int, id);
+            return `@${aNoteId}`;
+            // return `@id1... @idN` etc for parameterized query
+        });
+
+        const query = `
+            DELETE FROM Notes
+            WHERE NoteID IN (${allNoteIds.join(", ")});
+        `;
+        // join all note IDs into a single string for the IN clause
+        await request.query(query);
+        return { message: "Notes deleted successfully" };
+    } catch (error) {
+        console.error("Database error in bulkDeleteNotes:", error); // More specific error logging
+        throw error; // Re-throw the error for the controller to handle
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection after bulkDeleteNotes:", err);
+            }
+        }
+    }
+}
+
 // module.exports to export model functions
 module.exports = {
     getAllNotes,
@@ -186,5 +223,6 @@ module.exports = {
     searchNotes,
     createNote,
     updateNote,
-    deleteNote
+    deleteNote,
+    bulkDeleteNotes,
 }

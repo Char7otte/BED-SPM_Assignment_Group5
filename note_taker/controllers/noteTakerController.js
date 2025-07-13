@@ -151,6 +151,25 @@ async function exportNoteAsMarkdown(req, res) {
     }
 }
 
+// bulk actions
+// bulk delete notes
+async function bulkDeleteNotes(req, res) {
+    try {
+        const noteIds = req.body.noteIds; // Expecting an array of note IDs
+        console.log("Bulk deleting notes with IDs:", noteIds);
+
+        if (!Array.isArray(noteIds) || noteIds.length === 0) {
+            return res.status(400).json({ error: "Invalid or empty note IDs array" });
+        }
+
+        await noteTakerModel.bulkDeleteNotes(noteIds);
+        res.status(200).json({ message: "Notes deleted successfully" });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error deleting notes" });
+    }
+}
+
 // module exports
 module.exports = {
     // basic crud operations
@@ -161,5 +180,7 @@ module.exports = {
     updateNote,
     deleteNote,
     // export functions
-    exportNoteAsMarkdown
+    exportNoteAsMarkdown,
+    // bulk actions
+    bulkDeleteNotes
 };
