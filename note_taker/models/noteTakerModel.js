@@ -24,6 +24,38 @@ async function getAllNotes() {
     }
 }
 
+// get note by id
+async function getNotesById(noteId) {
+    let connection; // Declare connection outside try for finally access
+    try {
+        connection = await sql.connect(dbConfig);
+
+        // Use parameterized query to prevent SQL injection
+        const query = `
+    SELECT *
+    FROM Notes
+    WHERE NoteID = @noteId
+    `;
+
+        const request = connection.request();
+        request.input("noteId", sql.Int, noteId);
+        const result = await request.query(query);
+        return result.recordset;
+        // logic if no notes with id is found
+    } catch (error) {
+        console.error("Database error in getNotesById:", error); // More specific error logging
+        throw error; // Re-throw the error for the controller to handle
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection after getNotesById:", err);
+            }
+        }
+    }
+}
+
 // get note by search term
 async function searchNotes(searchTerm) {
     let connection; // Declare connection outside try for finally access
@@ -150,6 +182,7 @@ async function deleteNote(noteId) {
 // module.exports to export model functions
 module.exports = {
     getAllNotes,
+    getNotesById,
     searchNotes,
     createNote,
     updateNote,

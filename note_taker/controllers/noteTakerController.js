@@ -11,6 +11,29 @@ async function getAllNotes(req, res) {
     }
 }
 
+// get note by id
+async function getNotesById(req, res) {
+    try {
+        const noteId = parseInt(req.params.id);
+        console.log("Search term:", `"${noteId}"`);
+        // check if searchTerm is empty
+        // if (searchTerm === "") {
+        //     return res.status(400).json({ error: "Search term cannot be empty" });
+        // }
+        console.log("Searching for notes with term:", noteId);
+        const note = await noteTakerModel.getNotesById(noteId);
+        // check if there are notes with the searchTerm
+        if (!note) {
+            return res.status(404).json({ error: `There are no notes with ${noteId}` });
+        }
+
+        res.json(note);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving note" });
+    }
+}
+
 // search Notes by searchTerm
 async function searchNotes(req, res) {
     try {
@@ -97,6 +120,7 @@ async function deleteNote(req, res) {
 // module exports
 module.exports = {
     getAllNotes,
+    getNotesById,
     searchNotes,
     createNote,
     updateNote,
