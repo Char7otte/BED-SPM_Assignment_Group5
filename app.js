@@ -27,6 +27,7 @@ app.get("/", (req, res) => {
 app.get("/notes", noteTakerController.searchNotes);
 app.post("/notes", noteTakerController.createNote);
 app.delete("/notes/:id", noteTakerController.deleteNote);
+app.put("/notes/:id", noteTakerController.updateNote);
 // add other routes here
 
 app.listen(port, () => {

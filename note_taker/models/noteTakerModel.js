@@ -88,6 +88,36 @@ async function createNote(noteData) {
 }
 
 // update note
+async function updateNote(noteId, updatedNoteData) {
+    let connection; // Declare connection outside try for finally access
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Notes
+            SET NoteTitle = @NoteTitle,
+                NoteContent = @NoteContent,
+                LastEditedDate = GETDATE()
+            WHERE NoteID = @noteId;
+        `;
+        const request = connection.request();
+        request.input("noteId", sql.Int, noteId);
+        request.input("NoteTitle", sql.NVarChar, updatedNoteData.NoteTitle);
+        request.input("NoteContent", sql.NVarChar, updatedNoteData.NoteContent);
+        await request.query(query);
+        return { message: "Note updated successfully" };
+    } catch (error) {
+        console.error("Database error in updateNote:", error); // More specific error logging
+        throw error; // Re-throw the error for the controller to handle
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection after updateNote:", err);
+            }
+        }
+    }
+}
 
 //delete note
 async function deleteNote(noteId) {
@@ -122,6 +152,6 @@ module.exports = {
     getAllNotes,
     searchNotes,
     createNote,
-    // updateNote,
+    updateNote,
     deleteNote
 }

@@ -54,6 +54,26 @@ async function createNote(req, res) {
 }
 
 // Update an existing note
+async function updateNote(req, res) {
+    try {
+        const noteId = req.params.id;
+        const updatedNoteData = req.body;
+        console.log("Updating note with ID:", noteId, "with data:", updatedNoteData);
+        // Basic validation for noteId and updatedNoteData
+        if (!noteId || !updatedNoteData || Object.keys(updatedNoteData).length === 0) {
+            return res.status(400).json({ error: "Note ID and updated data are required" });
+        }
+
+        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData);
+        if (!updatedNote) {
+            return res.status(404).json({ error: "Note not found" });
+        }
+        res.json({ message: "Note updated successfully", note: updatedNote });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error updating note" });
+    }
+}
 
 // Delete a note
 async function deleteNote(req, res) {
@@ -79,6 +99,6 @@ module.exports = {
     getAllNotes,
     searchNotes,
     createNote,
-    // updateNote, 
+    updateNote,
     deleteNote
 };
