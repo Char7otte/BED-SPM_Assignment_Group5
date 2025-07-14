@@ -47,4 +47,15 @@ HTML files go in views.
 | `PUT`    | `/users/updatedetail/:id`            | Admin        | `id` (User ID)          | `username`, `email`, etc.         | `updateUser`          |
 | `DELETE` | `/users/:id`                         | Admin       | `id` (User ID)          |                                    | `deleteUser`          |
 
+### Note Taker API
+
+| Request                          | URL                      | Path Parameters                        | Body Parameters |
+| -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
+| `GET` Get all notes              | `/notes`                 |                                        | 
+| `POST` Create a new note         | `/notes`                 |                                        | `user_id`, `NoteTitle`, `NoteContent`
+| `DELETE` Delete a note           | `/notes`                 |                                        | `noteId` 
+| `GET` Get notes by note id       | `/notes`                 |                                        | `id` (Note ID)
+| `GET` Get notes by search term   | `/notes/search`          | `search`                               | `search`
+| `PUT` Edit a note                | `/notes`                 |                                        |  `user_id`, `NoteTitle`, `NoteContent`
+| `DELETE` Bulk delete notes       | `/notes/bulk`            | `bulk`                                 | `noteIds`        |
 
