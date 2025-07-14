@@ -53,9 +53,10 @@ HTML files go in views.
 | -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
 | `GET` Get all notes              | `/notes`                 |                                        | 
 | `POST` Create a new note         | `/notes`                 |                                        | `user_id`, `NoteTitle`, `NoteContent`
-| `DELETE` Delete a note           | `/notes`                 |                                        | `noteId` 
-| `GET` Get notes by note id       | `/notes`                 |                                        | `id` (Note ID)
+| `DELETE` Delete a note           | `/notes/:id`             | `id` (Note ID)                         | `noteId` 
+| `GET` Get notes by note id       | `/notes/:id`             | `id` (Note ID)                         | `id` (Note ID)
 | `GET` Get notes by search term   | `/notes/search`          | `search`                               | `search`
-| `PUT` Edit a note                | `/notes`                 |                                        |  `user_id`, `NoteTitle`, `NoteContent`
+| `PUT` Edit a note                | `/notes/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
 | `DELETE` Bulk delete notes       | `/notes/bulk`            | `bulk`                                 | `noteIds`        |
+| `GET` Export note as markdown    | `/notes/export-md/:id`   | `bulk`                                 |                  |
 
