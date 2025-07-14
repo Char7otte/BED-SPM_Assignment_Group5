@@ -60,3 +60,13 @@ HTML files go in views.
 | `DELETE` Bulk delete notes       | `/notes/bulk`            | `bulk`                                 | `noteIds`        |
 | `GET` Export note as markdown    | `/notes/export-md/:id`   | `bulk`                                 |                  |
 
+### Medical Appointment API
+
+| Request                          | URL                      | Path Parameters                        | Body Parameters |
+| -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
+| `GET` Get all appointments       | `/med-appointments`      |                                        | 
+| `GET` Get appointments by date   | `/med-appointments/:date`| `date`                                 | 
+| `POST` Create a new appointment  | `/med-appointments`      |                                        | `appointment_date`, `appointment_title`, `doctor`, `start_time`, `end_time`, `location`, `notes`
+| `PUT` Edit an appointment        | `/med-appointments/:id`  | `id` (Appointment ID)                  | `appointment_date`, `appointment_title`, `doctor`, `start_time`, `end_time`, `location`, `notes`
+| `DELETE` Delete an appointment   | `/med-appointments/:id`  | `id` (Appointment ID)                  | 
+
