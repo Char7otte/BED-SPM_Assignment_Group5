@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert</title>
+    <link rel="stylesheet" href="/css/alert.css">
+    <script src="/js/alert.js" defer></script>
+</head>
+<body>
+    <h1>Alert</h1>
+    <p>This is an alert page.</p>
+    <form action="/search" method="get">
+        <input type="text" name="query" placeholder="Search alerts..." required>
+        <button type="submit">Search</button>
+    </form>
+    <section id="alerts">
+        <h2>Recent Alerts</h2>
+        <div id="alertList"></div>
+</body>
+<footer>
+    <p>&copy; 2023 Your Company</p>
+</footer>
+<script>
+    // Your JavaScript code here
+</script>
+</body>
+</html>
+
+
+
+<!-- // -- Alert table
+// CREATE TABLE Alert (
+//     AlertID INT PRIMARY KEY IDENTITY(1,1),
+//     Title VARCHAR(255) NOT NULL,
+//   Category VARCHAR(50),
+//     Message VARCHAR(500),
+//     Date DATETIME NOT NULL DEFAULT GETDATE(),
+//     Severity VARCHAR(50)
+// );
+
+// -- ReadStatus table
+// CREATE TABLE ReadStatus (
+//     user_id INT NOT NULL,
+//     AlertID INT NOT NULL,
+//     ReadStatus BIT NOT NULL,  -- 1 = Read, 0 = Unread
+//     PRIMARY KEY (user_id, AlertID),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id),
+//     FOREIGN KEY (AlertID) REFERENCES Alert(AlertID)
+// ); -->

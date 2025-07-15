@@ -65,7 +65,7 @@ async function getUserByUsername(username) {
     let conn;
     try {
         conn = await sql.connect(dbConfig);
-        const query = "SELECT user_id, username, phone_number, password, joined_date, age FROM Users WHERE username = @username";
+        const query = "SELECT user_id, username, phone_number, password, joined_date, age, role FROM Users WHERE username = @username";
         const result = await conn.request()
             .input("username", sql.NVarChar, username)
             .query(query);
@@ -155,8 +155,31 @@ async function updateUser(id, user) {
     }
 }
 
+async function deleteReadStatusByid(id) {
+    let conn;
+    try {
+        conn = await sql.connect(dbConfig);
+        const query = "DELETE FROM ReadStatus WHERE user_id = @id";
+        await conn.request()
+            .input("id", sql.Int, id)
+            .query(query);
+    } catch (error) {
+        console.error("Error deleting read status:", error);
+        throw error;
+    } finally {
+        if (conn) {
+            try {
+                await conn.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 async function deleteUser(id) {
     let conn;
+    
     try {
         conn = await sql.connect(dbConfig);
         const query = "DELETE FROM Users WHERE user_id = @id";
@@ -228,6 +251,9 @@ async function changePassword(id, newPassword) {
 }
 
 
+
+
+
 async function verifyPassword (plainPassword, hashedPassword) {
     return await bcrypt.compare(plainPassword, hashedPassword);
 }
@@ -242,6 +268,7 @@ module.exports = {
     deleteUser,
     verifyPassword,
     changePassword,
+    deleteReadStatusByid,
 };
 
 

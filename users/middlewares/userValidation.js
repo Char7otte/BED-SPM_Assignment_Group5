@@ -8,7 +8,7 @@ function validateUserInput(req, res, next) {
     phone_number: joi.string().required(),
     password: joi.string().min(6).max(100).required(),
     age: joi.number().integer().min(0).required(),
-    gender: joi.string().valid('Male', 'Female', 'Other').required(),
+    gender: joi.string().valid('Male', 'Female', 'Other'),
     role: joi.string().valid('A', 'U', 'V')
   });
 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Detail</title>
+    <!-- <link rel="stylesheet" href="/css/alertdetail.css"> -->
+    <script src="/js/alert.js" defer></script>
+</head>
+<body>
+    <h1>Alert Detail</h1>
+    <form action="/search" method="get">
+        <input type="text" name="query" placeholder="Search alerts..." required>
+        <button type="submit">Search</button>
+    </form>
+
+    <section>
+        <h2>Admin Input/Changes</h2>
+        <form id="alertDetails" method="put">
+            <!-- <label for="admin-title">Title:</label>
+            <input type="text" id="admin-title" name="title" placeholder="Edit alert title">
+
+            <label for="admin-category">Category:</label>
+            <input type="text" id="admin-category" name="category" placeholder="Edit category">
+
+            <label for="admin-message">Message:</label>
+            <textarea id="admin-message" name="message" placeholder="Edit alert message"></textarea>
+
+            <label for="admin-severity">Severity:</label>
+            <select id="admin-severity" name="severity">
+                <option value="">Select severity</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+            </select>
+
+            <button type="submit">Save Changes</button> -->
+        </form>
+    </section>
+</body>
+</html>
+
+
+<!-- // -- Alert table
+// CREATE TABLE Alert (
+//     AlertID INT PRIMARY KEY IDENTITY(1,1),
+//     Title VARCHAR(255) NOT NULL,
+//   Category VARCHAR(50),
+//     Message VARCHAR(500),
+//     Date DATETIME NOT NULL DEFAULT GETDATE(),
+//     Severity VARCHAR(50)
+// );
+
+// -- ReadStatus table
+// CREATE TABLE ReadStatus (
+//     user_id INT NOT NULL,
+//     AlertID INT NOT NULL,
+//     ReadStatus BIT NOT NULL,  -- 1 = Read, 0 = Unread
+//     PRIMARY KEY (user_id, AlertID),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id),
+//     FOREIGN KEY (AlertID) REFERENCES Alert(AlertID)
+// ); -->
