@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <%- include("../partials/head")%>
+        <title>Viewing chat <%= chatID %></title>
+    </head>
+    <body>
+        <%- include("../partials/navbar")%>
+        <main>
+            <div class="container">
+                <div class="columns">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h1 class="title">You are in Chat <%= chatID %>.</h1>
+                        <section class="messages">
+                            <div class="fixed-grid has-1-cols">
+                                <div class="grid">
+                                    <%for (const m of messageData) {%>
+                                    <div class="cell">
+                                        <%- include("./partials/chatMessageCard",{chatID, messageID:m.message_id, senderID: m.sender_id, message:
+                                        m.message, sentDateTime: m.sent_date_time}) %>
+                                    </div>
+                                    <%}%>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="messaging">
+                            <h2 class="subtitle">Submit a mesage:</h2>
+                            <form action="/chats/<%= chatID %>" method="POST">
+                                <div class="field">
+                                    <label class="label" for="sender-id">User ID:</label>
+                                    <div class="control">
+                                        <input class="input" type="text" placeholder="ID of User" id="sender-id" name="senderID" />
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="message">Message</label>
+                                    <div class="control">
+                                        <textarea class="textarea" placeholder="Write your message here" id="message" name="message"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="field is-grouped">
+                                    <div class="control">
+                                        <button class="button is-link">Submit</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <%- include("../partials/footer.ejs")%>
+        <script
+            type="module"
+            src="/js/deleteContent.js"
+            data-class-of-form-to-look-for="delete-message-form"
+            data-class-of-element-to-hide="message-card"
+        ></script>
+        <script type="module" src="/js/editMessage.js"></script>
+    </body>
+</html>

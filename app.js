@@ -102,3 +102,4 @@ process.on("SIGINT", async () => {
     console.log("Database connections closed");
     process.exit(0);
 });
+

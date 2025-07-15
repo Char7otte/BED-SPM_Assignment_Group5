@@ -1,0 +1,17 @@
+<div class="card chat-card">
+    <a href="/chats/<%= chatID %>">
+        <div class="card-content">
+            <p>ChatID: <%= chatID %></p>
+            <!-- <p>HelpeeID: <%= helpeeID %></p> -->
+            <p>Username: <%= username %></p>
+            <p>Status: <%= status %></p>
+            <p>Created Time: <%= createdDateTime %></p>
+            <p>Last Activity: <%= lastActivityDateTime %></p>
+        </div>
+    </a>
+    <footer class="card-footer">
+        <form method="POST" action="/chats/delete/<%= chatID %>?_method=PATCH" class="card-footer-item delete-chat-form">
+            <button>Delete</button>
+        </form>
+    </footer>
+</div>
