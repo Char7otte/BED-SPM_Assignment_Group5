@@ -1,7 +1,7 @@
 const express = require("express");
-const path = require("path");
 const sql = require("mssql");
 const dotenv = require("dotenv");
+const path = require("path");
 const methodOverride = require("method-override");
 
 dotenv.config();
@@ -21,6 +21,7 @@ const chatMessageController = require("./chat/controllers/chatMessageController"
 const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
 const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
 
+const medTrackerController = require("./medication_tracker/controller/medTrackerController");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -61,6 +62,7 @@ app.post("/chats/:chatID", chatMessageController.createMessage);
 app.delete("/chats/:chatID", chatMessageController.deleteMessage);
 app.patch("/chats/:chatID", chatMessageController.editMessage);
 
+
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
 app.get("/med-appointments/:date", verifyJWT, medAppointmentController.getAppointmentByDate);
@@ -68,17 +70,19 @@ app.post("/med-appointments", verifyJWT, validateMedAppointment, medAppointmentC
 app.put("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, validateMedAppointment, medAppointmentController.updateAppointment);
 app.delete("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, medAppointmentController.deleteAppointment);
 
-app.listen(port, () => {
-    console.log("Server running on port " + port);
-});
+app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
+app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);
+app.post("/medications", medTrackerController.createMedication);
+app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
+app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
 
-app.get("/", async (req, res) => {
-    res.render("./index.html");
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
 
 process.on("SIGINT", async () => {
-    console.log("Server is gracefully shutting down");
-    await sql.close();
-    console.log("Database connections closed");
-    process.exit(0);
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
 });
