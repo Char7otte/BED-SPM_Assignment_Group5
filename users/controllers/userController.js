@@ -3,7 +3,10 @@ const userModel = require('../models/userModel');
 const bcrypt = require('bcrypt'); 
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-//roles restriction will be handled in the middleware
+const { use } = require('react');
+//roles restriction will be handled in the middlewareconst jwt = require('jsonwebtoken');
+
+ 
 
 
 async function getAllUsers(req, res) {

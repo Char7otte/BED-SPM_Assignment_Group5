@@ -128,7 +128,7 @@ async function updateAlertStatus(req, res) {
 }
 async function getUnreadAlerts(req, res) {
     const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
+    if (isNaN(userId)) { 
         return res.status(400).json({ error: "Invalid user ID" });
     }
 

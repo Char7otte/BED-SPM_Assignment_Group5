@@ -12,6 +12,7 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
 const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
+const { authenticateToken } = require("./alert/middlewares/auth");
 
 
 
@@ -32,7 +33,6 @@ app.set("views", path.join(__dirname, "views"));
 
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
-app.get("/alerts/unread", alertController.getUnreadAlerts); //  Unread alerts (for homepage)
 app.get("/alerts/unreadstatus/:id", alertController.getUnreadAlerts); //  Get read status of an alert by ID
 app.put("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
 
