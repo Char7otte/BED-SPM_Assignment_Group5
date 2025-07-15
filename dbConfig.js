@@ -1,3 +1,4 @@
+
 module.exports = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -9,3 +10,4 @@ module.exports = {
         connectionTimeout: 15000, // Connection timeout in milliseconds
     },
 };
+
