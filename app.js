@@ -23,6 +23,9 @@ const { validateMedAppointment, validateMedAppointmentId } = require("./medical-
 
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
 
+// import note taker functions
+const noteTakerController = require("./note_taker/controllers/noteTakerController");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -81,6 +84,17 @@ app.get("/medications/:userId/:medicationId", medTrackerController.getMedication
 app.post("/medications", medTrackerController.createMedication);
 app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
 app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
+
+// routes for note taker
+app.get("/notes", noteTakerController.getAllNotes);
+app.delete("/notes/bulk", noteTakerController.bulkDeleteNotes);
+app.get("/notes/search", noteTakerController.searchNotes);
+app.get("/notes/:id", noteTakerController.getNotesById);
+app.post("/notes", noteTakerController.createNote);
+app.delete("/notes/:id", noteTakerController.deleteNote);
+app.put("/notes/:id", noteTakerController.updateNote);
+app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
