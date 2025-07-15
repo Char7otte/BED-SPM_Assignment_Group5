@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Tracker</title>
+    <link rel="stylesheet" href="./css/medication-styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Medication Tracker</h1>
+        
+        <div class="controls">
+            <div class="view-toggle">
+                <button id="daily-view" class="active">Daily View</button>
+                <button id="weekly-view">Weekly View</button>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search medications...">
+                <button id="search-btn">Search</button>
+            </div>
+            
+            <button id="add-medication-btn" class="add-btn">Add New Medication</button>
+        </div>
+        
+        <div id="medication-list" class="medication-list">
+            <!-- Medications will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Medication -->
+    <div id="medication-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Add New Medication</h2>
+            <form id="medication-form">
+                <input type="hidden" id="medication-id">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="dosage">Dosage:</label>
+                    <input type="text" id="dosage" required>
+                </div>
+                <div class="form-group">
+                    <label for="frequency">Frequency:</label>
+                    <select id="frequency" required>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="as-needed">As Needed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="time">Time:</label>
+                    <input type="time" id="time">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="save-btn">Save</button>
+                    <button type="button" id="cancel-btn">Cancel</button>
+                    <button type="button" id="delete-btn" class="delete-btn">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
