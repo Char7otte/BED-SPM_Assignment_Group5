@@ -70,6 +70,12 @@ app.post("/med-appointments", verifyJWT, validateMedAppointment, medAppointmentC
 app.put("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, validateMedAppointment, medAppointmentController.updateAppointment);
 app.delete("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, medAppointmentController.deleteAppointment);
 
+//routes for medication tracker
+app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
+app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
+app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
+app.get("/medications/user/:userId/search", medTrackerController.searchMedicationByName);
+
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
 app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);
 app.post("/medications", medTrackerController.createMedication);
