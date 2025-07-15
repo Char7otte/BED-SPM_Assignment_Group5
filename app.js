@@ -23,9 +23,9 @@ app.get("/", (req, res) => {
 });
 
 // Asher's Note Taker routes
-//app.get("/notes", noteTakerController.getAllNotes);
+app.get("/notes", noteTakerController.getAllNotes);
 app.delete("/notes/bulk", noteTakerController.bulkDeleteNotes);
-app.get("/notes", noteTakerController.searchNotes);
+app.get("/notes/search", noteTakerController.searchNotes);
 app.get("/notes/:id", noteTakerController.getNotesById);
 app.post("/notes", noteTakerController.createNote);
 app.delete("/notes/:id", noteTakerController.deleteNote);

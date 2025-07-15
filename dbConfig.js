@@ -1,8 +1,8 @@
 module.exports = {
-    user: "sa",
-    password: "AsherTest@123",
-    server: "localhost",
-    database: "bed_spm",
+    user: process.env.DB_User,
+    password: process.env.DB_Password,
+    server: process.env.DB_Host,
+    database: process.env.DB_Name,
     trustServerCertificate: true,
     options: {
         port: 1433, // Default SQL Server port
