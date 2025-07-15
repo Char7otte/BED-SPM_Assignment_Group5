@@ -3,7 +3,10 @@ const userModel = require('../models/userModel');
 const bcrypt = require('bcrypt'); 
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-//roles restriction will be handled in the middleware
+const { use } = require('react');
+//roles restriction will be handled in the middlewareconst jwt = require('jsonwebtoken');
+
+ 
 
 
 async function getAllUsers(req, res) {
@@ -91,6 +94,12 @@ async function deleteUser(req, res) {
     if (isNaN(userId)) {
         return res.status(400).json({ message: 'Invalid user ID' });
     }
+    try {
+        await userModel.deleteReadStatusByid(userId);
+    } catch (err) {
+        console.error('Error deleting read status:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 
     try {
         await userModel.deleteUser(userId);
@@ -136,9 +145,8 @@ async function loginUser(req, res) {
         }
 
         // Generate JWT token
-        const token = jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '3600s' });
+        const token = jwt.sign({ id: user.user_id, role: user.role, username: user.username }, process.env.JWT_SECRET, { expiresIn: '3600s' });
         res.status(200).json({ token });
-        res.token = token; // Attach token to response for further use
     } catch (err) {
         console.error('Error logging in:', err);
         res.status(500).json({ message: 'Internal server error' });
@@ -163,7 +171,7 @@ async function changePassword(req, res) {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
-    
+
 
 
 module.exports = {

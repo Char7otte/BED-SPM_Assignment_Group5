@@ -12,6 +12,7 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
 const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
+const { authenticateToken } = require("./alert/middlewares/auth");
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
@@ -37,12 +38,23 @@ app.use(methodOverride("_method"));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-//routes for alerts
-app.get("/alerts", alertController.getAllAlerts);
-app.get("/alerts/:id", validateAlertId, alertController.getAlertById);
-app.post("/alerts", validateAlert, alertController.createAlert);
-app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert);
-app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert);
+//ALERT SEARCH + READ STATUS (specific paths FIRST)/
+app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
+app.get("/alerts/unreadstatus/:id", alertController.getUnreadAlerts); //  Get read status of an alert by ID
+app.put("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
+
+
+// CREATE ALERT (Admin only)
+app.post("/alerts", validateAlert, alertController.createAlert); //  Create a new alert
+
+// UPDATE + DELETE ALERT (Admin only)
+app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert); // Update an existing alert
+app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
+
+// BASIC ALERT FETCHING
+app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admin)
+app.get("/alerts/:id", validateAlertId, alertController.getAlertById); // View alert by ID (last!)
+
 
 //routes for users
 app.post("/users/register", validateUserInput, userController.createUser); // User registration #okay
@@ -53,6 +65,7 @@ app.get("/users", verifyJWT, userController.getAllUsers); // Get all users #okay
 app.get("/users/username/:username", verifyJWT, userController.getUserByUsername); // Get user by username
 app.put("/users/updatedetail/:id", verifyJWT, validateUserInput, userController.updateUser); // Update user details #okay
 app.delete("/users/:id", verifyJWT, userController.deleteUser); //OKay
+
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
