@@ -10,7 +10,7 @@ async function getAllAlerts() {
     let conn;
     try {
         conn = await sql.connect(dbConfig);
-        const result = await conn.request().query("SELECT * FROM Alert");
+        const result = await conn.request().query("SELECT * FROM Alert ORDER BY Date DESC");
         return result.recordset;
     } catch (error) {
         console.error("Error fetching all alerts:", error);

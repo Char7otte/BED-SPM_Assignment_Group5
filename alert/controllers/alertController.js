@@ -19,7 +19,7 @@ async function getAlertById(req, res) {
         return res.status(400).json({ error: "Invalid alert ID" });
     }
 
-
+  
     try {
         const alert = await alertModel.getAlertById(alertId);
         if (!alert) {
