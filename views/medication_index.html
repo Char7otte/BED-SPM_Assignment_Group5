@@ -1,70 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medication Tracker</title>
-    <link rel="stylesheet" href="css/medication-styles.css">
+  <title>Medication Tracker</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="css/medication-styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Medication Tracker</h1>
-        
-        <div class="controls">
-            <div class="view-toggle">
-                <button id="daily-view" class="active">Daily View</button>
-                <button id="weekly-view">Weekly View</button>
-            </div>
-            
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Search medications...">
-                <button id="search-btn">Search</button>
-            </div>
-            
-            <button id="add-medication-btn" class="add-btn">Add New Medication</button>
-        </div>
-        
-        <div id="medication-list" class="medication-list">
-            <!-- Medications will be loaded here -->
-        </div>
-    </div>
 
-    <!-- Modal for Add/Edit Medication -->
-    <div id="medication-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2 id="modal-title">Add New Medication</h2>
-            <form id="medication-form">
-                <input type="hidden" id="medication-id">
-                <div class="form-group">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="dosage">Dosage:</label>
-                    <input type="text" id="dosage" required>
-                </div>
-                <div class="form-group">
-                    <label for="frequency">Frequency:</label>
-                    <select id="frequency" required>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="as-needed">As Needed</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="time">Time:</label>
-                    <input type="time" id="time">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" id="save-btn">Save</button>
-                    <button type="button" id="cancel-btn">Cancel</button>
-                    <button type="button" id="delete-btn" class="delete-btn">Delete</button>
-                </div>
-            </form>
-        </div>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+      <a class="navbar-brand" href="#"><i class="fa fa-medkit"></i> MedTracker</a>
     </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#"><i class="fa fa-home"></i> Home</a></li>
+        <li><a href="#"><i class="fa fa-info-circle"></i> About</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-user"></span> User Profile</a></li>
+        <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+  
+<div class="container-fluid text-center">    
+  <div class="row content">
+    <div class="col-sm-2 sidenav">
+      <div class="list-group">
+        <a href="#" class="list-group-item active view-toggle" data-view="daily">
+          <i class="fa fa-calendar-day"></i> Daily View
+        </a>
+        <a href="#" class="list-group-item view-toggle" data-view="weekly">
+          <i class="fa fa-calendar-week"></i> Weekly View
+        </a>
+        <a href="#" class="list-group-item" data-toggle="modal" data-target="#addMedModal">
+          <i class="fa fa-plus-circle"></i> Add Medication
+        </a>
+      </div>
+    </div>
+    <div class="col-sm-8 text-left"> 
+      <h1><i class="fa fa-pills"></i> My Medications</h1>
+      <hr>
+      <div id="medication-container">
+        <!-- Medications will be loaded here dynamically -->
+        <div class="alert alert-info" id="no-meds-message">
+          No medications found. Click "Add Medication" to get started.
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-2 sidenav">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4><i class="fa fa-search"></i> Search Medication</h4>
+        </div>
+        <div class="panel-body">
+          <div class="input-group">
+            <input type="text" class="form-control" id="search-input" placeholder="Medication name...">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" id="search-btn">
+                <i class="fa fa-search"></i>
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div id="search-results" class="panel panel-default" style="display:none;">
+        <div class="panel-heading">
+          <h4>Search Results</h4>
+        </div>
+        <div class="panel-body" id="search-results-body">
+          <!-- Search results will appear here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <script src="js/medication_script.js"></script>
+<!-- Add Medication Modal -->
+<div class="modal fade" id="addMedModal" tabindex="-1" role="dialog" aria-labelledby="addMedModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="addMedModalLabel"><i class="fa fa-plus-circle"></i> Add New Medication</h4>
+      </div>
+      <div class="modal-body">
+        <form id="medication-form">
+          <input type="hidden" id="medication-id">
+          <div class="form-group">
+            <label for="name">Medication Name:</label>
+            <input type="text" class="form-control" id="name" required>
+          </div>
+          <div class="form-group">
+            <label for="dosage">Dosage:</label>
+            <input type="text" class="form-control" id="dosage" required>
+          </div>
+          <div class="form-group">
+            <label for="frequency">Frequency:</label>
+            <select class="form-control" id="frequency" required>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="as-needed">As Needed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="time">Time to Take:</label>
+            <input type="time" class="form-control" id="time">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-med-btn">Save Medication</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Medication Modal -->
+<div class="modal fade" id="editMedModal" tabindex="-1" role="dialog" aria-labelledby="editMedModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="editMedModalLabel"><i class="fa fa-edit"></i> Edit Medication</h4>
+      </div>
+      <div class="modal-body">
+        <form id="edit-medication-form">
+          <input type="hidden" id="edit-medication-id">
+          <div class="form-group">
+            <label for="edit-name">Medication Name:</label>
+            <input type="text" class="form-control" id="edit-name" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-dosage">Dosage:</label>
+            <input type="text" class="form-control" id="edit-dosage" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-frequency">Frequency:</label>
+            <select class="form-control" id="edit-frequency" required>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="as-needed">As Needed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-time">Time to Take:</label>
+            <input type="time" class="form-control" id="edit-time">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger pull-left" id="delete-med-btn">Delete</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="update-med-btn">Update Medication</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="container-fluid text-center">
+  <p>&copy; 2023 MedTracker | Medication Management System</p>
+</footer>
+
+<script src="js/medication_script.js"></script>
 </body>
 </html>
