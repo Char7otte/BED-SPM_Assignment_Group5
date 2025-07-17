@@ -32,7 +32,11 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use('/views', express.static(path.join(__dirname, 'views')));
+app.get('/loginauth.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+  app.use(express.static(path.join(__dirname, 'public')));
+});
 app.use(methodOverride("_method"));
 
 app.set("view engine", "ejs");
