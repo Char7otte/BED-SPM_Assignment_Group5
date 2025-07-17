@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { use } = require('react');
+const e = require('express');
 //roles restriction will be handled in the middlewareconst jwt = require('jsonwebtoken');
 
  
@@ -56,17 +57,23 @@ async function getUserByUsername(req, res) {
 }
 
 async function createUser(req, res) {
-    const { username, phone_number, password, age, gender } = req.body;
+    const { username, phone_number, password, age, gender, status = 'active' } = req.body;
     if (!username || !phone_number || !password || !age || !gender) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
-        await userModel.createUser({ username, phone_number, password, age, gender });
+        await userModel.createUser({ username, phone_number, password, age, gender, status  });
         res.status(201).json({ message: 'User created successfully' });
     } catch (err) {
-        console.error('Error creating user:', err);
-        res.status(500).json({ message: 'Internal server error'});
+        console.log('Error creating user:', err);
+        if (err.message && err.message.includes('Violation of UNIQUE KEY')) {
+            return res.status(409).json({ message: 'Username already exists' });
+        }
+        else {
+            console.error('Error creating user:', err);
+            res.status(500).json({ message: 'Internal server error'});
+        }
     }
 }
 

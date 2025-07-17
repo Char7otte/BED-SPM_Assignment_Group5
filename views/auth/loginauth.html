@@ -48,12 +48,12 @@
 												<i class="input-icon uil uil-user"></i>
 											</div>	
 											<div class="form-group mt-2">
-												<input type="number" name="regnum" class="form-style" placeholder="Phone Number" id="regnum" autocomplete="off">
+												<input type="number" name="regnum" class="form-style" placeholder="Phone Number (min 8 digits)" id="regnum" autocomplete="off" minlength="8">
 												<i class="input-icon uil uil-at"></i>
 											</div>	
 											<div class="form-group mt-2">
-												<input type="password" name="regpass" class="form-style" placeholder="Password" id="regpass" autocomplete="off">
-                                                <i class="input-icon uil uil-lock-alt"></i>
+												<input type="password" name="regpass" class="form-style" placeholder="Password (min 8 characters)" id="regpass" autocomplete="off" minlength="8">
+												<i class="input-icon uil uil-lock-alt"></i>
                                             </div>
                                             <div class="form-group mt-2">
                                                 <select name="reggender" class="form-style" id="reggender">
@@ -62,8 +62,8 @@
                                                     <option value="Female">Female</option>
                                                 </select>
                                             </div>
-                                            <div class="form-group mt-2">
-                                                <input type="number" name="regage" class="form-style" placeholder="Age" id="regage" min="0" autocomplete="off">
+											<div class="form-group mt-2">
+												<input type="number" name="regage" class="form-style" placeholder="Age" id="regage" min="1" autocomplete="off">
                                             </div>
 											</div>
 											<a href="#" class="btn mt-4 regbtn" id = "regbtn">submit</a>

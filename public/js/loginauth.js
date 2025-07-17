@@ -83,7 +83,12 @@ async function register() {
         document.getElementById("status").value = "Registration successful!";
         window.location.href = "/dashboard"; // Redirect to dashboard or home page
     } else {
-        document.getElementById("status").value = "Registration failed: " + data.message;
+        if (data.message == 'Username already exists') {
+            document.getElementById("status").innerText = "Registration failed: " + "Username already exists";
+        } else {
+            document.getElementById("status").innerText = "Registration failed: " + data.message;
+        }
+        document.getElementById("status").style.color = "red";
         console.error("Registration failed:", data.message);
         
     }
