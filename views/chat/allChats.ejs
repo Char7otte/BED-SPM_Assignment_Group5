@@ -11,7 +11,7 @@
                 <div class="columns">
                     <div class="column is-half is-offset-one-quarter">
                         <h1 class="title">Chats</h1>
-                        <form action="/chats/create/1" class="mb-5" method="POST">
+                        <form action="/chats/create/4" class="mb-5" method="POST">
                             <div class="field"><button class="button is-primary">Start a new chat</button></div>
                         </form>
                         <div class="fixed-grid has-1-cols">
@@ -29,6 +29,6 @@
             </div>
         </main>
         <%- include("../partials/footer.ejs")%>
-        <script src="/js/deleteContent.js"></script>
+        <script src="/js/deleteContent.js" data-class-of-form-to-look-for="delete-chat-form" data-class-of-element-to-hide="chat-card"></script>
     </body>
 </html>

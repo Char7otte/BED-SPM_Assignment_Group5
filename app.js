@@ -1,7 +1,7 @@
 const express = require("express");
-const path = require("path");
 const sql = require("mssql");
 const dotenv = require("dotenv");
+const path = require("path");
 const methodOverride = require("method-override");
 
 dotenv.config();
@@ -14,11 +14,18 @@ const userController = require("./users/controllers/userController");
 const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./alert/middlewares/auth");
 
-
-
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
+
+//import medical appointment functions
+const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
+const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
+
+const medTrackerController = require("./medication_tracker/controller/medTrackerController");
+
+// import note taker functions
+const noteTakerController = require("./note_taker/controllers/noteTakerController");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -53,23 +60,22 @@ app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admi
 app.get("/alerts/:id", validateAlertId, alertController.getAlertById); // View alert by ID (last!)
 
 
-
 //routes for users
-app.post("/users/register",validateUserInput, userController.createUser);// User registration #okay
-app.post("/users/login", userController.loginUser);// User login #okay
+app.post("/users/register", validateUserInput, userController.createUser); // User registration #okay
+app.post("/users/login", userController.loginUser); // User login #okay
 app.put("/users/changepassword/:id", verifyJWT, userController.changePassword); // Change user password #okay
 //rotes for user management
-app.get("/users",verifyJWT,userController.getAllUsers); // Get all users #okay
-app.get("/users/username/:username",verifyJWT, userController.getUserByUsername); // Get user by username
+app.get("/users", verifyJWT, userController.getAllUsers); // Get all users #okay
+app.get("/users/username/:username", verifyJWT, userController.getUserByUsername); // Get user by username
 app.put("/users/updatedetail/:id", verifyJWT, validateUserInput, userController.updateUser); // Update user details #okay
-app.delete("/users/:id",verifyJWT, userController.deleteUser); //OKay
+app.delete("/users/:id", verifyJWT, userController.deleteUser); //OKay
 
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
 // app.get("/chats/:chatID", chatController.getChatByID);
 app.post("/chats/create/:userID", chatController.createChat);
-app.delete("/chats/:chatID", chatController.deleteChat);
+app.patch("/chats/delete/:chatID", chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
 app.get("/chats/:chatID", chatMessageController.getAllMessagesInAChat);
 app.post("/chats/:chatID", chatMessageController.createMessage);
@@ -77,17 +83,43 @@ app.delete("/chats/:chatID", chatMessageController.deleteMessage);
 app.patch("/chats/:chatID", chatMessageController.editMessage);
 
 
-app.listen(port, () => {
-    console.log("Server running on port " + port);
-});
+//routes for medical appointments
+app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
+app.get("/med-appointments/:date", verifyJWT, medAppointmentController.getAppointmentByDate);
+app.post("/med-appointments", verifyJWT, validateMedAppointment, medAppointmentController.createAppointment);
+app.put("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, validateMedAppointment, medAppointmentController.updateAppointment);
+app.delete("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, medAppointmentController.deleteAppointment);
 
-app.get("/", async (req, res) => {
-    res.render("./index.html");
+//routes for medication tracker
+app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
+app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
+app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
+app.get("/medications/user/:userId/search", medTrackerController.searchMedicationByName);
+
+app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
+app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);
+app.post("/medications", medTrackerController.createMedication);
+app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
+app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
+
+// routes for note taker
+app.get("/notes", noteTakerController.getAllNotes);
+app.delete("/notes/bulk", noteTakerController.bulkDeleteNotes);
+app.get("/notes/search", noteTakerController.searchNotes);
+app.get("/notes/:id", noteTakerController.getNotesById);
+app.post("/notes", noteTakerController.createNote);
+app.delete("/notes/:id", noteTakerController.deleteNote);
+app.put("/notes/:id", noteTakerController.updateNote);
+app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
 
 process.on("SIGINT", async () => {
-    console.log("Server is gracefully shutting down");
-    await sql.close();
-    console.log("Database connections closed");
-    process.exit(0);
-}); 
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
+});
