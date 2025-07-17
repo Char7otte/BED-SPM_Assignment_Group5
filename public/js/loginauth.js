@@ -37,7 +37,7 @@ function login() {
         if (data.success || data.token) {
         // ✅ Login successful
         alert(data.message);  // or "Login successful"
-        localStorage.setItem("token", data.token);  // optional
+        localStorage.setItem("token","Bearer " + data.token);  // optional
         window.location.href = "/dashboard";
     } else {
         console.log(data);
