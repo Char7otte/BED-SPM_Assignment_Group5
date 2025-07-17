@@ -211,6 +211,22 @@ async function searchMedicationByName(req, res) {
     }
 }
 
+async function remindMedication(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const reminders = await medTrackerModel.remindMedication(userId);
+        res.json(reminders);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving medication reminders" });
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -220,5 +236,6 @@ module.exports = {
     updateMedication,
     deleteMedication,
     tickOffMedication,
-    searchMedicationByName
+    searchMedicationByName,
+    remindMedication
 };

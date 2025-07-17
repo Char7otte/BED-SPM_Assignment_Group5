@@ -1,11 +1,14 @@
 $(document).ready(function() {
     // Global variables
-    const currentUserId = 4; // Using user 8 since that's your test user
+    const currentUserId = 8; // Using user 8 since that's your test user
     let currentView = 'daily';
     let medications = [];
+    let reminderInterval;
+    let snoozedReminders = new Set(); // Track snoozed reminders
 
     // Initialize the page
     loadMedications();
+    startReminderSystem();
 
     // Event Listeners
     $('.view-toggle').click(function(e) {
@@ -26,6 +29,27 @@ $(document).ready(function() {
     $('#save-med-btn').click(addMedication);
     $('#update-med-btn').click(updateMedication);
     $('#delete-med-btn').click(deleteMedication);
+
+    // Reminder popup event listeners
+    $('#acknowledgeReminder').click(function() {
+        $('#reminderPopup').modal('hide');
+        const medicationId = $(this).data('med-id');
+        if (medicationId) {
+            updateTakenStatus(medicationId);
+        }
+    });
+
+    $('#snoozeReminder').click(function() {
+        const medicationId = $(this).data('med-id');
+        if (medicationId) {
+            snoozedReminders.add(medicationId);
+            // Remove from snoozed list after 5 minutes
+            setTimeout(() => {
+                snoozedReminders.delete(medicationId);
+            }, 5 * 60 * 1000); // 5 minutes
+        }
+        $('#reminderPopup').modal('hide');
+    });
 
     // Handle Enter key in search
     $('#search-input').keypress(function(e) {
@@ -104,6 +128,111 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Reminder System Functions
+    function startReminderSystem() {
+        // Check for reminders every 30 seconds
+        reminderInterval = setInterval(checkForReminders, 30000);
+        // Also check immediately
+        checkForReminders();
+    }
+
+    function checkForReminders() {
+        $.ajax({
+            url: `/medications/user/${currentUserId}/reminders`,
+            method: 'GET',
+            success: function(data) {
+                if (data && data.length > 0) {
+                    // Filter out snoozed reminders
+                    const activeReminders = data.filter(med => !snoozedReminders.has(med.medication_id));
+                    
+                    if (activeReminders.length > 0) {
+                        showReminderPopup(activeReminders);
+                    }
+                }
+            },
+            error: function(error) {
+                console.error('Error checking reminders:', error);
+            }
+        });
+    }
+
+    function showReminderPopup(reminders) {
+        // Don't show popup if it's already visible
+        if ($('#reminderPopup').hasClass('in')) {
+            return;
+        }
+
+        let reminderHtml = '';
+        if (reminders.length === 1) {
+            const med = reminders[0];
+            reminderHtml = `
+                <div class="reminder-item">
+                    <div class="medication-icon">
+                        <i class="fa fa-pill fa-3x text-warning"></i>
+                    </div>
+                    <h4>${med.medication_name}</h4>
+                    <p><strong>Time:</strong> ${med.medication_time}</p>
+                    <p><strong>Dosage:</strong> ${med.medication_dosage}</p>
+                    ${med.medication_notes ? `<p><strong>Notes:</strong> ${med.medication_notes}</p>` : ''}
+                    <p class="text-info"><i class="fa fa-clock-o"></i> It's time to take your medication!</p>
+                </div>
+            `;
+            $('#acknowledgeReminder').data('med-id', med.medication_id);
+            $('#snoozeReminder').data('med-id', med.medication_id);
+        } else {
+            reminderHtml = `
+                <div class="reminder-item">
+                    <div class="medication-icon">
+                        <i class="fa fa-pills fa-3x text-warning"></i>
+                    </div>
+                    <h4>Multiple Medications Due</h4>
+                    <p class="text-info"><i class="fa fa-clock-o"></i> You have ${reminders.length} medications to take:</p>
+                    <ul class="list-unstyled">
+            `;
+            
+            reminders.forEach(med => {
+                reminderHtml += `
+                    <li class="reminder-med-item">
+                        <strong>${med.medication_name}</strong> - ${med.medication_dosage} at ${med.medication_time}
+                        ${med.medication_notes ? `<br><small class="text-muted">${med.medication_notes}</small>` : ''}
+                    </li>
+                `;
+            });
+            
+            reminderHtml += `
+                    </ul>
+                </div>
+            `;
+            
+            // For multiple reminders, we'll handle them differently
+            $('#acknowledgeReminder').data('med-id', null);
+            $('#snoozeReminder').data('med-id', null);
+        }
+
+        $('#reminderContent').html(reminderHtml);
+        $('#reminderPopup').modal('show');
+        
+        // Play notification sound if browser supports it
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Medication Reminder', {
+                body: reminders.length === 1 ? 
+                    `Time to take ${reminders[0].medication_name}` : 
+                    `You have ${reminders.length} medications to take`,
+                icon: 'https://cdn-icons-png.flaticon.com/512/883/883356.png'
+            });
+        }
+    }
+
+    // Request notification permission when page loads
+    function requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    // Call this function when the page loads
+    requestNotificationPermission();
 
     function renderMedications() {
         const $container = $('#medication-container');
@@ -265,3 +394,17 @@ $(document).ready(function() {
         });
     }
 });
+
+    function remindMedication(medId) {
+        $.ajax({
+            url: `/medications/user/${currentUserId}/${medId}/remind`,
+            method: 'GET',
+            success: function(data) {
+                alert(`Reminder set for medication: ${data.medication_name}`);
+            },
+            error: function(error) {
+                console.error('Error setting reminder:', error);
+                alert('Failed to set reminder. Please try again.');
+            }
+        });
+    }

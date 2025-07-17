@@ -406,6 +406,58 @@ async function searchMedicationByName(userId, medicationName) {
     }
 }
 
+async function remindMedication(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTime = new Date();
+        
+        // Calculate 5 minutes from now
+        const fiveMinutesFromNow = new Date(currentTime.getTime() + 5 * 60000);
+        const currentTimeStr = currentTime.toTimeString().substring(0, 5); // HH:MM format
+        const fiveMinutesFromNowStr = fiveMinutesFromNow.toTimeString().substring(0, 5);
+        
+        const query = `
+            SELECT medication_id, medication_name, medication_time, medication_dosage, medication_notes
+            FROM Medications
+            WHERE user_id = @userId 
+              AND medication_date = @currentDate 
+              AND is_taken = 0
+              AND medication_reminders = 1
+              AND medication_time BETWEEN @currentTime AND @fiveMinutesFromNow
+            ORDER BY medication_time ASC
+        `;
+        
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("currentDate", sql.Date, currentDate);
+        request.input("currentTime", sql.VarChar, currentTimeStr);
+        request.input("fiveMinutesFromNow", sql.VarChar, fiveMinutesFromNowStr);
+
+        const result = await request.query(query);
+        if (result.recordset.length === 0) {
+            return null; // No medications to remind
+        }
+
+        return result.recordset; // Return the medications to remind
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+} 
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -415,5 +467,6 @@ module.exports = {
     updateMedication,
     deleteMedication,
     tickOffMedication,
-    searchMedicationByName
+    searchMedicationByName,
+    remindMedication
 };

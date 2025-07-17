@@ -171,6 +171,32 @@
   </div>
 </div>
 
+<!-- Medication Reminder Popup -->
+<div id="reminderPopup" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h4 class="modal-title">
+          <i class="fa fa-bell"></i> Medication Reminder
+        </h4>
+      </div>
+      <div class="modal-body text-center">
+        <div id="reminderContent">
+          <!-- Reminder content will be populated here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="acknowledgeReminder">
+          <i class="fa fa-check"></i> OK, I'll take it now
+        </button>
+        <button type="button" class="btn btn-info" id="snoozeReminder">
+          <i class="fa fa-clock-o"></i> Snooze (5 min)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer class="container-fluid text-center">
   <p>&copy; 2023 MedTracker | Medication Management System</p>
 </footer>
