@@ -6,7 +6,7 @@ async function getMedicationById(medicationId, userId) {
     try {
         connection = await sql.connect(dbConfig);
         const query = ` 
-            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
             FROM Medications
             WHERE medication_id = @medicationId AND user_id = @userId
         `;
@@ -42,7 +42,7 @@ async function getAllMedicationByUser(userId) {
     try {
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
             FROM Medications
             WHERE user_id = @userId
         `;
@@ -89,7 +89,7 @@ async function getDailyMedicationByUser(userId) {
         const updateResult = await updateRequest.query(updateQuery);
 
         const getQuery = `
-            SELECT M.medication_id, M.medication_name, M.medication_time, M.medication_dosage, M.prescription_startdate, M.prescription_enddate, M.medication_notes, M.is_taken
+            SELECT M.medication_id, M.medication_name, M.medication_date, M.medication_time, M.medication_dosage, M.medication_notes, M.medication_reminders, M.prescription_startdate, M.prescription_enddate, M.is_taken
             FROM Medications M
             WHERE M.user_id = @userId AND M.medication_date = @currentDate
             ORDER BY medication_time ASC
@@ -173,7 +173,7 @@ async function getWeeklyMedicationByUser(userId, startDate = null, endDate = nul
 
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT M.medication_date, M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
+            SELECT M.medication_id, M.medication_name, M.medication_date, M.medication_time, M.medication_dosage, M.medication_notes, M.medication_reminders, M.prescription_startdate, M.prescription_enddate, M.is_taken
             FROM Medications M
             WHERE M.user_id = @userId AND M.medication_date BETWEEN @startDate AND @endDate
             ORDER BY M.medication_date, M.medication_time
@@ -379,7 +379,7 @@ async function searchMedicationByName(userId, medicationName) {
         connection = await sql.connect(dbConfig);
         
         const query = `
-            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
             FROM Medications
             WHERE user_id = @userId AND medication_name LIKE @medicationName
         `;

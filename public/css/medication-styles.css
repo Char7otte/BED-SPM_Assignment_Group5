@@ -137,3 +137,53 @@ body {
 #reminderPopup .modal-content:hover {
     animation: none; 
 }
+
+/* Enhanced Form Styles */
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-body .form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.modal-body .form-control {
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    transition: border-color 0.3s ease;
+}
+
+.modal-body .form-control:focus {
+    border-color: #337ab7;
+    box-shadow: 0 0 0 0.2rem rgba(51, 122, 183, 0.25);
+}
+
+.modal-body .checkbox label {
+    font-weight: normal;
+    color: #333;
+}
+
+.modal-body .row {
+    margin-bottom: 0;
+}
+
+.modal-body .row .col-md-6 {
+    padding-left: 7.5px;
+    padding-right: 7.5px;
+}
+
+.modal-body .row:first-child .col-md-6:first-child {
+    padding-left: 15px;
+}
+
+.modal-body .row:first-child .col-md-6:last-child {
+    padding-right: 15px;
+}
+
+.modal-body textarea.form-control {
+    resize: vertical;
+    min-height: 60px;
+}

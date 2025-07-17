@@ -90,7 +90,7 @@
 
 <!-- Add Medication Modal -->
 <div class="modal fade" id="addMedModal" tabindex="-1" role="dialog" aria-labelledby="addMedModalLabel">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -99,25 +99,58 @@
       <div class="modal-body">
         <form id="medication-form">
           <input type="hidden" id="medication-id">
-          <div class="form-group">
-            <label for="name">Medication Name:</label>
-            <input type="text" class="form-control" id="name" required>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Medication Name:</label>
+                <input type="text" class="form-control" id="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="dosage">Dosage:</label>
+                <input type="text" class="form-control" id="dosage" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="medication-date">Medication Date:</label>
+                <input type="date" class="form-control" id="medication-date" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="time">Time to Take:</label>
+                <input type="time" class="form-control" id="time" required>
+              </div>
+            </div>
           </div>
           <div class="form-group">
-            <label for="dosage">Dosage:</label>
-            <input type="text" class="form-control" id="dosage" required>
+            <label for="notes">Notes:</label>
+            <textarea class="form-control" id="notes" rows="2" placeholder="Additional notes about this medication..."></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="prescription-start">Prescription Start Date:</label>
+                <input type="date" class="form-control" id="prescription-start" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="prescription-end">Prescription End Date:</label>
+                <input type="date" class="form-control" id="prescription-end" required>
+              </div>
+            </div>
           </div>
           <div class="form-group">
-            <label for="frequency">Frequency:</label>
-            <select class="form-control" id="frequency" required>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="as-needed">As Needed</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="time">Time to Take:</label>
-            <input type="time" class="form-control" id="time">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="reminders" checked> Enable reminders for this medication
+              </label>
+            </div>
           </div>
         </form>
       </div>
@@ -131,7 +164,7 @@
 
 <!-- Edit Medication Modal -->
 <div class="modal fade" id="editMedModal" tabindex="-1" role="dialog" aria-labelledby="editMedModalLabel">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -140,25 +173,58 @@
       <div class="modal-body">
         <form id="edit-medication-form">
           <input type="hidden" id="edit-medication-id">
-          <div class="form-group">
-            <label for="edit-name">Medication Name:</label>
-            <input type="text" class="form-control" id="edit-name" required>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="edit-name">Medication Name:</label>
+                <input type="text" class="form-control" id="edit-name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="edit-dosage">Dosage:</label>
+                <input type="text" class="form-control" id="edit-dosage" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="edit-medication-date">Medication Date:</label>
+                <input type="date" class="form-control" id="edit-medication-date" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="edit-time">Time to Take:</label>
+                <input type="time" class="form-control" id="edit-time" required>
+              </div>
+            </div>
           </div>
           <div class="form-group">
-            <label for="edit-dosage">Dosage:</label>
-            <input type="text" class="form-control" id="edit-dosage" required>
+            <label for="edit-notes">Notes:</label>
+            <textarea class="form-control" id="edit-notes" rows="2" placeholder="Additional notes about this medication..."></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="edit-prescription-start">Prescription Start Date:</label>
+                <input type="date" class="form-control" id="edit-prescription-start" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="edit-prescription-end">Prescription End Date:</label>
+                <input type="date" class="form-control" id="edit-prescription-end" required>
+              </div>
+            </div>
           </div>
           <div class="form-group">
-            <label for="edit-frequency">Frequency:</label>
-            <select class="form-control" id="edit-frequency" required>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="as-needed">As Needed</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="edit-time">Time to Take:</label>
-            <input type="time" class="form-control" id="edit-time">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="edit-reminders"> Enable reminders for this medication
+              </label>
+            </div>
           </div>
         </form>
       </div>

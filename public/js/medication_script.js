@@ -30,6 +30,17 @@ $(document).ready(function() {
     $('#update-med-btn').click(updateMedication);
     $('#delete-med-btn').click(deleteMedication);
 
+    // Set default values when Add Medication modal is opened
+    $('#addMedModal').on('show.bs.modal', function() {
+        const today = new Date().toISOString().split('T')[0];
+        const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        $('#medication-date').val(today);
+        $('#prescription-start').val(today);
+        $('#prescription-end').val(thirtyDaysLater);
+        $('#reminders').prop('checked', true);
+    });
+
     // Reminder popup event listeners
     $('#acknowledgeReminder').click(function() {
         $('#reminderPopup').modal('hide');
@@ -94,7 +105,10 @@ $(document).ready(function() {
             time: med.medication_time,
             notes: med.medication_notes,
             isTaken: med.is_taken,
-            date: med.medication_date
+            date: med.medication_date,
+            reminders: med.medication_reminders,
+            prescriptionStart: med.prescription_startdate,
+            prescriptionEnd: med.prescription_enddate
         };
     }
 
@@ -288,13 +302,13 @@ $(document).ready(function() {
         const medication = {
             user_id: parseInt(currentUserId),
             medication_name: $('#name').val(),
-            medication_dosage: $('#dosage').val(),
+            medication_date: $('#medication-date').val(),
             medication_time: $('#time').val(),
-            medication_date: new Date().toISOString().split('T')[0], // Current date
-            medication_notes: '',
-            medication_reminders: true,
-            prescription_startdate: new Date().toISOString().split('T')[0],
-            prescription_enddate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+            medication_dosage: $('#dosage').val(),
+            medication_notes: $('#notes').val() || '',
+            medication_reminders: $('#reminders').is(':checked'),
+            prescription_startdate: $('#prescription-start').val(),
+            prescription_enddate: $('#prescription-end').val(),
             is_taken: false
         };
 
@@ -320,7 +334,12 @@ $(document).ready(function() {
         $('#edit-medication-id').val(medication.id);
         $('#edit-name').val(medication.name);
         $('#edit-dosage').val(medication.dosage);
+        $('#edit-medication-date').val(medication.date);
         $('#edit-time').val(medication.time);
+        $('#edit-notes').val(medication.notes || '');
+        $('#edit-prescription-start').val(medication.prescriptionStart);
+        $('#edit-prescription-end').val(medication.prescriptionEnd);
+        $('#edit-reminders').prop('checked', medication.reminders);
         $('#editMedModal').modal('show');
     }
 
@@ -329,14 +348,14 @@ $(document).ready(function() {
         const medication = {
             userId: parseInt(currentUserId),
             medicationName: $('#edit-name').val(),
-            medicationDosage: $('#edit-dosage').val(),
+            medicationDate: $('#edit-medication-date').val(),
             medicationTime: $('#edit-time').val(),
-            medicationDate: new Date().toISOString().split('T')[0],
-            medicationNotes: '',
-            medicationReminders: true,
-            prescriptionStartDate: new Date().toISOString().split('T')[0],
-            prescriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            isTaken: false
+            medicationDosage: $('#edit-dosage').val(),
+            medicationNotes: $('#edit-notes').val() || '',
+            medicationReminders: $('#edit-reminders').is(':checked'),
+            prescriptionStartDate: $('#edit-prescription-start').val(),
+            prescriptionEndDate: $('#edit-prescription-end').val(),
+            isTaken: false // Keep current taken status, don't reset it
         };
 
         $.ajax({
