@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="/css/calendar.css" type="text/css">
-    <!-- <link rel="stylesheet" href="../css/calendar.css" type="text/css"> -->
     <title>Medical Appointment Calendar</title>
 </head>
 <body>
@@ -12,23 +11,15 @@
         <h1>Medical Appointment Calendar</h1>
     </header>
 
-    <!-- <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-        <button onclick="changeMonth(-1)">← Previous Month</button>
-        <h2 id="current-month">July 2025</h2>
-        <button onclick="changeMonth(1)">Next Month →</button>
-    </div> -->
-
-
     <div id="main">
         <div id="appointments">
-            <!-- <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Medical Appointments on <span id="selected-date">the Calendar</span></h3>
-                <button onclick="openNewAppointment()" style="background: #2ecc71;">+ Add</button> 
-            </div>
-            <button onclick="renderAllAppointments()" style="background-color: #6c2fd3; color: white;">View All Appointments</button> -->
-            
             <h2>Medical Appointments on <span id="selected-date">the Calendar</span></h2>    
-            <input type="text" id="search-bar" placeholder="Search appointments..." oninput="filterAppointments()" style="margin: 10px 0; padding: 6px; width: 250px;"> 
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search appointments (title, doctor, location, notes...)">
+                <button onclick="searchAppointments()">Search</button>
+                <button onclick="clearSearch()">Clear</button>
+            </div>
+            
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <button onclick="renderAllAppointments()" style="background-color: #6c2fd3; color: white;">View All Appointments</button>
                 <button onclick="openNewAppointment()" style="background: #2ecc71;">+ Add</button> 
@@ -51,8 +42,6 @@
 
             <div id="calendar"></div> <!-- Calendar grid goes here -->
         </div>
-
-        <!-- <div id="calendar"></div> -->
     </div>
 
     <div id="modal">

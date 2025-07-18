@@ -147,7 +147,6 @@ function displayDailyAppointments(dateKey) {
     // modal.style.display = "flex";  //adds new appointment when user clicks on the date
 }
 
-// ...existing code...
 function displayAllAppointments() {
     monthlyList.innerHTML = ""; // Clear the monthly list
     let all = [];
@@ -194,7 +193,6 @@ function displayAllAppointments() {
 
     selectedDateEl.innerText = "All Dates";
 }
-// ...existing code...
 
 function editAppointmentById(appointmentId, dateKey) {
     // Find the appointment in the appointments object
@@ -292,109 +290,6 @@ function editAppointment(index) {
     modal.style.display = "flex";
 }
 
-// function saveAppointment() {
-//     const date = document.getElementById("appointment-date").value;
-//     const title = document.getElementById("title").value;
-//     const doctor = document.getElementById("doctor").value;
-//     const startTime = formatTimeForDatabase(document.getElementById("start-time").value);
-//     const endTime = formatTimeForDatabase(document.getElementById("end-time").value);
-//     const location = document.getElementById("location").value;
-//     const notes = document.getElementById("notes").value;
-//     const status = document.getElementById("status").value;
-
-//     // Validate required fields
-//     if (!date || !title || !doctor || !startTime || !endTime || !location) {
-//         alert("Please fill in all required fields (Date, Title, Doctor, Start Time, End Time, Location)");
-//         return;
-//     }
-
-//     // Validate times if both are provided
-//     if (startTime && endTime) {
-//         const timeValidation = validateAppointmentTimes(startTime, endTime);
-//         if (!timeValidation.isValid) {
-//             alert(timeValidation.message);
-//             return;
-//         }
-//     }
-
-//     const appointmentData = { date, title, doctor, startTime, endTime, location, notes, status };
-
-//     // Debug line - check what data is being sent
-//     console.log("Sending appointment data:", appointmentData);
-
-//     if (editingIndex !== null) {
-//         // UPDATE existing appointment
-//         const appointmentId = appointments[originalDate][editingIndex].id;
-        
-//         fetch(`/med-appointments/${appointmentId}`, {
-//             method: "PUT",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify(appointmentData)
-//         })
-//         .then(res => res.json())
-//         .then(updatedAppt => {
-//             // Update local data
-//             if (originalDate !== date) {
-//                 // Move appointment to new date
-//                 appointments[originalDate].splice(editingIndex, 1);
-//                 if (!appointments[date]) appointments[date] = [];
-//                 appointments[date].push(updatedAppt);
-//             } else {
-//                 // Update on same date
-//                 appointments[date][editingIndex] = updatedAppt;
-//             }
-            
-//             selectedDate = date;
-//             selectedDateEl.innerText = selectedDate;
-            
-//             const [year, month] = date.split("-").map(Number);
-//             currentYear = year;
-//             currentMonth = month - 1;
-            
-//             renderCalendar();
-//             highlightDay(date);
-//             openDate(date);
-//             closeModal();
-            
-//             editingIndex = null;
-//             originalDate = null;
-//         })
-//         .catch(err => {
-//             console.error("Error updating appointment:", err);
-//             alert("Failed to update appointment. Please try again.");
-//         });
-//     } else {
-//         // CREATE new appointment
-//         fetch("/med-appointments", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify(appointmentData)
-//         })
-//         .then(res => res.json())
-//         .then(newAppt => {
-//             // Update local data
-//             if (!appointments[date]) appointments[date] = [];
-//             appointments[date].push(newAppt);
-            
-//             selectedDate = date;
-//             selectedDateEl.innerText = selectedDate;
-            
-//             const [year, month] = date.split("-").map(Number);
-//             currentYear = year;
-//             currentMonth = month - 1;
-            
-//             renderCalendar();
-//             highlightDay(date);
-//             openDate(date);
-//             closeModal();
-//         })
-//         .catch(err => {
-//             console.error("Error creating appointment:", err);
-//             alert("Failed to create appointment. Please try again.");
-//         });
-//     }
-//}
-// ...existing code...
 function saveAppointment() {
     // Get raw form values first for debugging
     const dateRaw = document.getElementById("appointment-date").value;
@@ -593,7 +488,6 @@ function saveAppointment() {
         });
     }
 }
-// ...existing code...
 
 function deleteAppointment(index) {
     // appointments[selectedDate].splice(index, 1);
@@ -750,7 +644,126 @@ function getStatusClass(status) {
     }[status] || "status-scheduled";
 }
 
-// Helper functions for formatting
+function searchAppointments() {
+    const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        // If search is empty, show all appointments
+        renderAllAppointments();
+        return;
+    }
+
+    viewMode = "search";
+    document.getElementById("month-summary-label").innerText = `Search Results for "${searchTerm}"`;
+    monthlyList.style.display = "block";
+    appointmentList.style.display = "none";
+
+    // Clear the monthly list
+    monthlyList.innerHTML = "";
+    
+    let searchResults = [];
+    let hasResults = false;
+
+    // Search through all appointments
+    Object.keys(appointments).forEach(dateKey => {
+        appointments[dateKey].forEach(appt => {
+            // Search in multiple fields
+            const searchableText = [
+                appt.date,
+                appt.title,
+                appt.doctor,
+                appt.location,
+                appt.notes,
+                formatTimeForDisplay(appt.startTime),
+                formatTimeForDisplay(appt.endTime)
+            ].join(' ').toLowerCase();
+
+            if (searchableText.includes(searchTerm)) {
+                searchResults.push({ date: dateKey, ...appt });
+                hasResults = true;
+            }
+        });
+    });
+
+    if (!hasResults) {
+        const noResultsLi = document.createElement("li");
+        noResultsLi.className = "no-results";
+        noResultsLi.innerHTML = `<em>No appointments found matching "${searchTerm}"</em>`;
+        monthlyList.appendChild(noResultsLi);
+        return;
+    }
+
+    // Sort results by date and time
+    searchResults.sort((a, b) => {
+        if (a.date === b.date) {
+            const timeA = a.startTime || '00:00:00';
+            const timeB = b.startTime || '00:00:00';
+            return timeA.localeCompare(timeB);
+        }
+        return a.date.localeCompare(b.date);
+    });
+
+    // Display search results
+    searchResults.forEach((appt) => {
+        // Update status if needed
+        if (!appt.status || appt.status === "Scheduled") {
+            const now = new Date();
+            const startTime = appt.startTime || '00:00:00';
+            const endTime = appt.endTime || '23:59:59';
+            const start = new Date(`${appt.date}T${startTime}`);
+            const end = new Date(`${appt.date}T${endTime}`);
+
+            if (now > end) appt.status = "Missed";
+            else if (now >= start && now <= end) appt.status = "Ongoing";
+        }
+
+        const li = document.createElement("li");
+        li.className = `appointment-item ${getStatusClass(appt.status)}`;
+        li.innerHTML = `
+            ${appt.date} <br>
+            <strong>${appt.title}</strong> <br>
+            Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
+            Doctor: ${appt.doctor} <br>
+            Location: ${appt.location} <br>
+            Notes: ${appt.notes} <br>
+            <button onclick="editAppointmentById('${appt.id}', '${appt.date}')">Edit</button> 
+            <button onclick="deleteAppointmentById('${appt.id}', '${appt.date}')">Delete</button> <br><br>`;
+        monthlyList.appendChild(li);
+    });
+}
+
+function clearSearch() {
+    document.getElementById("search-input").value = "";
+    renderAllAppointments();
+}
+
+// Add event listener for search input
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCalendar();
+    
+    // Add real-time validation
+    const startTimeInput = document.getElementById("start-time");
+    const endTimeInput = document.getElementById("end-time");
+    
+    if (startTimeInput && endTimeInput) {
+        startTimeInput.addEventListener('change', validateTimesRealtime);
+        endTimeInput.addEventListener('change', validateTimesRealtime);
+    }
+
+    // Add search functionality
+    const searchInput = document.getElementById("search-input");
+    if (searchInput) {
+        // Search on Enter key press
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAppointments();
+            }
+        });
+    }
+});
+
+
+////////////// Helper functions for formatting //////////////
 function formatDateForInput(dateString) {
     // Convert YYYY-MM-DD to format suitable for HTML date input
     if (!dateString) return '';
@@ -771,7 +784,6 @@ function formatTimeForInput(timeString) {
     return ''; // Return empty if format is unexpected
 }
 
-// ...existing code...
 function formatTimeForDatabase(timeString) {
     // Handle empty, null, or undefined
     if (!timeString || timeString.trim() === '') {
@@ -805,7 +817,6 @@ function formatTimeForDatabase(timeString) {
     console.error("Invalid time format, using default:", timeString);
     return '00:00:00';
 }
-// ...existing code...
 
 // Add a display function to safely show times
 function formatTimeForDisplay(timeString) {
@@ -858,21 +869,6 @@ function minutesToTime(minutes) {
     const mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
-
-
-// Add event listeners for real-time validation
-document.addEventListener('DOMContentLoaded', function() {
-    initializeCalendar();
-    
-    // Add real-time validation
-    const startTimeInput = document.getElementById("start-time");
-    const endTimeInput = document.getElementById("end-time");
-    
-    if (startTimeInput && endTimeInput) {
-        startTimeInput.addEventListener('change', validateTimesRealtime);
-        endTimeInput.addEventListener('change', validateTimesRealtime);
-    }
-});
 
 function validateTimesRealtime() {
     const startTimeInput = document.getElementById("start-time");
