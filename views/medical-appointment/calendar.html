@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="/css/calendar.css" type="text/css">
+    <title>Medical Appointment Calendar</title>
+</head>
+<body>
+    <header>
+        <h1>Medical Appointment Calendar</h1>
+    </header>
+
+    <div id="main">
+        <div id="appointments">
+            <h2>Medical Appointments on <span id="selected-date">the Calendar</span></h2>    
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search appointments (title, doctor, location, notes...)">
+                <button onclick="searchAppointments()">Search</button>
+                <button onclick="clearSearch()">Clear</button>
+            </div>
+
+            <div class="month-year-controls">
+                <div class="month-year-selectors">
+                    <label for="month-select">Month:</label>
+                    <select id="month-select"></select>
+                    
+                    <label for="year-select">Year:</label>
+                    <select id="year-select"></select>
+                    
+                    <button onclick="viewAppointmentsByMonth()">View Month</button>
+                </div>
+                
+                <div class="month-navigation" style="display: flex; justify-content: space-between;">
+                    <button onclick="quickNavigateToMonth(-1)" title="Previous Month">‹ Previous</button>
+                    <button onclick="quickNavigateToMonth(1)" title="Next Month">Next ›</button>
+                    
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button onclick="renderAllAppointments()" style="background-color: #6c2fd3; color: white;">View All Appointments</button>
+                <button onclick="openNewAppointment()" style="background: #2ecc71;">+ Add</button> 
+            </div>
+            
+            <div id="monthly-appointments">
+                <h3><span id="month-summary-label"></span></h3>
+                <ul id="monthly-list"></ul>
+            </div>
+
+            <ul id="appointment-list"></ul>
+        </div>
+
+        <div id="calendar-container">
+            <div id="calendar-header">
+                <button onclick="changeMonth(-1)">← Previous Month</button>
+                <span id="current-month">July 2025</span>
+                <button onclick="changeMonth(1)">Next Month →</button>
+            </div>
+
+            <div id="calendar"></div> <!-- Calendar grid goes here -->
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h3>New Appointment</h3>
+            <input type="date" id="appointment-date" placeholder="Date" required>
+            <input type="text" id="title" placeholder="Title" required>
+            <input type="text" id="doctor" placeholder="Doctor" required>
+            <input type="time" id="start-time" required>
+            <input type="time" id="end-time" required>
+            <input type="text" id="location" placeholder="Location" required>
+            <input type="text" id="notes" placeholder="Notes">
+            <select id="status">
+                <option value="Scheduled">🟢 Scheduled</option>
+                <option value="Ongoing">🟡 Ongoing</option>
+                <option value="Attended">✅ Attended</option>
+                <option value="Missed">🔴 Missed</option>
+            </select>
+
+
+            <button onclick="saveAppointment()">Save</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="/js/calendar.js"></script>
+</body>
+</html>
