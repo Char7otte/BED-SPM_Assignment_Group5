@@ -62,8 +62,7 @@ function initializeCalendar() {
         // Render calendar with appointment dots
         renderCalendar();
         
-        // Optionally show today's appointments by default
-        // const today = new Date();
+        // Show today's appointments by default
         const todayKey = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
         
         if (appointments[todayKey] && appointments[todayKey].length > 0) {
@@ -117,9 +116,6 @@ function displayDailyAppointments(dateKey) {
     editingIndex !== null ? "Edit Appointment" : `New Appointment for ${selectedDate}`;
 
     dailyAppointments.forEach((appt, index) => {
-        // Log each appointment for debugging
-        console.log(`Displaying appointment ${index}:`, appt);
-        
         if (!appt.status || appt.status === "Scheduled") {
             const now = new Date();
             const startTime = appt.startTime || '00:00:00';
@@ -144,19 +140,30 @@ function displayDailyAppointments(dateKey) {
             <button onclick="deleteAppointment(${index})">Delete</button> <br><br>`; 
         appointmentList.appendChild(li);
     });
-    // modal.style.display = "flex";  //adds new appointment when user clicks on the date
+    // modal.style.display = "flex";  // Add new appointment when user clicks on the date
 }
 
 function displayAllAppointments() {
-    monthlyList.innerHTML = ""; // Clear the monthly list
-    let all = [];
+    monthlyList.innerHTML = "";
+    
+    if (!appointments || Object.keys(appointments).length === 0) {
+        const noAppointmentsLi = document.createElement("li");
+        noAppointmentsLi.className = "no-results";
+        noAppointmentsLi.innerHTML = `<em>No appointments found</em>`;
+        monthlyList.appendChild(noAppointmentsLi);
+        return;
+    }
+    
+    // Flatten all appointments with their dates
+    let allAppointments = [];
     Object.keys(appointments).forEach(dateKey => {
         appointments[dateKey].forEach(appt => {
-            all.push({ date: dateKey, ...appt });
+            allAppointments.push({ date: dateKey, ...appt });
         });
     });
-
-    all.sort((a, b) => {
+    
+    // Sort all appointments by date and time
+    allAppointments.sort((a, b) => {
         if (a.date === b.date) {
             const timeA = a.startTime || '00:00:00';
             const timeB = b.startTime || '00:00:00';
@@ -164,34 +171,63 @@ function displayAllAppointments() {
         }
         return a.date.localeCompare(b.date);
     });
-
-    all.forEach((appt, index) => {
-        if (!appt.status || appt.status === "Scheduled") {
-            const now = new Date();
-            const startTime = appt.startTime || '00:00:00';
-            const endTime = appt.endTime || '23:59:59';
-            const start = new Date(`${appt.date}T${startTime}`);
-            const end = new Date(`${appt.date}T${endTime}`);
-
-            if (now > end) appt.status = "Missed";
-            else if (now >= start && now <= end) appt.status = "Ongoing";
+    
+    // Group appointments by date
+    const appointmentsByDate = {};
+    allAppointments.forEach(appt => {
+        if (!appointmentsByDate[appt.date]) {
+            appointmentsByDate[appt.date] = [];
         }
-
-        const li = document.createElement("li");
-        li.className = `appointment-item ${getStatusClass(appt.status)}`;
-        li.innerHTML = `
-            ${appt.date} <br>
-            <strong>${appt.title}</strong> <br>
-            Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
-            Doctor: ${appt.doctor} <br>
-            Location: ${appt.location} <br>
-            Notes: ${appt.notes} <br>
-            <button onclick="editAppointmentById('${appt.id}', '${appt.date}')">Edit</button> 
-            <button onclick="deleteAppointmentById('${appt.id}', '${appt.date}')">Delete</button> <br><br>`; 
-        monthlyList.appendChild(li);
+        appointmentsByDate[appt.date].push(appt);
     });
+    
+    // Display appointments grouped by date with headers
+    Object.keys(appointmentsByDate).sort().forEach(dateKey => {
+        // Add date header
+        const dateHeader = document.createElement("li");
+        dateHeader.className = "date-header";
+        const dateObj = new Date(dateKey);
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+        const formattedDate = dateObj.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        dateHeader.innerHTML = `<h4>${dayName}, ${formattedDate}</h4>`;
+        monthlyList.appendChild(dateHeader);
+        
+        // Add appointments for this date
+        appointmentsByDate[dateKey].forEach(appt => {
+            // Update status if needed
+            if (!appt.status || appt.status === "Scheduled") {
+                const now = new Date();
+                const startTime = appt.startTime || '00:00:00';
+                const endTime = appt.endTime || '23:59:59';
+                const start = new Date(`${appt.date}T${startTime}`);
+                const end = new Date(`${appt.date}T${endTime}`);
 
-    selectedDateEl.innerText = "All Dates";
+                if (now > end) appt.status = "Missed";
+                else if (now >= start && now <= end) appt.status = "Ongoing";
+            }
+            
+            const li = document.createElement("li");
+            li.className = `appointment-item ${getStatusClass(appt.status)}`;
+            li.innerHTML = `
+                <div class="appointment-details">
+                    <strong>${appt.title}</strong> <br>
+                    Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
+                    Doctor: ${appt.doctor} <br>
+                    Location: ${appt.location} <br>
+                    ${appt.notes ? `Notes: ${appt.notes} <br>` : ''}
+                    Status: <span class="status-badge ${getStatusClass(appt.status)}">${appt.status}</span> <br>
+                    <div class="appointment-actions">
+                        <button onclick="editAppointmentById('${appt.id}', '${appt.date}')">Edit</button> 
+                        <button onclick="deleteAppointmentById('${appt.id}', '${appt.date}')">Delete</button>
+                    </div>
+                </div>`;
+            monthlyList.appendChild(li);
+        });
+    });
 }
 
 function editAppointmentById(appointmentId, dateKey) {
@@ -291,49 +327,19 @@ function editAppointment(index) {
 }
 
 function saveAppointment() {
-    // Get raw form values first for debugging
-    const dateRaw = document.getElementById("appointment-date").value;
-    const titleRaw = document.getElementById("title").value;
-    const doctorRaw = document.getElementById("doctor").value;
+    // Get form values
+    const date = document.getElementById("appointment-date").value;
+    const title = document.getElementById("title").value;
+    const doctor = document.getElementById("doctor").value;
     const startTimeRaw = document.getElementById("start-time").value;
     const endTimeRaw = document.getElementById("end-time").value;
-    const locationRaw = document.getElementById("location").value;
-    const notesRaw = document.getElementById("notes").value;
-    const statusRaw = document.getElementById("status").value;
+    const location = document.getElementById("location").value;
+    const notes = document.getElementById("notes").value;
+    const status = document.getElementById("status").value;
 
-    // Debug: Log raw values
-    console.log("Raw form values:", {
-        dateRaw,
-        titleRaw,
-        doctorRaw,
-        startTimeRaw,
-        endTimeRaw,
-        locationRaw,
-        notesRaw,
-        statusRaw
-    });
-
-    // Process form values
-    const date = dateRaw;
-    const title = titleRaw;
-    const doctor = doctorRaw;
+    // Process time values
     const start_time = formatTimeForDatabase(startTimeRaw);
     const end_time = formatTimeForDatabase(endTimeRaw);
-    const location = locationRaw;
-    const notes = notesRaw;
-    const status = statusRaw;
-
-    // Debug: Log processed values
-    console.log("Processed form values:", {
-        date,
-        title,
-        doctor,
-        start_time,
-        end_time,
-        location,
-        notes,
-        status
-    });
 
     // Validate required fields
     if (!date || !title || !doctor || !location) {
@@ -378,12 +384,6 @@ function saveAppointment() {
         location, 
         notes 
     };
-
-    // Include status for ALL appointments (new and existing)
-    appointmentData.status = status;
-
-    // Debug line - check what data is being sent
-    console.log("Sending appointment data:", appointmentData);
 
     if (editingIndex !== null) {
         // UPDATE existing appointment
@@ -490,8 +490,6 @@ function saveAppointment() {
 }
 
 function deleteAppointment(index) {
-    // appointments[selectedDate].splice(index, 1);
-    // openDate(selectedDate);
     // Check if we have appointments for the selected date
     if (!appointments[selectedDate] || !appointments[selectedDate][index]) {
         alert("Error: Cannot find appointment to delete");
@@ -737,6 +735,187 @@ function clearSearch() {
     renderAllAppointments();
 }
 
+// Add month/year view functionality
+function viewAppointmentsByMonth() {
+    const monthSelect = document.getElementById("month-select");
+    const yearSelect = document.getElementById("year-select");
+    
+    if (!monthSelect || !yearSelect) {
+        console.error("Month or year select elements not found");
+        return;
+    }
+    
+    const selectedMonth = parseInt(monthSelect.value);
+    const selectedYear = parseInt(yearSelect.value);
+    
+    // Update current month and year
+    currentMonth = selectedMonth;
+    currentYear = selectedYear;
+    
+    viewMode = "monthly";
+    document.getElementById("month-summary-label").innerText = 
+        `${new Date(selectedYear, selectedMonth).toLocaleString("default", { month: "long", year: "numeric" })} Appointments`;
+    
+    monthlyList.style.display = "block";
+    appointmentList.style.display = "none";
+    
+    // Clear the monthly list
+    monthlyList.innerHTML = "";
+    
+    let monthlyAppointments = [];
+    let hasAppointments = false;
+    
+    // Find all appointments for the selected month and year
+    Object.keys(appointments).forEach(dateKey => {
+        const [year, month] = dateKey.split("-").map(Number);
+        if (year === selectedYear && month === selectedMonth + 1) {
+            appointments[dateKey].forEach(appt => {
+                monthlyAppointments.push({ date: dateKey, ...appt });
+                hasAppointments = true;
+            });
+        }
+    });
+    
+    if (!hasAppointments) {
+        const noAppointmentsLi = document.createElement("li");
+        noAppointmentsLi.className = "no-results";
+        noAppointmentsLi.innerHTML = `<em>No appointments found for ${new Date(selectedYear, selectedMonth).toLocaleString("default", { month: "long", year: "numeric" })}</em>`;
+        monthlyList.appendChild(noAppointmentsLi);
+        
+        // Update calendar to show the selected month
+        renderCalendar();
+        return;
+    }
+    
+    // Sort appointments by date and time
+    monthlyAppointments.sort((a, b) => {
+        if (a.date === b.date) {
+            const timeA = a.startTime || '00:00:00';
+            const timeB = b.startTime || '00:00:00';
+            return timeA.localeCompare(timeB);
+        }
+        return a.date.localeCompare(b.date);
+    });
+    
+    // Group appointments by date for better display
+    const appointmentsByDate = {};
+    monthlyAppointments.forEach(appt => {
+        if (!appointmentsByDate[appt.date]) {
+            appointmentsByDate[appt.date] = [];
+        }
+        appointmentsByDate[appt.date].push(appt);
+    });
+    
+    // Display appointments grouped by date
+    Object.keys(appointmentsByDate).sort().forEach(dateKey => {
+        // Add date header
+        const dateHeader = document.createElement("li");
+        dateHeader.className = "date-header";
+        const dateObj = new Date(dateKey);
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+        dateHeader.innerHTML = `<h4>${dayName}, ${dateKey}</h4>`;
+        monthlyList.appendChild(dateHeader);
+        
+        // Add appointments for this date
+        appointmentsByDate[dateKey].forEach(appt => {
+            // Update status if needed
+            if (!appt.status || appt.status === "Scheduled") {
+                const now = new Date();
+                const startTime = appt.startTime || '00:00:00';
+                const endTime = appt.endTime || '23:59:59';
+                const start = new Date(`${appt.date}T${startTime}`);
+                const end = new Date(`${appt.date}T${endTime}`);
+
+                if (now > end) appt.status = "Missed";
+                else if (now >= start && now <= end) appt.status = "Ongoing";
+            }
+            
+            const li = document.createElement("li");
+            li.className = `appointment-item ${getStatusClass(appt.status)}`;
+            li.innerHTML = `
+                <div class="appointment-details">
+                    <strong>${appt.title}</strong> <br>
+                    Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
+                    Doctor: ${appt.doctor} <br>
+                    Location: ${appt.location} <br>
+                    ${appt.notes ? `Notes: ${appt.notes} <br>` : ''}
+                    Status: <span class="status-badge ${getStatusClass(appt.status)}">${appt.status}</span> <br>
+                    <div class="appointment-actions">
+                        <button onclick="editAppointmentById('${appt.id}', '${appt.date}')">Edit</button> 
+                        <button onclick="deleteAppointmentById('${appt.id}', '${appt.date}')">Delete</button>
+                    </div>
+                </div>`;
+            monthlyList.appendChild(li);
+        });
+    });
+    
+    // Update calendar to show the selected month
+    renderCalendar();
+}
+
+function initializeMonthYearSelectors() {
+    const monthSelect = document.getElementById("month-select");
+    const yearSelect = document.getElementById("year-select");
+    
+    if (!monthSelect || !yearSelect) {
+        return;
+    }
+    
+    // Populate month dropdown
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    
+    monthSelect.innerHTML = "";
+    months.forEach((month, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = month;
+        if (index === currentMonth) {
+            option.selected = true;
+        }
+        monthSelect.appendChild(option);
+    });
+    
+    // Populate year dropdown (current year ± 5 years)
+    yearSelect.innerHTML = "";
+    const currentYearValue = new Date().getFullYear();
+    for (let year = currentYearValue - 5; year <= currentYearValue + 5; year++) {
+        const option = document.createElement("option");
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) {
+            option.selected = true;
+        }
+        yearSelect.appendChild(option);
+    }
+    
+    // Add event listeners
+    monthSelect.addEventListener('change', viewAppointmentsByMonth);
+    yearSelect.addEventListener('change', viewAppointmentsByMonth);
+}
+
+function quickNavigateToMonth(monthOffset) {
+    let newMonth = currentMonth + monthOffset;
+    let newYear = currentYear;
+    
+    if (newMonth < 0) {
+        newMonth = 11;
+        newYear--;
+    } else if (newMonth > 11) {
+        newMonth = 0;
+        newYear++;
+    }
+    
+    // Update the selectors
+    document.getElementById("month-select").value = newMonth;
+    document.getElementById("year-select").value = newYear;
+    
+    // Trigger the view update
+    viewAppointmentsByMonth();
+}
+
 // Add event listener for search input
 document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
@@ -760,8 +939,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Initialize month/year selectors
+    initializeMonthYearSelectors();
 });
-
 
 ////////////// Helper functions for formatting //////////////
 function formatDateForInput(dateString) {

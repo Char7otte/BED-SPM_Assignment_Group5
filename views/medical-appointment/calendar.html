@@ -19,6 +19,24 @@
                 <button onclick="searchAppointments()">Search</button>
                 <button onclick="clearSearch()">Clear</button>
             </div>
+
+            <div class="month-year-controls">
+                <div class="month-year-selectors">
+                    <label for="month-select">Month:</label>
+                    <select id="month-select"></select>
+                    
+                    <label for="year-select">Year:</label>
+                    <select id="year-select"></select>
+                    
+                    <button onclick="viewAppointmentsByMonth()">View Month</button>
+                </div>
+                
+                <div class="month-navigation" style="display: flex; justify-content: space-between;">
+                    <button onclick="quickNavigateToMonth(-1)" title="Previous Month">‹ Previous</button>
+                    <button onclick="quickNavigateToMonth(1)" title="Next Month">Next ›</button>
+                    
+                </div>
+            </div>
             
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <button onclick="renderAllAppointments()" style="background-color: #6c2fd3; color: white;">View All Appointments</button>

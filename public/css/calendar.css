@@ -218,3 +218,101 @@ body.modal-open #calendar {
     color: #666;
     font-style: italic;
 }
+
+.month-year-controls {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.month-year-selectors {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.month-year-selectors label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.month-year-selectors select {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+}
+
+.month-navigation {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.month-year-controls button {
+    padding: 6px 12px;
+    background-color: #1d8f65;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.month-year-controls button:hover {
+    background-color: #0b5339;
+}
+
+.month-navigation button:nth-child(1) {
+    background-color: #e9b217;
+    color: black;
+}
+
+.month-navigation button:nth-child(1):hover {
+    background-color: #b58500;
+}
+
+.month-navigation button:nth-child(2) {
+    background-color: #e9b217;
+    color: black;
+}
+
+.month-navigation button:nth-child(2):hover {
+    background-color: #b58500;
+}
+
+.date-header {
+    background-color: #e9ecef;
+    padding: 10px;
+    margin: 10px 0 5px 0;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+}
+
+.date-header h4 {
+    margin: 0;
+    color: #495057;
+    font-size: 16px;
+}
+
+.appointment-details {
+    padding: 10px;
+}
+
+.appointment-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.appointment-actions button {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+}

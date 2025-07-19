@@ -65,10 +65,13 @@ app.patch("/chats/:chatID", chatMessageController.editMessage);
 
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
-app.get("/med-appointments/:date", verifyJWT, medAppointmentController.getAppointmentByDate);
+app.get("/med-appointments/search", verifyJWT, medAppointmentController.searchAppointments);
+app.get("/med-appointments/:date", verifyJWT, medAppointmentController.getAppointmentsByDate);
+app.get("/med-appointments/:month/:year", verifyJWT, medAppointmentController.getAppointmentsByMonthYear);
 app.post("/med-appointments", verifyJWT, validateMedAppointment, medAppointmentController.createAppointment);
 app.put("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, validateMedAppointment, medAppointmentController.updateAppointment);
 app.delete("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, medAppointmentController.deleteAppointment);
+
 
 //routes for medication tracker
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
@@ -85,6 +88,12 @@ app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedi
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+// Serve the calendar HTML file
+app.get("/calendar", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
+});
+
 
 process.on("SIGINT", async () => {
   console.log("Server is gracefully shutting down");
