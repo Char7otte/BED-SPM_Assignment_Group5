@@ -32,11 +32,30 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/views', express.static(path.join(__dirname, 'views')));
-app.get('/loginauth.html', (req, res) => {
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/login.html', (req, res) => {
+  //app.use(express.static(path.join(__dirname, 'public')));
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
-  app.use(express.static(path.join(__dirname, 'public')));
 });
+
+
+
+
+app.get('/alert', (req, res) => {
+  res.render('alert/alert', { message: 'This is an alert message' });
+});
+app.get('/alertdetail', (req, res) => {
+  res.render('alert/alertdetail', { message: 'This is an alert detail message' });
+});
+app.get('/alertadmin', (req, res) => {
+  res.render('alert/alertadmin', { message: 'This is an alert admin message' });
+});
+
+
+
+
+
 app.use(methodOverride("_method"));
 
 app.set("view engine", "ejs");

@@ -27,11 +27,8 @@
     "express": "^5.1.0",
     "joi": "^17.13.3",
     "method-override": "^3.0.0",
-
     "mssql": "^11.0.1",
     "react": "^19.1.0"
-
-    "mssql": "^11.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
