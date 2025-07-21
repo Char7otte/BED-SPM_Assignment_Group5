@@ -227,6 +227,28 @@ async function remindMedication(req, res) {
     }
 }
 
+async function tickAllMedications(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const tickedOffMedications = await medTrackerModel.tickAllMedications(userId);
+
+        if (!tickedOffMedications) {
+            return res.status(404).json({ error: "No medications found for this user" });
+        }
+
+        res.json(tickedOffMedications);
+    }
+    catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error ticking off all medications" });
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -237,5 +259,6 @@ module.exports = {
     deleteMedication,
     tickOffMedication,
     searchMedicationByName,
-    remindMedication
+    remindMedication,
+    tickAllMedications
 };

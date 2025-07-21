@@ -80,6 +80,7 @@ app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicati
 app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
 app.get("/medications/user/:userId/search", medTrackerController.searchMedicationByName);
 app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
+app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
 
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
 app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);

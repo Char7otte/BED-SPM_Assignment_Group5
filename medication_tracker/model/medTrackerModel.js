@@ -413,7 +413,7 @@ async function remindMedication(userId) {
         const currentDate = new Date().toISOString().split('T')[0];
         const currentTime = new Date();
         
-        // Calculate 5 minutes from now
+        // Calculate the time 5 minutes from now
         const fiveMinutesFromNow = new Date(currentTime.getTime() + 5 * 60000);
         const currentTimeStr = currentTime.toTimeString().substring(0, 5); // HH:MM format
         const fiveMinutesFromNowStr = fiveMinutesFromNow.toTimeString().substring(0, 5);
@@ -437,10 +437,10 @@ async function remindMedication(userId) {
 
         const result = await request.query(query);
         if (result.recordset.length === 0) {
-            return null; // No medications to remind
+            return null;
         }
 
-        return result.recordset; // Return the medications to remind
+        return result.recordset;
     }
     catch (error) {
         console.error("Database error:", error);
@@ -456,7 +456,43 @@ async function remindMedication(userId) {
             }
         }
     }
-} 
+}
+
+async function tickAllMedications(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET is_taken = 1, updated_at = GETDATE()
+            WHERE user_id = @userId AND is_taken = 0
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null
+        }
+
+        return { userId, message: "All medications marked as taken." };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
 
 module.exports = {
     getMedicationById,
@@ -468,5 +504,6 @@ module.exports = {
     deleteMedication,
     tickOffMedication,
     searchMedicationByName,
-    remindMedication
+    remindMedication,
+    tickAllMedications
 };
