@@ -494,6 +494,79 @@ async function tickAllMedications(userId) {
     }
 }
 
+async function getLowQuantityMedication(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT medication_id, medication_name, medication_quantity
+            FROM Medications
+            WHERE user_id = @userId AND medication_quantity < 5
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function decrementMedicationQuantity(medicationId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET medication_quantity = medication_quantity - 1, updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId AND medication_quantity > 0
+        `;
+
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, userId, message: "Medication quantity decremented." };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -505,5 +578,7 @@ module.exports = {
     tickOffMedication,
     searchMedicationByName,
     remindMedication,
-    tickAllMedications
+    tickAllMedications, 
+    getLowQuantityMedication,
+    decrementMedicationQuantity
 };
