@@ -567,6 +567,43 @@ async function decrementMedicationQuantity(medicationId, userId) {
     }
 }
 
+async function filterMedicationByStatus(userId, isTaken) {
+    let connection;
+    try {
+        connectoon = await sql.connect(dbConfig);
+        const query = `
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
+            FROM Medications
+            WHERE user_id = @userId AND is_taken = @isTaken
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("isTaken", sql.Bit, isTaken);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -580,5 +617,7 @@ module.exports = {
     remindMedication,
     tickAllMedications, 
     getLowQuantityMedication,
-    decrementMedicationQuantity
+    decrementMedicationQuantity, 
+    filterMedicationByStatus,
+    
 };
