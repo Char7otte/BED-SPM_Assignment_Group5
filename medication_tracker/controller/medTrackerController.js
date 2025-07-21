@@ -249,6 +249,51 @@ async function tickAllMedications(req, res) {
     }
 }
 
+async function getLowQuantityMedication(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const lowQuantityMedications = await medTrackerModel.getLowQuantityMedication(userId);
+
+        if (!lowQuantityMedications || lowQuantityMedications.length === 0) {
+            return res.status(404).json({ error: "No low quantity medications found for this user" });
+        }
+
+        res.json(lowQuantityMedications);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving low quantity medications" });
+    }
+}
+async function decrementMedicationQuantity(req, res) {
+    try {
+        const medicationId = parseInt(req.params.medicationId);
+        const userId = parseInt(req.params.userId);
+        
+        if (isNaN(medicationId)) {
+            return res.status(400).json({ error: "Invalid medication ID" });
+        }
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const updatedMedication = await medTrackerModel.decrementMedicationQuantity(medicationId, userId);
+
+        if (!updatedMedication) {
+            return res.status(404).json({ error: "Medication not found or quantity already at zero" });
+        }
+
+        res.json(updatedMedication);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error decrementing medication quantity" });
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -260,5 +305,7 @@ module.exports = {
     tickOffMedication,
     searchMedicationByName,
     remindMedication,
-    tickAllMedications
+    tickAllMedications, 
+    getLowQuantityMedication,
+    decrementMedicationQuantity
 };
