@@ -193,13 +193,17 @@ async function deleteAlert(id) {
   }
 }
 
-async function updateAlertStatus(id){
-  console.log("Updating alert status with ID:", id);
+async function updateAlertStatus(userId, alertId) {
   let conn;
   try {
     conn = await sql.connect(dbConfig);
-    const query = "UPDATE ReadStatus SET ReadStatus = 1 WHERE AlertID = @id";
-    const request = conn.request().input("id", sql.Int, id);
+    const query = `
+      INSERT INTO ReadStatus (user_id, AlertID, ReadStatus)
+VALUES (@userId, @alertId, 1);
+    `;
+    const request = conn.request()
+      .input("userId", sql.Int, userId)
+      .input("alertId", sql.Int, alertId);
     const result = await request.query(query);
     return result.rowsAffected[0] > 0; // Returns true if update was successful
   } catch (error) {
@@ -213,9 +217,10 @@ async function updateAlertStatus(id){
         console.error("Error closing connection:", err);
       }
     }
-  }
+  } 
 }
-async function getUnreadAlerts(userId) {
+
+async function getreadAlerts(userId) {
   let conn;
   try {
     conn = await sql.connect(dbConfig);
@@ -223,7 +228,7 @@ async function getUnreadAlerts(userId) {
       SELECT a.AlertID, a.Title, a.Category, a.Message, a.Date, a.Severity
       FROM Alert a
       JOIN ReadStatus rs ON a.AlertID = rs.AlertID
-      WHERE rs.user_id = @userId AND rs.ReadStatus = 0
+      WHERE rs.user_id = @userId AND rs.ReadStatus = 1
     `;
     const request = conn.request()
       .input("userId", sql.Int, userId);
@@ -304,7 +309,7 @@ module.exports = {
   updateAlert,
   deleteAlert,
   updateAlertStatus,
-  getUnreadAlerts,
+  getreadAlerts,
   searchAlerts,
   deleteReadStatusByid,
 };
@@ -319,6 +324,16 @@ module.exports = {
 //     Message VARCHAR(500),
 //     Date DATETIME NOT NULL DEFAULT GETDATE(),
 //     Severity VARCHAR(50)
+// );
+
+// -- ReadStatus table
+// CREATE TABLE ReadStatus (
+//     user_id INT NOT NULL,
+//     AlertID INT NOT NULL,
+//     ReadStatus BIT NOT NULL,  -- 1 = Read, 0 = Unread
+//     PRIMARY KEY (user_id, AlertID),
+//     FOREIGN KEY (user_id) REFERENCES Users(user_id),
+//     FOREIGN KEY (AlertID) REFERENCES Alert(AlertID)
 // );
 
 // -- ReadStatus table

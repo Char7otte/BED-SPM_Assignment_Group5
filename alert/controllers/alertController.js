@@ -107,18 +107,18 @@ async function deleteAlert(req, res) {
 }
 
 async function updateAlertStatus(req, res) {
+    const userId = parseInt(req.body.userId);
     const alertId = parseInt(req.params.id);
-    if (isNaN(alertId)) {
-        return res.status(400).json({ error: "Invalid alert ID" });
+    console.log("Updating alert status for user:", userId, "and alert:", alertId);
+    
+    if (isNaN(userId) || isNaN(alertId)) {
+        return res.status(400).json({ error: "Invalid user ID or alert ID" });
     }
-    const { user_id, ReadStatus } = req.body;
-    if (typeof ReadStatus !== 'boolean') {
-        return res.status(400).json({ error: "ReadStatus must be a boolean value" });
-    }
+
     try {
-        const success = await alertModel.updateAlertStatus(alertId, user_id, ReadStatus);
+        const success = await alertModel.updateAlertStatus(userId, alertId);
         if (!success) {
-            return res.status(404).json({ error: "Alert not found or status update failed" });
+            return res.status(404).json({ error: "Alert not found or already acknowledged" });
         }
         res.json({ message: "Alert status updated successfully" });
     } catch (error) {
@@ -126,14 +126,14 @@ async function updateAlertStatus(req, res) {
         res.status(500).json({ error: "Error updating alert status" });
     }
 }
-async function getUnreadAlerts(req, res) {
+async function getreadAlerts(req, res) {
     const userId = parseInt(req.params.id);
     if (isNaN(userId)) { 
         return res.status(400).json({ error: "Invalid user ID" });
     }
 
     try {
-        const alerts = await alertModel.getUnreadAlerts(userId);
+        const alerts = await alertModel.getreadAlerts(userId);
         res.json(alerts);
     } catch (error) {
         console.error("Controller error:", error);
@@ -149,10 +149,11 @@ async function searchAlerts(req, res) {
 
     try {
         const alerts = await alertModel.searchAlerts(title, category);
-        res.json(alerts);
+        
+        return res.status(200).json(alerts);
     } catch (error) {
         console.error("Controller error:", error);
-        res.status(500).json({ error: "Error searching alerts" });
+        return res.status(500).json({ error: "Error searching alerts" });
     }
 }
 
@@ -165,7 +166,7 @@ module.exports = {
     updateAlert,
     deleteAlert,
     updateAlertStatus,
-    getUnreadAlerts,
+    getreadAlerts,
     searchAlerts,
 };
 

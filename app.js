@@ -63,8 +63,8 @@ app.set("views", path.join(__dirname, "views"));
 
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
-app.get("/alerts/unreadstatus/:id", alertController.getUnreadAlerts); //  Get read status of an alert by ID
-app.put("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
+app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
+app.post("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
 
 
 // CREATE ALERT (Admin only)
