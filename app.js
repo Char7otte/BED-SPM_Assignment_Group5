@@ -27,15 +27,28 @@ const medTrackerController = require("./medication_tracker/controller/medTracker
 // import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
 
+// import feedback functions
+const feedbackController = require("./feedback/controllers/feedbackController");
+const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/views', express.static(path.join(__dirname, 'views')));
+
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+
+// app.use('/views', express.static(path.join(__dirname, 'views')));
 app.get('/loginauth.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
-  app.use(express.static(path.join(__dirname, 'public')));
+  // app.use(express.static(path.join(__dirname, 'public')));
 });
 app.use(methodOverride("_method"));
 
@@ -116,13 +129,31 @@ app.put("/notes/:id", noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
 
+//routes for feedback
+app.get("/feedback", feedbackController.getAllFeedbacksByUser);
+app.get("/feedback/search", feedbackController.searchFeedbacks);
+app.post("/feedback", validateFeedback, feedbackController.createFeedback);
+app.put("/feedback/:feedback_id", validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
+app.delete("/feedback/:feedback_id", validateFeedbackId, feedbackController.deleteFeedback);
+
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
 
 // Serve the calendar HTML file
 app.get("/calendar", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
+  res.render("medical-appointment/calendar");
+});
+
+// Serve the feedback-form HTML file
+app.get("/feedback-form", (req, res) => {
+  res.render("feedback/feedback-form");
+});
+
+// Serve the feedback-form HTML file
+app.get("/feedbacks", (req, res) => {
+  res.render("feedback/all-feedbacks");
 });
 
 

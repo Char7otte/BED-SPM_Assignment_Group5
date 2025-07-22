@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="/css/bulma.min.css" />
     <link rel="stylesheet" href="/css/calendar.css" type="text/css">
     <title>Medical Appointment Calendar</title>
 </head>
 <body>
+    <%- include("../partials/navbar") %>
+
     <header>
         <h1>Medical Appointment Calendar</h1>
     </header>
@@ -71,7 +74,7 @@
             <input type="time" id="start-time" required>
             <input type="time" id="end-time" required>
             <input type="text" id="location" placeholder="Location" required>
-            <input type="text" id="notes" placeholder="Notes">
+            <textarea type="text" id="notes" placeholder="Notes">
             <select id="status">
                 <option value="Scheduled">🟢 Scheduled</option>
                 <option value="Ongoing">🟡 Ongoing</option>
@@ -86,5 +89,7 @@
     </div>
 
     <script src="/js/calendar.js"></script>
+    
+    <%- include("../partials/footer") %>
 </body>
 </html>
