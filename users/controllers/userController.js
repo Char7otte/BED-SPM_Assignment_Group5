@@ -65,6 +65,17 @@ async function createUser(req, res) {
     try {
         await userModel.createUser({ username, phone_number, password, age, gender, status  });
         res.status(201).json({ message: 'User created successfully' });
+        const user = await userModel.getUserByUsername(username);
+        const token = jwt.sign(
+            { id: user.user_id, role: user.role, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '3600s' }
+        );
+        res.cookie('token', token, {
+            maxAge: 3 * 60 * 60 * 1000 // 3 hours
+        });
+
+
     } catch (err) {
         console.log('Error creating user:', err);
         if (err.message && err.message.includes('Violation of UNIQUE KEY')) {
@@ -172,11 +183,17 @@ async function loginUser(req, res) {
         );
 
         // ✅ SUCCESS response with token
-        res.status(200).json({
+        res
+        .cookie('token', token, {
+            // secure: true in production
+            maxAge: 3 * 60 * 60 * 1000 // 3 hours
+        })
+        .status(200)
+        .json({
             success: true,
             message: "Login successful",
-            token: token
-        });
+            token: token // still optional to return in body
+  });
 
     } catch (err) {
         console.error('Error logging in:', err);

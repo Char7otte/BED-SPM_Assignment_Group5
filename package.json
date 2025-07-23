@@ -1,4 +1,41 @@
 {
+
+  "name": "the-old-people-app",
+  "version": "1.0.0",
+  "description": "> npm i",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Char7otte/the-old-people-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Char7otte/the-old-people-app/issues"
+  },
+  "homepage": "https://github.com/Char7otte/the-old-people-app#readme",
+  "dependencies": {
+    "@joi/date": "^2.1.1",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "joi": "^17.13.3",
+    "method-override": "^3.0.0",
+    "mssql": "^11.0.1",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+=======
     "name": "the-old-people-app",
     "version": "1.0.0",
     "description": "> npm i",

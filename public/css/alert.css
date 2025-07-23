@@ -1,0 +1,56 @@
+body {
+    background-color: #2d2c2c; /* dark grey */
+    color: #2c2929;
+    height: 100%;
+}
+
+.main-container {
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #565454; 
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding-bottom: 20px;
+}
+
+.sub-container {
+    margin-top: 20px;
+    width: 90%;
+    margin-bottom: 10px;
+   
+}
+
+.card {
+    padding : 10px;
+    
+}
+
+.alert-item {
+    background-color: transparent; /* light red */
+    color: #721c24; /* dark red */
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+
+.top1-btn {
+    background-color: #7e0e08;
+    border: none;
+    border-radius: 0px;
+   
+}
+
+.bottom1-btn {
+    background-color: #072978;
+    border: none;
+    border-radius: 0px;
+}
+
+.alerD {
+    
+    width: 50%;
+    margin: 0 auto;
+    padding: 20px;
+}

@@ -3,6 +3,7 @@ const sql = require("mssql");
 const dotenv = require("dotenv");
 const path = require("path");
 const methodOverride = require("method-override");
+const cookieParser = require('cookie-parser');
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
 
@@ -13,8 +14,10 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
-const { authenticateToken } = require("./alert/middlewares/auth");
+
+const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
+const { authenticateToken } = require("./users/middlewares/auth");
+
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
@@ -30,14 +33,60 @@ const medTrackerController = require("./medication_tracker/controller/medTracker
 
 // import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+
+app.use((req, res, next) => {
+  const token = req.cookies?.token || null;
+  let tokenExpired = false;
+  let user = null;
+
+  if (token) {
+    try {
+      user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      tokenExpired = true;
+    }
+  } else {
+    tokenExpired = true;
+  }
+
+  res.locals.user = user;
+  res.locals.tokenExpired = tokenExpired;
+
+  next();
+});
+
+app.get('/login.html', (req, res) => {
+  //app.use(express.static(path.join(__dirname, 'public')));
+  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+});
+
+app.get('/alert', (req, res) => {
+  res.render('alert/alert', { message: 'This is an alert message' });
+});
+app.get('/alertdetail', (req, res) => {
+  res.render('alert/alertdetail', { message: 'This is an alert detail message' });
+});
+app.get('/alertadmin', (req, res) => {
+  res.render('alert/alertadmin', { message: 'This is an alert admin message' });
+});
+
+
+
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
+
 app.use(methodOverride("_method"));
 
 app.set("view engine", "ejs");
@@ -49,15 +98,15 @@ app.get("/loginauth.html", (req, res) => {
 
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
-app.get("/alerts/unreadstatus/:id", alertController.getUnreadAlerts); //  Get read status of an alert by ID
-app.put("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
+app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
+app.post("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
 
 // CREATE ALERT (Admin only)
 app.post("/alerts", validateAlert, alertController.createAlert); //  Create a new alert
 
 // UPDATE + DELETE ALERT (Admin only)
 app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert); // Update an existing alert
-app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
+app.put("/alerts/delete/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
 
 // BASIC ALERT FETCHING
 app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admin)

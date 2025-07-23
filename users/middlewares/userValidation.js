@@ -3,22 +3,22 @@ const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
 
 function validateUserInput(req, res, next) {
-    const schema = joi.object({
-        username: joi.string().min(3).max(30).required(),
-        phone_number: joi.string().required(),
-        password: joi.string().min(6).max(100).required(),
-        age: joi.number().integer().min(0).required(),
-        gender: joi.string().valid("Male", "Female", "Other"),
-        role: joi.string().valid("A", "U", "V"),
-    });
 
-    const { error } = schema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
+  const schema = joi.object({
+    username: joi.string().min(3).max(30).required(),
+    phone_number: joi.string().required(),
+    password: joi.string().min(8).max(100).required(),
+    age: joi.number().integer().min(0).required(),
+    gender: joi.string().valid('Male', 'Female', 'Other'),
+    role: joi.string().valid('A', 'U', 'V')
+  });
 
-    next();
-}
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  next();
 
 function verifyJWT(req, res, next) {
     const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
