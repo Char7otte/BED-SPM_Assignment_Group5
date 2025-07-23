@@ -13,12 +13,14 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
+const { validateUserInput, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./alert/middlewares/auth");
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
+const { validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase } = require("./chat/middleware/ChatValidation");
+const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
 //import medical appointment functions
 const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
@@ -36,9 +38,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
+app.use(methodOverride("_method"));
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(methodOverride("_method"));
 
 app.get("/loginauth.html", (req, res) => {
     res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
@@ -72,13 +75,13 @@ app.delete("/users/:id", verifyJWT, userController.deleteUser); //OKay
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
-app.post("/chats/create/:userID", chatController.createChat);
-app.patch("/chats/delete/:chatID", chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
+app.post("/chats/create/:userID", validateUserID, chatController.createChat);
+app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
-app.get("/chats/:chatID", chatMessageController.getAllMessagesInAChat);
-app.post("/chats/:chatID", chatMessageController.createMessage);
-app.delete("/chats/:chatID", chatMessageController.deleteMessage);
-app.patch("/chats/:chatID", chatMessageController.editMessage);
+app.get("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
+app.post("/chats/:chatID", validateChatID, validateSenderID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.createMessage);
+app.patch("/chats/:chatID", validateChatID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.editMessage);
+app.delete("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.deleteMessage);
 
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
@@ -111,16 +114,16 @@ app.delete("/notes/:id", noteTakerController.deleteNote);
 app.put("/notes/:id", noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
-// Serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
-});
-
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+});
+
+// Serve the calendar HTML file
+app.get("/calendar", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
 });
 
 process.on("SIGINT", async () => {
