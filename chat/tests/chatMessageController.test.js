@@ -1,0 +1,230 @@
+const chatMessageController = require("../controllers/chatMessageController");
+const ChatMessage = require("../models/chatMessageModel");
+
+jest.mock("../models/chatMessageModel");
+
+describe("chatMessageController", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe("chatMessageController getAllMessagesInAChat", () => {
+        test("Retrieve and render all messages in a chat", async () => {
+            const mockMessages = [
+                { messageID: 1, chatID: 1, senderID: 4, message: "Message1" },
+                { messageID: 2, chatID: 1, senderID: 5, message: "Message2" },
+            ];
+
+            ChatMessage.getAllMessagesInAChat.mockResolvedValue(mockMessages);
+
+            const req = { params: { chatID: "1" } };
+            const res = {
+                render: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.getAllMessagesInAChat(req, res);
+
+            expect(ChatMessage.getAllMessagesInAChat).toHaveBeenCalledWith("1");
+            expect(res.render).toHaveBeenCalledWith("chat/oneChat", {
+                chatID: "1",
+                messageData: mockMessages,
+            });
+        });
+
+        test("Handle errors when retrieving messages", async () => {
+            ChatMessage.getAllMessagesInAChat.mockRejectedValue(new Error("Database error"));
+
+            const req = { params: { chatID: "1" } };
+            const res = {
+                render: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.getAllMessagesInAChat(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith("Error getting chat messages");
+        });
+    });
+
+    describe("chatMessageController createMessage", () => {
+        test("Create message successfully and redirect", async () => {
+            ChatMessage.createMessage.mockResolvedValue(true);
+
+            const req = {
+                params: { chatID: "1" },
+                body: { senderID: 4, message: "SentMessage1" },
+            };
+            const res = {
+                redirect: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.createMessage(req, res);
+
+            expect(ChatMessage.createMessage).toHaveBeenCalledWith("1", 4, "SentMessage1");
+            expect(res.redirect).toHaveBeenCalledWith("/chats/1");
+        });
+
+        test("Return 400 when message creation fails", async () => {
+            ChatMessage.createMessage.mockResolvedValue(false);
+
+            const req = {
+                params: { chatID: "1" },
+                body: { senderID: 4, message: "SentMessage1" },
+            };
+            const res = {
+                redirect: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.createMessage(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith("Error sending message");
+        });
+
+        test("Handle errors when creating message", async () => {
+            ChatMessage.createMessage.mockRejectedValue(new Error("Database error"));
+
+            const req = {
+                params: { chatID: "1" },
+                body: { senderID: 4, message: "SentMessage1" },
+            };
+            const res = {
+                redirect: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.createMessage(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith("Error sending message");
+        });
+    });
+
+    describe("chatMessageController editMessage", () => {
+        test("Edit message successfully and redirect", async () => {
+            ChatMessage.editMessage.mockResolvedValue(true);
+
+            const req = {
+                params: { chatID: "1" },
+                body: { messageID: 10, message: "UpdatedMessage1" },
+            };
+            const res = {
+                redirect: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.editMessage(req, res);
+
+            expect(ChatMessage.editMessage).toHaveBeenCalledWith("1", 10, "UpdatedMessage1");
+            expect(res.redirect).toHaveBeenCalledWith("/chats/1");
+        });
+
+        test("Return 400 when message edit fails", async () => {
+            ChatMessage.editMessage.mockResolvedValue(false);
+
+            const req = {
+                params: { chatID: "1" },
+                body: { messageID: 10, message: "UpdatedMessage1" },
+            };
+            const res = {
+                redirect: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.editMessage(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith("Error editing message");
+        });
+
+        test("Handle errors when editing message", async () => {
+            ChatMessage.editMessage.mockRejectedValue(new Error("Database error"));
+
+            const req = {
+                params: { chatID: "1" },
+                body: { messageID: 10, message: "UpdatedMessage1" },
+            };
+            const res = {
+                redirect: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.editMessage(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith("Error updating message");
+        });
+    });
+
+    describe("chatMessageController deleteMessage", () => {
+        test("Delete message successfully", async () => {
+            ChatMessage.deleteMessage.mockResolvedValue(true);
+
+            const req = {
+                params: { chatID: "1" },
+                body: { messageID: 10 },
+            };
+            const res = {
+                status: jest.fn().mockReturnThis(),
+                end: jest.fn(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.deleteMessage(req, res);
+
+            expect(ChatMessage.deleteMessage).toHaveBeenCalledWith("1", 10);
+            expect(res.status).toHaveBeenCalledWith(204);
+            expect(res.end).toHaveBeenCalled();
+        });
+
+        test("Return 400 when message deletion fails", async () => {
+            ChatMessage.deleteMessage.mockResolvedValue(false);
+
+            const req = {
+                params: { chatID: "1" },
+                body: { messageID: 10 },
+            };
+            const res = {
+                status: jest.fn().mockReturnThis(),
+                end: jest.fn(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.deleteMessage(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith("Error deleting message");
+        });
+
+        test("Handle errors when deleting message", async () => {
+            ChatMessage.deleteMessage.mockRejectedValue(new Error("Database error"));
+
+            const req = {
+                params: { chatID: "1" },
+                body: { messageID: 10 },
+            };
+            const res = {
+                status: jest.fn().mockReturnThis(),
+                end: jest.fn(),
+                send: jest.fn(),
+            };
+
+            await chatMessageController.deleteMessage(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith("Error deleting message");
+        });
+    });
+});

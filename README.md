@@ -62,11 +62,13 @@ HTML files go in views.
 
 ### Medical Appointment API
 
-| Request                          | URL                      | Path Parameters                        | Body Parameters |
-| -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
-| `GET` Get all appointments       | `/med-appointments`      |                                        | 
-| `GET` Get appointments by date   | `/med-appointments/:date`| `date`                                 | 
-| `POST` Create a new appointment  | `/med-appointments`      |                                        | `appointment_date`, `appointment_title`, `doctor`, `start_time`, `end_time`, `location`, `notes`
-| `PUT` Edit an appointment        | `/med-appointments/:id`  | `id` (Appointment ID)                  | `appointment_date`, `appointment_title`, `doctor`, `start_time`, `end_time`, `location`, `notes`
-| `DELETE` Delete an appointment   | `/med-appointments/:id`  | `id` (Appointment ID)                  | 
+| Request                          | URL                      | Path Parameters    | Query Parameters  | Body Parameters |
+| -------------------------------- | ------------------------ | ------------------ |------------------ | --------------- |
+| `GET` Get all appointments       | `/med-appointments`      |                    |                   | 
+| `GET` Get appointments by search term   | `/med-appointments/search`    |        | `searchTerm`      | 
+| `GET` Get appointments by date   | `/med-appointments/:date`| `date`             |                   | 
+| `GET` Get appointments by month and year   | `/med-appointments/:month/:year`| `month`, `year`       |                   | 
+| `POST` Create a new appointment  | `/med-appointments`      |                    |                   | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes`
+| `PUT` Edit an appointment        | `/med-appointments/:appointment_id`  | `appointment_id` |                | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes`
+| `DELETE` Delete an appointment   | `/med-appointments/:appointment_id`  | `appointment_id` |                | 
 
