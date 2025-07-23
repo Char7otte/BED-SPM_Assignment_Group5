@@ -30,7 +30,7 @@ async function editMessage(req, res) {
         const chatID = req.params.chatID;
         const { messageID, message } = req.body;
         const isEdited = await chatMessageModel.editMessage(chatID, messageID, message);
-        if (!isEdited) return res.status(400).send("Error editting message");
+        if (!isEdited) return res.status(400).send("Error editing message");
         return res.redirect(`/chats/${chatID}`);
     } catch (error) {
         console.error("Controller error: ", error);
