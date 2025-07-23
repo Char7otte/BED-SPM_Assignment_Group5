@@ -38,9 +38,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
+app.use(methodOverride("_method"));
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(methodOverride("_method"));
 
 app.get("/loginauth.html", (req, res) => {
     res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
@@ -113,16 +114,16 @@ app.delete("/notes/:id", noteTakerController.deleteNote);
 app.put("/notes/:id", noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
-// Serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
-});
-
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+});
+
+// Serve the calendar HTML file
+app.get("/calendar", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
 });
 
 process.on("SIGINT", async () => {
