@@ -171,16 +171,17 @@ async function updateAlert(id, alertData) {
 }
 
 async function deleteAlert(id) {
-  console.log("Deleting alert with ID:", id);
+  console.log("Marking alert as inactive with ID:", id);
   let conn;
   try {
     conn = await sql.connect(dbConfig);
+    // Update the alert to set it as inactive instead of deleting
     let result = await conn.request()
       .input("id", sql.Int, id)
-      .query("DELETE FROM Alert WHERE AlertID = @id");
+      .query("UPDATE Alert SET Status = 'Deleted' WHERE AlertID = @id");
     return result.rowsAffected[0] > 0;
   } catch (error) {
-    console.error("Error deleting alert:", error);
+    console.error("Error marking alert as inactive:", error);
     throw error;
   } finally {
     if (conn) {

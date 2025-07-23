@@ -72,7 +72,7 @@ app.post("/alerts", validateAlert, alertController.createAlert); //  Create a ne
 
 // UPDATE + DELETE ALERT (Admin only)
 app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert); // Update an existing alert
-app.delete("/alerts/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
+app.put("/alerts/delete/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
 
 // BASIC ALERT FETCHING
 app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admin)

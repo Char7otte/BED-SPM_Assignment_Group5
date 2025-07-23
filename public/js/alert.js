@@ -122,11 +122,17 @@ async function displayAlerts(alerts) {
         
         const alertItem = document.createElement("div");
         alertItem.classList.add("alert-item");
-        
+        console.log("Alert item:", alert);
         let severityIcon = "";
-        if (alert.Severity === "High") severityIcon = "&#x1F6A8;";
+        if (alert.status === "Deleted") severityIcon = '&#x1F5D1; &#10060;'; 
+        else if (alert.Severity === "High") severityIcon = "&#x1F6A8;";
         else if (alert.Severity === "Medium") severityIcon = "&#x1F7E1;";
-        else if (alert.Severity === "Low") severityIcon = "&#x1F7E2;";
+        else if (alert.Severity === "Low") severityIcon = "&#x1F7E2;"
+         // Use caution sign for critical
+        if (alert.status === "Deleted" && user.role === "U") {
+            return; // Skip rendering this alert
+        }
+
 
      
 
@@ -151,7 +157,7 @@ async function displayAlerts(alerts) {
                             ${readAlertIds.includes(alert.AlertID) ? "disabled" : ""}>
                             ${readAlertIds.includes(alert.AlertID) ? "Acknowledged" : "Acknowledge"}
                         </button>
-                        <button class="btn btn-danger btn-sm top1-btn">Add to Notes</button>
+                        <button class="btn btn-danger btn-sm top1-btn">Add to Notes</button> 
                     </div>` : ""
                 }
             </div>`;
@@ -401,8 +407,8 @@ async function handleDelete(alertId) {
     if (confirm("Are you sure you want to delete this alert?")) {
         try {
             const token = localStorage.getItem("jwtToken");
-            const response = await fetch(`${apiurl}/alerts/${alertId}`, {
-                method: "DELETE",
+            const response = await fetch(`${apiurl}/alerts/delete/${alertId}`, {
+                method: "PUT",
                 headers: {
                     "Authorization": token,
                     "Content-Type": "application/json"
