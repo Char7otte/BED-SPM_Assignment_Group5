@@ -34,10 +34,10 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
 app.get("/loginauth.html", (req, res) => {
     res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
-    app.use(express.static(path.join(__dirname, "public")));
 });
 app.use(methodOverride("_method"));
 
@@ -72,7 +72,6 @@ app.delete("/users/:id", verifyJWT, userController.deleteUser); //OKay
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
-// app.get("/chats/:chatID", chatController.getChatByID);
 app.post("/chats/create/:userID", chatController.createChat);
 app.patch("/chats/delete/:chatID", chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
