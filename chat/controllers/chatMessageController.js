@@ -6,7 +6,7 @@ async function getAllMessagesInAChat(req, res) {
         const messages = await chatMessageModel.getAllMessagesInAChat(chatID);
         return res.render("chat/oneChat", { chatID, messageData: messages });
     } catch (error) {
-        console.log("Controller error: ", error);
+        console.error("Controller error: ", error);
         return res.status(500).send("Error getting chat messages");
     }
 }
@@ -20,7 +20,7 @@ async function createMessage(req, res) {
         if (!isSent) return res.status(400).send("Error sending message");
         return res.redirect(`/chats/${chatID}`);
     } catch (error) {
-        console.log("Controller error: ", error);
+        console.error("Controller error: ", error);
         return res.status(500).send("Error sending message");
     }
 }
@@ -33,7 +33,7 @@ async function editMessage(req, res) {
         if (!isEdited) return res.status(400).send("Error editting message");
         return res.redirect(`/chats/${chatID}`);
     } catch (error) {
-        console.log("Controller error: ", error);
+        console.error("Controller error: ", error);
         return res.status(500).send("Error updating message");
     }
 }
@@ -46,7 +46,7 @@ async function deleteMessage(req, res) {
         if (!isDeleted) return res.status(400).send("Error deleting message");
         return res.status(204).end();
     } catch (error) {
-        console.log("Controller error: ", error);
+        console.error("Controller error: ", error);
         return res.status(500).send("Error deleting message");
     }
 }
