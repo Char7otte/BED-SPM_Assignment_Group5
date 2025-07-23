@@ -28,7 +28,9 @@
         "joi": "^17.13.3",
         "method-override": "^3.0.0",
         "mssql": "^11.0.1",
-        "react": "^19.1.0"
+        "react": "^19.1.0",
+        "swagger-autogen": "^2.23.7",
+        "swagger-ui-express": "^5.0.1"
     },
     "devDependencies": {
         "nodemon": "^3.1.10"
