@@ -105,8 +105,8 @@ async function displayAlerts(alerts) {
     alertsList.innerHTML = "";
     const readAlertIds = [];
     const isUnread = 1;
-
-    const readAlerts = await fetchUnreadAlerts(7); // Use user's ID from token
+    
+    const readAlerts = await fetchUnreadAlerts(user.id); // Use user's ID from token
     readAlerts.forEach(alert => {
         console.log(alert);
         if (alert.ReadStatus == 0) {
@@ -145,24 +145,33 @@ async function displayAlerts(alerts) {
                     <div class="card-title">${''}</div>
                     <p class="card-text">${alert.Message}</p>
                     <a href="alertdetail?id=${alert.AlertID}" class="btn btn-primary bottom1-btn">View Details</a>
-                    ${user.role === "A" ? `
-                        <a href="alertadmin?id=${alert.AlertID}" class="btn btn-primary bottom1-btn">Edit</a>
-                        <a href="#" class="btn btn-primary bottom1-btn" onclick="handleDelete(${alert.AlertID})">Delete</a>` : ""
+                    ${
+                        user.role === "A"
+                        ? `
+                            <a href="alertadmin?id=${alert.AlertID}" class="btn btn-primary bottom1-btn">Edit</a>
+                            ${
+                                alert.status !== "Deleted"
+                                ? `<a href="#" class="btn btn-danger bottom1-btn" onclick="handleDelete(${alert.AlertID})">Delete</a>`
+                                : `<a href="#" class="btn btn-primary bottom1-btn disabled">Deleted</a>`
+                            }
+                        `
+                        : ""
                     }
                 </div>
                 ${
-                    user.role === "A"
+                    user.role === "U"
                     ? `<div style="position: absolute; top: 10px; right: 10px;">
                         <button class="btn btn-danger btn-sm top1-btn acknowledge-btn" onclick="handleAcknowledge(${alert.AlertID})" data-alertid="${alert.AlertID}" 
                             ${readAlertIds.includes(alert.AlertID) ? "disabled" : ""}>
                             ${readAlertIds.includes(alert.AlertID) ? "Acknowledged" : "Acknowledge"}
                         </button>
                         <button class="btn btn-danger btn-sm top1-btn">Add to Notes</button> 
-                    </div>` : ""
+                    </div>`
+                    : ""
                 }
             </div>`;
 
-        if (user.role === "A" && readAlertIds.includes(alert.AlertID)) {
+        if (user.role === "U" && readAlertIds.includes(alert.AlertID)) {
             const ackBtn = alertItem.querySelector('.acknowledge-btn');
             ackBtn.addEventListener('click', async function () {
                 try {
@@ -174,7 +183,7 @@ async function displayAlerts(alerts) {
                             "Authorization": token,
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId: 7 })
+                        body: JSON.stringify({ userId: user.id })
                     });
                     if (res.ok) {
                         ackBtn.disabled = true;
@@ -212,7 +221,7 @@ async function displayAlertDetails(alert) {
   : alertDate.toLocaleDateString();
     const user = decodeJwtPayload(localStorage.getItem("token"));
 
-     const readAlerts = await fetchUnreadAlerts(7); // Use user's ID from token
+     const readAlerts = await fetchUnreadAlerts(user.id); // Use user's ID from token
      console.log("Read alerts:", readAlerts);
     readAlerts.forEach(alert => {
         console.log(alert);
@@ -232,7 +241,7 @@ async function displayAlertDetails(alert) {
     class="btn btn-success" 
     id="acknowledgeBtn"
     onclick="handleAcknowledge(${alert.AlertID})"
-    ${user.role === "A" ? "" : "disabled"}
+    ${user.role === "U" ? "" : "disabled"}
     ${readAlertIds.includes(alert.AlertID) ? "disabled" : ""}>
     ${readAlertIds.includes(alert.AlertID) ? "Acknowledged" : "Acknowledge"}
   </button>
@@ -470,7 +479,7 @@ async function handleSearch(event) {
 
 function handleAcknowledge(alertId) {
     const user = decodeJwtPayload(localStorage.getItem("token"));
-    if (user.role !== "A") {
+    if (user.role !== "U") {
         alert("You do not have permission to acknowledge alerts.");
         return;
     }
@@ -481,7 +490,7 @@ function handleAcknowledge(alertId) {
             "Content-Type": "application/json",
             "Authorization": localStorage.getItem("jwtToken")
         },
-        body: JSON.stringify({ userId: 7 })
+        body: JSON.stringify({ userId:  user.id }) // Use user's ID from token
     })
     .then(response => {
         if (!response.ok) {

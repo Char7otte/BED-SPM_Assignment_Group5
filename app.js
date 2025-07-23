@@ -3,6 +3,7 @@ const sql = require("mssql");
 const dotenv = require("dotenv");
 const path = require("path");
 const methodOverride = require("method-override");
+const cookieParser = require('cookie-parser');
 
 dotenv.config();
 
@@ -12,7 +13,7 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
 const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
-const { authenticateToken } = require("./alert/middlewares/auth");
+const { authenticateToken } = require("./users/middlewares/auth");
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
@@ -26,21 +27,44 @@ const medTrackerController = require("./medication_tracker/controller/medTracker
 
 // import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+
+app.use((req, res, next) => {
+  const token = req.cookies?.token || null;
+  let tokenExpired = false;
+  let user = null;
+
+  if (token) {
+    try {
+      user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      tokenExpired = true;
+    }
+  } else {
+    tokenExpired = true;
+  }
+
+  res.locals.user = user;
+  res.locals.tokenExpired = tokenExpired;
+
+  next();
+});
+
 app.get('/login.html', (req, res) => {
   //app.use(express.static(path.join(__dirname, 'public')));
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
 });
-
-
-
 
 app.get('/alert', (req, res) => {
   res.render('alert/alert', { message: 'This is an alert message' });
@@ -51,8 +75,6 @@ app.get('/alertdetail', (req, res) => {
 app.get('/alertadmin', (req, res) => {
   res.render('alert/alertadmin', { message: 'This is an alert admin message' });
 });
-
-
 
 
 
