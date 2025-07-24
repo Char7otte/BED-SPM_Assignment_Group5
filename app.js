@@ -23,6 +23,15 @@ const { validateMedAppointment, validateMedAppointmentId } = require("./medical-
 
 //import functions from medication tracker
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
+const { 
+    validateMedicationCreate,
+    validateMedicationUpdate,
+    validateRefillRequest, 
+    validateUserIdParam, 
+    validateMedicationIdParam,
+    validateDateRangeQuery,
+    validateSearchQuery
+} = require("./medication_tracker/middleware/medTrackerValidation");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,6 +40,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(methodOverride("_method"));
+
+// Add security and logging middleware for medication routes
+app.use('/medications', sanitizeRequest);
+app.use('/medications', logValidation);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -83,19 +96,19 @@ app.get("/medications/daily", (req, res) => {
 
 app.get("/medications/user/:userId/reminders", medTrackerController.remindMedication);
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
-app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
-app.get("/medications/user/:userId/search", medTrackerController.searchMedicationByName);
+app.get("/medications/user/:userId/weekly", validateDateRangeQuery, medTrackerController.getWeeklyMedicationByUser);
+app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerController.searchMedicationByName);
 app.get("/medications/user/:userId/expired", medTrackerController.getExpiredMedications);
-app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
+app.put("/medications/:userId/:medicationId/is-taken", validateMedicationIdParam, medTrackerController.tickOffMedication);
 app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
-app.put("/medications/:userId/:id/refill", medTrackerController.refillMedication);
-app.put("/medications/:userId/:id/missed", medTrackerController.markMedicationAsMissed);
+app.put("/medications/:userId/:id/refill", validateRefillRequest, medTrackerController.refillMedication);
+app.put("/medications/:userId/:id/missed", validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
 
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
-app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);
-app.post("/medications", medTrackerController.createMedication);
-app.put("/medications/:userId/:medicationId", medTrackerController.updateMedication);
-app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
+app.get("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.getMedicationById);
+app.post("/medications", validateMedicationCreate, medTrackerController.createMedication);
+app.put("/medications/:userId/:medicationId", validateMedicationIdParam, validateMedicationUpdate, medTrackerController.updateMedication);
+app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
