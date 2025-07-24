@@ -130,11 +130,11 @@ app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
 
 //routes for feedback
-app.get("/feedback", feedbackController.getAllFeedbacksByUser);
-app.get("/feedback/search", feedbackController.searchFeedbacks);
-app.post("/feedback", validateFeedback, feedbackController.createFeedback);
-app.put("/feedback/:feedback_id", validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
-app.delete("/feedback/:feedback_id", validateFeedbackId, feedbackController.deleteFeedback);
+app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
+app.get("/feedback/search", verifyJWT, feedbackController.searchFeedbacks);
+app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeedback);
+app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
+app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
 
 
 app.listen(port, () => {
