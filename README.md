@@ -72,3 +72,12 @@ HTML files go in views.
 | `PUT` Edit an appointment        | `/med-appointments/:appointment_id`  | `appointment_id` |                | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes`
 | `DELETE` Delete an appointment   | `/med-appointments/:appointment_id`  | `appointment_id` |                | 
 
+### Feedback API
+
+| Request                          | URL                      | Path Parameters    | Query Parameters  | Body Parameters |
+| -------------------------------- | ------------------------ | ------------------ |------------------ | --------------- |
+| `GET` Get all feedbacks       | `/feedback`      |                    |                   | 
+| `GET` Get feedbacks by search term   | `/feedback/search`    |        | `searchTerm`      | 
+| `POST` Create a new feedback  | `/feedback`      |                    |                   | `title`, `feature`, `description`
+| `PUT` Edit a feedback        | `/feedback/:feedback_id`  | `feedback_id` |                | `title`, `feature`, `description`
+| `DELETE` Delete a feedback   | `/feedback/:feedback_id`  | `feedback_id` |                | 
