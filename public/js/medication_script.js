@@ -1,7 +1,7 @@
 $(document).ready(function() {
     // Global variables
     const currentUserId = 8; // Using user 8 since that's your test user
-    let currentView = 'daily';
+    let currentView = 'all';
     let medications = [];
     let reminderInterval;
     let snoozedReminders = new Set(); // Track snoozed reminders
@@ -16,6 +16,25 @@ $(document).ready(function() {
         $('.view-toggle').removeClass('active');
         $(this).addClass('active');
         currentView = $(this).data('view');
+        
+        // Handle navigation to daily page
+        if (currentView === 'daily') {
+            window.location.href = '/medications/daily';
+            return;
+        }
+        
+        // Update view description for other views
+        let description = '';
+        switch(currentView) {
+            case 'all':
+                description = 'Showing all your medications';
+                break;
+            case 'weekly':
+                description = 'Showing this week\'s medications';
+                break;
+        }
+        $('#view-description').text(description);
+        
         loadMedications();
     });
 
@@ -71,9 +90,16 @@ $(document).ready(function() {
 
     // Functions
     function loadMedications() {
-        let endpoint = currentView === 'daily' 
-            ? `/medications/user/${currentUserId}/daily`
-            : `/medications/user/${currentUserId}/weekly`;
+        let endpoint;
+        
+        if (currentView === 'daily') {
+            endpoint = `/medications/user/${currentUserId}/daily`;
+        } else if (currentView === 'weekly') {
+            endpoint = `/medications/user/${currentUserId}/weekly`;
+        } else {
+            // Default to all medications
+            endpoint = `/medications/user/${currentUserId}`;
+        }
 
         $.ajax({
             url: endpoint,
@@ -257,22 +283,34 @@ $(document).ready(function() {
             return;
         }
 
-        medications.forEach(med => {
+        // Sort medications by date and time for better display
+        const sortedMedications = medications.sort((a, b) => {
+            const dateA = new Date(a.date + ' ' + a.time);
+            const dateB = new Date(b.date + ' ' + b.time);
+            return dateA - dateB;
+        });
+
+        sortedMedications.forEach(med => {
+            const reminderIcon = med.reminders ? '<i class="fa fa-bell text-success" title="Reminders enabled"></i>' : '<i class="fa fa-bell-slash text-muted" title="No reminders"></i>';
+            const takenStatus = med.isTaken ? '<span class="label label-success">Taken</span>' : '<span class="label label-warning">Pending</span>';
+            
             const medCard = $(`
                 <div class="medication-card" data-med-id="${med.id}">
                     <div class="row">
                         <div class="col-sm-8">
-                            <h3>${med.name}</h3>
+                            <h3>${med.name} ${reminderIcon}</h3>
                             <p><strong>Dosage:</strong> ${med.dosage}</p>
-                            <p><strong>Time:</strong> ${med.time}</p>
+                            <p><strong>Schedule:</strong> ${med.date} at ${med.time}</p>
                             ${med.notes ? `<p><strong>Notes:</strong> ${med.notes}</p>` : ''}
-                            ${med.date ? `<p><strong>Date:</strong> ${med.date}</p>` : ''}
+                            ${currentView === 'all' && med.prescriptionStart && med.prescriptionEnd ? 
+                                `<p><strong>Prescription Period:</strong> ${med.prescriptionStart} to ${med.prescriptionEnd}</p>` : ''}
+                            <p><strong>Status:</strong> ${takenStatus}</p>
                         </div>
                         <div class="col-sm-4 text-right">
                             <div class="taken-checkbox">
                                 <label>
                                     <input type="checkbox" class="taken-status" ${med.isTaken ? 'checked' : ''}>
-                                    Taken
+                                    Mark as Taken
                                 </label>
                             </div>
                             <div class="medication-actions">

@@ -75,6 +75,11 @@ app.get("/medications", (req, res) => {
     res.sendFile(path.join(__dirname, "views", "medication_index.html"));
 });
 
+// Route to serve the daily medication HTML page
+app.get("/medications/daily", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
+});
+
 app.get("/medications/user/:userId/reminders", medTrackerController.remindMedication);
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
