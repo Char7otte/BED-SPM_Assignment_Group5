@@ -294,6 +294,76 @@ async function decrementMedicationQuantity(req, res) {
     }
 }
 
+async function refillMedication(req, res) {
+    try {
+        const medicationId = parseInt(req.params.id);
+        const userId = parseInt(req.params.userId);
+        const { newQuantity } = req.body;
+
+        if (isNaN(medicationId) || isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid medication ID or user ID" });
+        }
+
+        if (!newQuantity || isNaN(parseInt(newQuantity))) {
+            return res.status(400).json({ error: "Valid quantity is required" });
+        }
+
+        const result = await medTrackerModel.refillMedication(medicationId, userId, parseInt(newQuantity));
+
+        if (!result) {
+            return res.status(404).json({ error: "Medication not found" });
+        }
+
+        res.json(result);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error refilling medication" });
+    }
+}
+
+async function getExpiredMedications(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const expiredMedications = await medTrackerModel.getExpiredMedications(userId);
+
+        if (!expiredMedications) {
+            return res.json({ message: "No expired medications found", data: [] });
+        }
+
+        res.json({ data: expiredMedications });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving expired medications" });
+    }
+}
+
+async function markMedicationAsMissed(req, res) {
+    try {
+        const medicationId = parseInt(req.params.id);
+        const userId = parseInt(req.params.userId);
+
+        if (isNaN(medicationId) || isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid medication ID or user ID" });
+        }
+
+        const result = await medTrackerModel.markMedicationAsMissed(medicationId, userId);
+
+        if (!result) {
+            return res.status(404).json({ error: "Medication not found" });
+        }
+
+        res.json(result);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error marking medication as missed" });
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -307,5 +377,8 @@ module.exports = {
     remindMedication,
     tickAllMedications, 
     getLowQuantityMedication,
-    decrementMedicationQuantity
+    decrementMedicationQuantity,
+    refillMedication,
+    getExpiredMedications,
+    markMedicationAsMissed
 };

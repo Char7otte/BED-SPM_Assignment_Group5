@@ -21,6 +21,7 @@ const chatMessageController = require("./chat/controllers/chatMessageController"
 const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
 const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
 
+//import functions from medication tracker
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
 
 const app = express();
@@ -84,8 +85,11 @@ app.get("/medications/user/:userId/reminders", medTrackerController.remindMedica
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
 app.get("/medications/user/:userId/search", medTrackerController.searchMedicationByName);
+app.get("/medications/user/:userId/expired", medTrackerController.getExpiredMedications);
 app.put("/medications/:userId/:medicationId/is-taken", medTrackerController.tickOffMedication);
 app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
+app.put("/medications/:userId/:id/refill", medTrackerController.refillMedication);
+app.put("/medications/:userId/:id/missed", medTrackerController.markMedicationAsMissed);
 
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
 app.get("/medications/:userId/:medicationId", medTrackerController.getMedicationById);
