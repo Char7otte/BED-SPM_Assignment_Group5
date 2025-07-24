@@ -607,6 +607,43 @@ async function filterMedicationByStatus(userId, isTaken) {
     }
 }
 
+async function filterMedicationByDate(userId, startDate, endDate) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query =`
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
+            FROM Medications
+            WHERE user_id = @userId AND medication_date BETWEEN @startDate AND @endDate
+        `;
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("startDate", sql.Date, new Date(startDate).toISOString().split('T')[0]);
+        request.input("endDate", sql.Date, new Date(endDate).toISOString().split('T')[0]);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -622,5 +659,5 @@ module.exports = {
     getLowQuantityMedication,
     decrementMedicationQuantity, 
     filterMedicationByStatus,
-    
+    filterMedicationByDate
 };
