@@ -128,6 +128,7 @@ $(document).ready(function() {
             id: med.medication_id,
             name: med.medication_name,
             dosage: med.medication_dosage,
+            quantity: med.medication_quantity,
             time: med.medication_time,
             notes: med.medication_notes,
             isTaken: med.is_taken,
@@ -300,6 +301,7 @@ $(document).ready(function() {
                         <div class="col-sm-8">
                             <h3>${med.name} ${reminderIcon}</h3>
                             <p><strong>Dosage:</strong> ${med.dosage}</p>
+                            <p><strong>Quantity:</strong> ${med.quantity}</p>
                             <p><strong>Schedule:</strong> ${med.date} at ${med.time}</p>
                             ${med.notes ? `<p><strong>Notes:</strong> ${med.notes}</p>` : ''}
                             ${currentView === 'all' && med.prescriptionStart && med.prescriptionEnd ? 
@@ -343,6 +345,7 @@ $(document).ready(function() {
             medication_date: $('#medication-date').val(),
             medication_time: $('#time').val(),
             medication_dosage: $('#dosage').val(),
+            medication_quantity: $('#quantity').val(),
             medication_notes: $('#notes').val() || '',
             medication_reminders: $('#reminders').is(':checked'),
             prescription_startdate: $('#prescription-start').val(),
@@ -372,6 +375,7 @@ $(document).ready(function() {
         $('#edit-medication-id').val(medication.id);
         $('#edit-name').val(medication.name);
         $('#edit-dosage').val(medication.dosage);
+        $('#edit-quantity').val(medication.quantity);
         $('#edit-medication-date').val(medication.date);
         $('#edit-time').val(medication.time);
         $('#edit-notes').val(medication.notes || '');
@@ -389,6 +393,7 @@ $(document).ready(function() {
             medicationDate: $('#edit-medication-date').val(),
             medicationTime: $('#edit-time').val(),
             medicationDosage: $('#edit-dosage').val(),
+            medicationQuantity: $('#edit-quantity').val(),
             medicationNotes: $('#edit-notes').val() || '',
             medicationReminders: $('#edit-reminders').is(':checked'),
             prescriptionStartDate: $('#edit-prescription-start').val(),
