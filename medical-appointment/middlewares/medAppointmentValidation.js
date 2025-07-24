@@ -53,9 +53,9 @@ const medAppointmentSchema = Joi.object({
         "string.max": "Location cannot exceed 100 characters",
         "any.required": "Location is required",
     }),
-    status: Joi.string().valid('Scheduled', 'Ongoing', 'Attended', 'Missed', 'Cancelled').optional().messages({
+    status: Joi.string().valid('Scheduled', 'Ongoing', 'Attended', 'Missed').optional().messages({
         "string.base": "Status must be a string",
-        "any.only": "Status must be one of the following: Scheduled, Ongoing, Attended, Missed, Cancelled"
+        "any.only": "Status must be one of the following: Scheduled, Ongoing, Attended, Missed"
     }),
     notes: Joi.string().max(500).optional().allow(null, "").messages({
         "string.base": "Notes must be a string",

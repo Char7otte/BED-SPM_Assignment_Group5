@@ -44,10 +44,19 @@ function verifyJWT(req, res, next) {
 
             // Medical appointments - Only Users can access
             "GET /med-appointments": ["U"],
+            "GET /med-appointments/search": ['U'], // Get appointment by searchTerm
             "GET /med-appointments/.*": ["U"], // Match any date format
+            "GET /med-appointments/[0-9]{2}/[0-9]{4}": ['U'], // Get appointment by month and year
             "POST /med-appointments": ["U"],
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
+          
+            // Feedback 
+            "GET /feedback": ['A', 'U'], // Admin and User can get all feedback
+            "GET /feedback/search": ['A', 'U'], // Admin and User can search feedback
+            "POST /feedback": ['U'], // Only User can create feedback
+            "PUT /feedback/[0-9]+": ['U'], // Only User can update their own feedback
+            "DELETE /feedback/[0-9]+": ['U'], // Only User can delete their own feedback
         };
 
         // Check if the current route requires role-based authorization

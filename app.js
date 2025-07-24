@@ -35,12 +35,15 @@ const medTrackerController = require("./medication_tracker/controller/medTracker
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
 const jwt = require("jsonwebtoken");
 
+// import feedback functions
+const feedbackController = require("./feedback/controllers/feedbackController");
+const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
@@ -166,13 +169,31 @@ app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+//routes for feedback
+app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
+app.get("/feedback/search", verifyJWT, feedbackController.searchFeedbacks);
+app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeedback);
+app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
+app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
+
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
 
 // Serve the calendar HTML file
 app.get("/calendar", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "medical-appointment", "calendar.html"));
+  res.render("medical-appointment/calendar");
+});
+
+// Serve the feedback-form HTML file
+app.get("/feedback-form", (req, res) => {
+  res.render("feedback/feedback-form");
+});
+
+// Serve the all-feedbacks HTML file
+app.get("/feedbacks", (req, res) => {
+  res.render("feedback/all-feedbacks");
 });
 
 process.on("SIGINT", async () => {
