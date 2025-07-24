@@ -1,12 +1,13 @@
-const jwt = require('jsonwebtoken');
-const joi = require('joi');
-
+const jwt = require("jsonwebtoken");
+const joi = require("joi");
+const { validateID } = require("../../utils/validation/IDValidation");
 
 function validateUserInput(req, res, next) {
+
   const schema = joi.object({
     username: joi.string().min(3).max(30).required(),
     phone_number: joi.string().required(),
-    password: joi.string().min(6).max(100).required(),
+    password: joi.string().min(8).max(100).required(),
     age: joi.number().integer().min(0).required(),
     gender: joi.string().valid('Male', 'Female', 'Other'),
     role: joi.string().valid('A', 'U', 'V')
@@ -18,82 +19,86 @@ function validateUserInput(req, res, next) {
   }
 
   next();
-}
 
 function verifyJWT(req, res, next) {
-  const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
+    const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
 
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const authorizedRoles = {
-      //user
-      'POST /users/register': ['A', 'U'], // Admin and User can register
-      'PUT /users/changepassword/[0-9]+': ['A', 'U'], // Admin and User can change password
-      'GET /users/username/[a-zA-Z0-9]+': ['A', 'U'], // Admin and User can get user by username
-      //user management
-      'GET /users': ['A'], // Only Admin can get all users
-      'PUT /users/updatedetail/[0-9]+': ['A'], // Admin can update user details
-      'DELETE /users/[0-9]+': ['A'], // Only Admin can delete users
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
-      // Medical appointments - Only Users can access
-      'GET /med-appointments': ['U'],
-      'GET /med-appointments/search': ['U'], // Get appointment by searchTerm
-      'GET /med-appointments/.*': ['U'], // Match any date format
-      'GET /med-appointments/[0-9]{2}/[0-9]{4}': ['U'], // Get appointment by month and year
-      'POST /med-appointments': ['U'],
-      'PUT /med-appointments/[0-9]+': ['U'],
-      'DELETE /med-appointments/[0-9]+': ['U'],
+        const authorizedRoles = {
+            //user
+            "POST /users/register": ["A", "U"], // Admin and User can register
+            "PUT /users/changepassword/[0-9]+": ["A", "U"], // Admin and User can change password
+            "GET /users/username/[a-zA-Z0-9]+": ["A", "U"], // Admin and User can get user by username
+            //user management
+            "GET /users": ["A"], // Only Admin can get all users
+            "PUT /users/updatedetail/[0-9]+": ["A"], // Admin can update user details
+            "DELETE /users/[0-9]+": ["A"], // Only Admin can delete users
 
-      // Feedback 
-      'GET /feedback': ['A', 'U'], // Admin and User can get all feedback
-      'GET /feedback/search': ['A', 'U'], // Admin and User can search feedback
-      'POST /feedback': ['U'], // Only User can create feedback
-      'PUT /feedback/[0-9]+': ['U'], // Only User can update their own feedback
-      'DELETE /feedback/[0-9]+': ['U'], // Only User can delete their own feedback
-    };
+            // Medical appointments - Only Users can access
+            "GET /med-appointments": ["U"],
+            "GET /med-appointments/search": ['U'], // Get appointment by searchTerm
+            "GET /med-appointments/.*": ["U"], // Match any date format
+            "GET /med-appointments/[0-9]{2}/[0-9]{4}": ['U'], // Get appointment by month and year
+            "POST /med-appointments": ["U"],
+            "PUT /med-appointments/[0-9]+": ["U"],
+            "DELETE /med-appointments/[0-9]+": ["U"],
+          
+            // Feedback 
+            "GET /feedback": ['A', 'U'], // Admin and User can get all feedback
+            "GET /feedback/search": ['A', 'U'], // Admin and User can search feedback
+            "POST /feedback": ['U'], // Only User can create feedback
+            "PUT /feedback/[0-9]+": ['U'], // Only User can update their own feedback
+            "DELETE /feedback/[0-9]+": ['U'], // Only User can delete their own feedback
+        };
 
-    // Check if the current route requires role-based authorization
-    const currentRoute = `${req.method} ${req.path}`;
-    
-    const matchingRole = Object.keys(authorizedRoles).find(route => {
-      // Only replace [a-zA-Z0-9]+ with [\\w-]+, keep [0-9]+ as is
-      let regexPattern = route.replace(/\[a-zA-Z0-9\]\+/g, '[\\w-]+');
-      regexPattern = regexPattern.replace(/\[0-9\]\+/g, '[0-9]+');
-      const regex = new RegExp(`^${regexPattern}$`);
-      return regex.test(currentRoute);
+        // Check if the current route requires role-based authorization
+        const currentRoute = `${req.method} ${req.path}`;
+
+        const matchingRole = Object.keys(authorizedRoles).find((route) => {
+            // Only replace [a-zA-Z0-9]+ with [\\w-]+, keep [0-9]+ as is
+            let regexPattern = route.replace(/\[a-zA-Z0-9\]\+/g, "[\\w-]+");
+            regexPattern = regexPattern.replace(/\[0-9\]\+/g, "[0-9]+");
+            const regex = new RegExp(`^${regexPattern}$`);
+            return regex.test(currentRoute);
+        });
+
+        if (matchingRole) {
+            const requiredRoles = authorizedRoles[matchingRole];
+            const userRole = decoded.role;
+
+            if (!requiredRoles.includes(userRole)) {
+                return res.status(403).json({ message: "Access denied. Insufficient permissions." });
+            }
+        } else {
+            // For medical appointment routes, if no explicit authorization rule is found, deny access
+            if (currentRoute.includes("/med-appointments")) {
+                return res.status(403).json({ message: "Access denied. No authorization rule defined for this route." });
+            }
+        }
+
+        req.user = decoded;
+        next();
     });
+}
 
-    if (matchingRole) {
-      const requiredRoles = authorizedRoles[matchingRole];
-      const userRole = decoded.role;
-      
-      if (!requiredRoles.includes(userRole)) {
-        return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
-      }
-    } else {
-      // For medical appointment routes, if no explicit authorization rule is found, deny access
-      if (currentRoute.includes('/med-appointments')) {
-        return res.status(403).json({ message: 'Access denied. No authorization rule defined for this route.' });
-      }
-    }
-
-    req.user = decoded;
+function validateUserID(req, res, next) {
+    if (!validateID(req.params.userID)) return res.status(400).send("Invalid user");
     next();
-  });
 }
 
 module.exports = {
-  validateUserInput,
-  verifyJWT
+    validateUserInput,
+    verifyJWT,
+    validateUserID,
 };
-
 
 // --bed_spm db v1.05
 // CREATE DATABASE bed_spm
@@ -111,10 +116,10 @@ module.exports = {
 //         CONSTRAINT chk_user_role CHECK (role IN ('A', 'U', 'V')) -- A = Admin, U = User, V = Volunteer
 // );
 
-// -- MedAppointments table 
+// -- MedAppointments table
 // CREATE TABLE MedAppointments (
 //     appointment_id     INT PRIMARY KEY IDENTITY(1,1),
-//     user_id            INT NOT NULL,  
+//     user_id            INT NOT NULL,
 //     appointment_date   DATE NOT NULL,
 //     appointment_title  VARCHAR(50) NOT NULL,
 //     doctor             VARCHAR(50) NOT NULL,
@@ -146,7 +151,7 @@ module.exports = {
 // );
 
 // CREATE TABLE Medications (
-//     user_id INT NOT NULL, 
+//     user_id INT NOT NULL,
 //     medication_id INT IDENTITY(1,1) PRIMARY KEY,
 //     medication_name NVARCHAR(255) NOT NULL,
 //     medication_date DATE NOT NULL,
