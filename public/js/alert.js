@@ -9,9 +9,33 @@ function decodeJwtPayload(token) {
     return JSON.parse(payloadJson); // parse to JSON
 }
 
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+const token = localStorage.getItem('token');
+console.log("Token from localStorage:", token);
+if (!token || isTokenExpired(token)) {
+    localStorage.removeItem('token');
+    window.location.href = '/login'; // Redirect to login
+}
+// Check for token in cookies if not found in localStorage
+if (!localStorage.getItem('token')) {
+    const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+    if (match) {
+        localStorage.setItem('token', decodeURIComponent(match[1]));
+    } else {
+        window.location.href = "/login.html";
+    }
+}
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
   const path = window.location.pathname;
-
+   
   if (path.includes("/alertdetail")) {
     const alertId = new URLSearchParams(window.location.search).get("id");
     fetchAlertDetails(alertId);

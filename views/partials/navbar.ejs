@@ -49,8 +49,8 @@
                 </a>
                 <a class="button is-light"> Log in </a>
                 <% } else { %>
-                <span class="navbar-item">Welcome, <%= user.username %></span>
-                <a class="button is-light" href="/logout">Log out</a>
+                <a class="navbar-item" href="/account">Welcome, <%= user.username %></a>
+                <a class="button is-light" href="/users/logout" onclick="event.preventDefault(); document.cookie = 'token=; Max-Age=0; path=/;'; fetch('/users/logout', { method: 'POST', headers: { 'Authorization': '' } }).then(() => { window.location.href = '/login.html'; });">Log out</a>
                 <% } %>
             </div>
             </div>
