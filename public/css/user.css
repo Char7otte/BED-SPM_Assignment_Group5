@@ -1,0 +1,42 @@
+body {
+    background-color: #2d2c2c; /* dark grey */
+    color: #2c2929;
+    height: 100%;
+}
+
+
+
+.main-container {
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #565454; 
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding-bottom: 20px;
+    height: 300px;
+}
+
+.btn-custom {
+    background-color: #b2b9b2;
+    color: white;
+    border-radius: 0%;
+    border: none;
+}
+
+.btn-noradius {
+    border-radius: 0%;
+}
+
+.card{
+    background-color: transparent;
+}
+
+.card-title{
+    color: #ffffff; /* white */
+}
+
+.main {
+    height: 300px;
+    
+}

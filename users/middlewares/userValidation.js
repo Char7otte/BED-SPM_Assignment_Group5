@@ -11,15 +11,38 @@ function validateUserInput(req, res, next) {
     age: joi.number().integer().min(0).required(),
     gender: joi.string().valid('Male', 'Female', 'Other'),
     role: joi.string().valid('A', 'U', 'V')
+
   });
 
   const { error } = schema.validate(req.body);
   if (error) {
+    console.log("Validation error:", error.details[0].message);
     return res.status(400).json({ message: error.details[0].message });
   }
 
   next();
 }
+
+function validateUserInputForUpdate(req, res, next) {
+  const schema = joi.object({
+    username: joi.string().min(3).max(30),
+    phone_number: joi.string(),
+    password: joi.string().min(8).max(100),
+    age: joi.number().integer().min(0),
+    gender: joi.string().valid('Male', 'Female', 'Other'),
+    role: joi.string().valid('A', 'U', 'V'),
+    status: joi.string().valid('active', 'inactive', 'deleted')
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    console.log("Validation error:", error.details[0].message);
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  next();
+}
+
 
 function verifyJWT(req, res, next) {
     const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
@@ -27,7 +50,6 @@ function verifyJWT(req, res, next) {
     if (!token) {
         return res.status(401).json({ message: "Unauthorized" });
     }
-
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -96,9 +118,10 @@ function validateUserID(req, res, next) {
 }
 
 module.exports = {
-    validateUserInput,
-    verifyJWT,
-    validateUserID,
+  validateUserInput,
+  validateUserInputForUpdate,
+  verifyJWT,
+  validateUserID,
 };
 
 // --bed_spm db v1.05
