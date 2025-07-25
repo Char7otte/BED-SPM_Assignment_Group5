@@ -221,4 +221,4 @@ module.exports = {
 //     LastEditedDate DATE NOT NULL DEFAULT GETDATE(),
 //     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 // );
-}
+
