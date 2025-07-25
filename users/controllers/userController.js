@@ -89,17 +89,21 @@ async function createUser(req, res) {
 }
 
 async function updateUser(req, res) {
+    console.log("Update user data:", req.body);
     const userId = parseInt(req.params.id);
     if (isNaN(userId)) {
         return res.status(400).json({ message: 'Invalid user ID' });
     }
     const { username, phone_number, password, age, gender } = req.body;
-    if (!username || !phone_number || !password || !age || !gender) {
-        return res.status(400).json({ message: 'All fields are required' });
-    }
+    console.log("Update user data control:", req.body);
 
     try {
-        await userModel.updateUser(userId, { username, phone_number, password, age, gender });
+        if (!password) {
+            // If password is not provided, do not update it
+            await userModel.updateUser(userId, { username, phone_number, age, gender });
+        } else {
+            await userModel.updateUser(userId, { username, phone_number, password, age, gender });
+        }
         res.status(200).json({ message: 'User updated successfully' });
     } catch (err) {
         console.error('Error updating user:', err);
@@ -224,6 +228,25 @@ async function changePassword(req, res) {
     }
 }
 
+async function searchUserByUsernameNid(req, res) {
+    const { username, id } = req.body;
+    console.log("Search user by username or ID:", req.body);
+
+    if (!username && !id) {
+        return res.status(400).json({ message: 'Username or ID is required' });
+    }
+    try {
+        const users = await userModel.searchUserByUsernameNid(username, id);
+        if (users == null) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        res.status(200).json(users);
+    } catch (err) {
+        console.error('Error searching users:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 
 
 module.exports = {
@@ -236,4 +259,5 @@ module.exports = {
     deleteUser,
     loginUser,
     changePassword,
+    searchUserByUsernameNid,
 };

@@ -12,7 +12,7 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput, verifyJWT } = require("./users/middlewares/userValidation");
+const { validateUserInput,validateUserInputForUpdate, verifyJWT } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
 //Import chat functions
@@ -75,8 +75,14 @@ app.get('/alertdetail', (req, res) => {
 app.get('/alertadmin', (req, res) => {
   res.render('alert/alertadmin', { message: 'This is an alert admin message' });
 });
-
-
+//user routes
+app.get('/user', (req, res) => {
+  res.render('user/user', { user: res.locals.user });
+});
+app.get('/users/updatedetail/:id', (req, res) => {
+  const userId = req.params.id;
+  res.render('user/updatedetail', { userId: userId, user: res.locals.user });
+});
 
 app.use(methodOverride("_method"));
 
@@ -108,8 +114,10 @@ app.put("/users/changepassword/:id", verifyJWT, userController.changePassword); 
 //rotes for user management
 app.get("/users", verifyJWT, userController.getAllUsers); // Get all users #okay
 app.get("/users/username/:username", verifyJWT, userController.getUserByUsername); // Get user by username
-app.put("/users/updatedetail/:id", verifyJWT, validateUserInput, userController.updateUser); // Update user details #okay
-app.delete("/users/:id", verifyJWT, userController.deleteUser); //OKay
+app.get("/users/:id", verifyJWT, userController.getUserById); // Get user by ID #okay
+app.patch("/users/updatedetail/:id", verifyJWT, validateUserInputForUpdate, userController.updateUser); // Update user details #okay
+app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
+app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
 
 
 //Charlotte's Chat routes
