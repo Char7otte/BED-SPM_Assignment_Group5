@@ -247,6 +247,12 @@ async function searchUserByUsernameNid(req, res) {
     }
 }
 
+function logoutUser(req, res) {
+    res.clearCookie('token');
+    res.setHeader('Authorization', '');
+    console.log('User logged out');
+    res.status(200).json({ message: 'Logged out successfully' });
+}
 
 
 module.exports = {
@@ -260,4 +266,5 @@ module.exports = {
     loginUser,
     changePassword,
     searchUserByUsernameNid,
+    logoutUser,
 };

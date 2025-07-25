@@ -118,6 +118,7 @@ app.get("/users/:id", verifyJWT, userController.getUserById); // Get user by ID 
 app.patch("/users/updatedetail/:id", verifyJWT, validateUserInputForUpdate, userController.updateUser); // Update user details #okay
 app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
 app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
+app.get("/users/logout",userController.logoutUser); // Get user roles by ID #okay
 
 
 //Charlotte's Chat routes
