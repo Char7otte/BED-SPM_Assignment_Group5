@@ -1,0 +1,137 @@
+const sql = require("mssql");
+
+const ChatMessage = require("../models/chatMessageModel");
+
+jest.mock("mssql");
+
+const mockRequest = {
+    query: jest.fn(),
+    input: jest.fn().mockReturnThis(),
+};
+
+const mockConnection = {
+    request: jest.fn().mockReturnValue(mockRequest),
+    close: jest.fn(),
+};
+
+describe("chatMessageModel", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        sql.connect.mockResolvedValue(mockConnection);
+    });
+
+    describe("chatMessageModel getAllMessagesInAChat", () => {
+        test("Return all messages in a chat successfully", async () => {
+            const mockMessages = [
+                { messageID: 1, chatID: 1, senderID: 4, message: "Message1" },
+                { messageID: 2, chatID: 1, senderID: 5, message: "Message2" },
+            ];
+
+            mockRequest.query.mockResolvedValue({ recordset: mockMessages });
+
+            const messages = await ChatMessage.getAllMessagesInAChat(1);
+
+            expect(mockRequest.input).toHaveBeenCalledWith("chatID", 1);
+            expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("SELECT * FROM ChatMessages WHERE chat_id = @chatID"));
+            expect(messages).toEqual(mockMessages);
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+
+        test("Handle database errors gracefully", async () => {
+            mockRequest.query.mockRejectedValue(new Error("Database error"));
+
+            await expect(ChatMessage.getAllMessagesInAChat(1)).rejects.toThrow("Database error");
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("chatMessageModel createMessage", () => {
+        test("Create message successfully", async () => {
+            mockRequest.query.mockResolvedValue({ rowsAffected: [1] });
+
+            const isCreated = await ChatMessage.createMessage(1, 4, "NewMessage1");
+
+            expect(mockRequest.input).toHaveBeenCalledWith("chatID", 1);
+            expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("INSERT INTO ChatMessages"));
+            expect(mockRequest.input).toHaveBeenCalledWith("senderID", 4);
+            expect(mockRequest.input).toHaveBeenCalledWith("message", "NewMessage1");
+            expect(isCreated).toBe(true);
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+
+        test("Return false when no rows affected", async () => {
+            mockRequest.query.mockResolvedValue({ rowsAffected: [0] });
+
+            const isCreated = await ChatMessage.createMessage(1, 4, "NewMessage1");
+
+            expect(isCreated).toBe(false);
+        });
+
+        test("Handle database errors gracefully", async () => {
+            mockRequest.query.mockRejectedValue(new Error("Database error"));
+
+            await expect(ChatMessage.createMessage(1, 4, "NewMessage1")).rejects.toThrow("Database error");
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("chatMessageModel editMessage", () => {
+        test("Edit message successfully", async () => {
+            mockRequest.query.mockResolvedValue({ rowsAffected: [1] });
+
+            const isUpdated = await ChatMessage.editMessage(1, 10, "UpdatedMessage1");
+
+            expect(mockRequest.input).toHaveBeenCalledWith("chatID", 1);
+            expect(mockRequest.input).toHaveBeenCalledWith("messageID", 10);
+            expect(mockRequest.input).toHaveBeenCalledWith("newMessage", "UpdatedMessage1");
+            expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("UPDATE ChatMessages"));
+            expect(isUpdated).toBe(true);
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+
+        test("Return false when no rows affected", async () => {
+            mockRequest.query.mockResolvedValue({ rowsAffected: [0] });
+
+            const isUpdated = await ChatMessage.editMessage(1, 999, "UpdatedMessage1");
+
+            expect(isUpdated).toBe(false);
+        });
+
+        test("Handle database errors gracefully", async () => {
+            mockRequest.query.mockRejectedValue(new Error("Database error"));
+
+            await expect(ChatMessage.editMessage(1, 10, "UpdatedMessage1")).rejects.toThrow("Database error");
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("chatMessageModel deleteMessage", () => {
+        test("Delete message successfully", async () => {
+            mockRequest.query.mockResolvedValue({ rowsAffected: [1] });
+
+            const isDeleted = await ChatMessage.deleteMessage(1, 10);
+
+            expect(mockRequest.input).toHaveBeenCalledWith("chatID", 1);
+            expect(mockRequest.input).toHaveBeenCalledWith("messageID", 10);
+            expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("DELETE FROM ChatMessages"));
+            expect(isDeleted).toBe(true);
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+
+        test("Return false when no rows affected", async () => {
+            mockRequest.query.mockResolvedValue({ rowsAffected: [0] });
+
+            const isDeleted = await ChatMessage.deleteMessage(1, 999);
+
+            expect(isDeleted).toBe(false);
+        });
+
+        test("Should handle database errors gracefully", async () => {
+            mockRequest.query.mockRejectedValue(new Error("Database error"));
+
+            await expect(ChatMessage.deleteMessage(1, 10)).rejects.toThrow("Database error");
+            expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        });
+    });
+});
