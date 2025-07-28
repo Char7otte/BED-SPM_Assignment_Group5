@@ -455,6 +455,175 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Time conversion helpers for elderly-friendly dropdowns
+    function convertTo12Hour(time24) {
+        if (!time24) return { hour: '', minute: '', ampm: '' };
+        
+        const [hours, minutes] = time24.split(':');
+        const hour24 = parseInt(hours);
+        const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+        const ampm = hour24 >= 12 ? 'PM' : 'AM';
+        
+        return {
+            hour: hour12.toString().padStart(2, '0'),
+            minute: minutes,
+            ampm: ampm
+        };
+    }
+
+    function convertTo24Hour(hour12, minute, ampm) {
+        if (!hour12 || !minute || !ampm) return '';
+        
+        let hour24 = parseInt(hour12);
+        if (ampm === 'AM' && hour24 === 12) hour24 = 0;
+        if (ampm === 'PM' && hour24 !== 12) hour24 += 12;
+        
+        return `${hour24.toString().padStart(2, '0')}:${minute}`;
+    }
+
+    // Update time dropdowns when values change
+    function setupTimeDropdowns() {
+        // For add medication modal
+        $('#time-hour, #time-minute, #time-ampm').change(function() {
+            const hour = $('#time-hour').val();
+            const minute = $('#time-minute').val();
+            const ampm = $('#time-ampm').val();
+            
+            if (hour && minute && ampm) {
+                const time24 = convertTo24Hour(hour, minute, ampm);
+                $('#time').val(time24);
+            }
+        });
+        
+        // For edit medication modal
+        $('#edit-time-hour, #edit-time-minute, #edit-time-ampm').change(function() {
+            const hour = $('#edit-time-hour').val();
+            const minute = $('#edit-time-minute').val();
+            const ampm = $('#edit-time-ampm').val();
+            
+            if (hour && minute && ampm) {
+                const time24 = convertTo24Hour(hour, minute, ampm);
+                $('#edit-time').val(time24);
+            }
+        });
+    }
+
+    // Enhanced medication display for elderly
+    function displayMedicationForElderly(medication) {
+        const time12 = convertTo12Hour(medication.medication_time);
+        const timeDisplay = `${time12.hour}:${time12.minute} ${time12.ampm}`;
+        
+        return `
+            <div class="medication-card ${medication.is_taken ? 'medication-taken' : ''}" data-id="${medication.medication_id}">
+                <h3><i class="fa fa-pills"></i> ${medication.medication_name}</h3>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><strong><i class="fa fa-clock-o"></i> Time:</strong> 
+                           <span class="medication-time">${timeDisplay}</span></p>
+                        <p><strong><i class="fa fa-prescription-bottle"></i> Dosage:</strong> ${medication.medication_dosage || 'As prescribed'}</p>
+                        <p><strong><i class="fa fa-calendar"></i> Date:</strong> ${formatDate(medication.medication_date)}</p>
+                        ${medication.medication_quantity ? `<p><strong><i class="fa fa-pills"></i> Quantity:</strong> ${medication.medication_quantity}</p>` : ''}
+                        ${medication.medication_notes ? `<p><strong><i class="fa fa-sticky-note"></i> Notes:</strong> ${medication.medication_notes}</p>` : ''}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="medication-actions">
+                            ${!medication.is_taken ? 
+                                `<button class="btn btn-success btn-lg" onclick="markAsTaken(${medication.medication_id})" style="margin-bottom: 10px;">
+                                    <i class="fa fa-check"></i> Take Now
+                                 </button>` : 
+                                `<button class="btn btn-secondary btn-lg" disabled style="margin-bottom: 10px;">
+                                    <i class="fa fa-check-circle"></i> Taken
+                                 </button>`
+                            }
+                            <button class="btn btn-primary" onclick="openEditModal(${medication.medication_id})" style="margin-bottom: 5px;">
+                                <i class="fa fa-edit"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Enhanced date formatting for elderly
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    // Populate edit modal with elderly-friendly time
+    function populateEditModalForElderly(medication) {
+        const time12 = convertTo12Hour(medication.medication_time);
+        
+        $('#edit-medication-id').val(medication.medication_id);
+        $('#edit-name').val(medication.medication_name);
+        $('#edit-dosage').val(medication.medication_dosage);
+        $('#edit-medication-date').val(medication.medication_date);
+        $('#edit-quantity').val(medication.medication_quantity);
+        $('#edit-notes').val(medication.medication_notes);
+        $('#edit-prescription-start').val(medication.prescription_startdate);
+        $('#edit-prescription-end').val(medication.prescription_enddate);
+        $('#edit-reminders').prop('checked', medication.medication_reminders);
+        
+        // Set time dropdowns
+        $('#edit-time-hour').val(time12.hour);
+        $('#edit-time-minute').val(time12.minute);
+        $('#edit-time-ampm').val(time12.ampm);
+        $('#edit-time').val(medication.medication_time);
+    }
+
+    // Initialize elderly-friendly features
+    $(document).ready(function() {
+        // Your existing code...
+        
+        // Add these new initializations
+        setupTimeDropdowns();
+        
+        // Override the existing displayMedications function
+        function displayMedications(meds) {
+            if (meds.length === 0) {
+                $('#medication-container').html(`
+                    <div class="alert alert-info loading-message" id="no-meds-message">
+                        <i class="fa fa-info-circle fa-2x"></i><br>
+                        No medications found. Click "Add Medication" to get started.
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            meds.forEach(medication => {
+                html += displayMedicationForElderly(medication);
+            });
+            $('#medication-container').html(html);
+        }
+        
+        // Enhanced success messages for elderly
+        function showSuccessMessage(message) {
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible loading-message" role="alert">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                    <i class="fa fa-check-circle fa-2x"></i><br>
+                    <strong>Success!</strong> ${message}
+                </div>
+            `;
+            $('#medication-container').prepend(alertHtml);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                $('.alert-success').fadeOut();
+            }, 5000);
+        }
+    });
 });
 
     function remindMedication(medId) {

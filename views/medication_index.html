@@ -137,7 +137,43 @@
             <div class="col-md-4">
               <div class="form-group">
                 <label for="time">Time to Take:</label>
-                <input type="time" class="form-control" id="time" required>
+                <div class="row">
+                  <div class="col-xs-6">
+                    <select class="form-control" id="time-hour" required>
+                      <option value="">Hour</option>
+                      <option value="01">1</option>
+                      <option value="02">2</option>
+                      <option value="03">3</option>
+                      <option value="04">4</option>
+                      <option value="05">5</option>
+                      <option value="06">6</option>
+                      <option value="07">7</option>
+                      <option value="08">8</option>
+                      <option value="09">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                  </div>
+                  <div class="col-xs-3">
+                    <select class="form-control" id="time-minute" required>
+                      <option value="">Min</option>
+                      <option value="00">00</option>
+                      <option value="15">15</option>
+                      <option value="30">30</option>
+                      <option value="45">45</option>
+                    </select>
+                  </div>
+                  <div class="col-xs-3">
+                    <select class="form-control" id="time-ampm" required>
+                      <option value="">AM/PM</option>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Hidden field for the actual time value -->
+                <input type="hidden" id="time" name="time">
               </div>
             </div>
             <div class="col-md-4">
@@ -217,7 +253,43 @@
             <div class="col-md-4">
               <div class="form-group">
                 <label for="edit-time">Time to Take:</label>
-                <input type="time" class="form-control" id="edit-time" required>
+                <div class="row">
+                  <div class="col-xs-6">
+                    <select class="form-control" id="edit-time-hour" required>
+                      <option value="">Hour</option>
+                      <option value="01">1</option>
+                      <option value="02">2</option>
+                      <option value="03">3</option>
+                      <option value="04">4</option>
+                      <option value="05">5</option>
+                      <option value="06">6</option>
+                      <option value="07">7</option>
+                      <option value="08">8</option>
+                      <option value="09">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                  </div>
+                  <div class="col-xs-3">
+                    <select class="form-control" id="edit-time-minute" required>
+                      <option value="">Min</option>
+                      <option value="00">00</option>
+                      <option value="15">15</option>
+                      <option value="30">30</option>
+                      <option value="45">45</option>
+                    </select>
+                  </div>
+                  <div class="col-xs-3">
+                    <select class="form-control" id="edit-time-ampm" required>
+                      <option value="">AM/PM</option>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Hidden field for the actual time value -->
+                <input type="hidden" id="edit-time" name="edit-time">
               </div>
             </div>
             <div class="col-md-4">
