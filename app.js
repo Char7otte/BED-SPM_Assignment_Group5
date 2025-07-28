@@ -14,7 +14,7 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput,validateUserInputForUpdate, verifyJWT } = require("./users/middlewares/userValidation");
+const { validateUserInput, validateUserInputForUpdate, validateUserID, verifyJWT } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
 
@@ -101,7 +101,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.get("/loginauth.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+  res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
@@ -131,10 +131,12 @@ app.get("/users/:id", verifyJWT, userController.getUserById); // Get user by ID 
 app.patch("/users/updatedetail/:id", verifyJWT, validateUserInputForUpdate, userController.updateUser); // Update user details #okay
 app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
 app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
-app.get("/users/logout",userController.logoutUser); // Get user roles by ID #okay
+app.get("/users/logout", userController.logoutUser); // Get user roles by ID #okay
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
+// app.js:138 app.post("/chats/create/:userID", > validateUserID, chatController.createChat);
+// terminal message on run: validateUserID is not defined
 app.post("/chats/create/:userID", validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
@@ -186,7 +188,7 @@ app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackCont
 
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 // Serve the calendar HTML file
@@ -205,8 +207,8 @@ app.get("/feedbacks", (req, res) => {
 });
 
 process.on("SIGINT", async () => {
-    console.log("Server is gracefully shutting down");
-    await sql.close();
-    console.log("Database connections closed");
-    process.exit(0);
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
 });

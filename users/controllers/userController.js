@@ -1,13 +1,13 @@
 const express = require('express');
 const userModel = require('../models/userModel');
-const bcrypt = require('bcrypt'); 
+const bcrypt = require('bcrypt');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { use } = require('react');
 const e = require('express');
 //roles restriction will be handled in the middlewareconst jwt = require('jsonwebtoken');
 
- 
+
 
 
 async function getAllUsers(req, res) {
@@ -63,7 +63,7 @@ async function createUser(req, res) {
     }
 
     try {
-        await userModel.createUser({ username, phone_number, password, age, gender, status  });
+        await userModel.createUser({ username, phone_number, password, age, gender, status });
         res.status(201).json({ message: 'User created successfully' });
         const user = await userModel.getUserByUsername(username);
         const token = jwt.sign(
@@ -83,7 +83,7 @@ async function createUser(req, res) {
         }
         else {
             console.error('Error creating user:', err);
-            res.status(500).json({ message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 }
@@ -188,16 +188,16 @@ async function loginUser(req, res) {
 
         // ✅ SUCCESS response with token
         res
-        .cookie('token', token, {
-            // secure: true in production
-            maxAge: 3 * 60 * 60 * 1000 // 3 hours
-        })
-        .status(200)
-        .json({
-            success: true,
-            message: "Login successful",
-            token: token // still optional to return in body
-  });
+            .cookie('token', token, {
+                // secure: true in production
+                maxAge: 3 * 60 * 60 * 1000 // 3 hours
+            })
+            .status(200)
+            .json({
+                success: true,
+                message: "Login successful",
+                token: token // still optional to return in body
+            });
 
     } catch (err) {
         console.error('Error logging in:', err);
