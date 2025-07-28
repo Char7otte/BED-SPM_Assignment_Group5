@@ -255,6 +255,7 @@ const validateRefillRequest = (req, res, next) => {
             details: errorMessages 
         });
     }
+};
 
 const validateMedicationIdParam = (req, res, next) => {
     const paramToValidate = req.params.id || req.params.medicationId;
@@ -332,4 +333,4 @@ module.exports = {
     validateMedicationIdParam,
     validateDateRangeQuery,
     validateSearchQuery
-}};
+};
