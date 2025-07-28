@@ -2,6 +2,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f8f9fa;
+    font-size: 18px; /* Increased from default 14px */
+    line-height: 1.6; /* Better readability */
 }
 
 .sidenav {
@@ -18,14 +20,15 @@ body {
 
 .navbar-brand {
     padding: 15px 15px;
+    font-size: 24px !important;
 }
 
 .medication-card {
     background: white;
     border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 25px !important; /* More padding */
+    margin-bottom: 20px !important;
+    border-width: 3px !important; /* Thicker borders for visibility */
     transition: all 0.3s ease;
 }
 
@@ -37,6 +40,13 @@ body {
 .medication-card h3 {
     margin-top: 0;
     color: #2c3e50;
+    font-size: 28px !important; /* Larger medication names */
+    margin-bottom: 15px !important;
+}
+
+.medication-card p {
+    font-size: 18px !important; /* Larger text in cards */
+    margin-bottom: 10px !important;
 }
 
 .medication-actions {
@@ -61,6 +71,14 @@ body {
 .modal-header {
     background-color: #f8f9fa;
     border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+    font-size: 24px !important;
+}
+
+.modal-body {
+    font-size: 16px !important;
 }
 
 /* Responsive adjustments */
@@ -147,13 +165,18 @@ body {
     font-weight: 600;
     color: #2c3e50;
     margin-bottom: 5px;
+    font-size: 16px !important; /* Larger labels */
+    font-weight: bold !important; /* Bold labels for clarity */
+    margin-bottom: 8px !important;
 }
 
 .modal-body .form-control {
     border-radius: 4px;
     border: 1px solid #ddd;
-    padding: 8px 12px;
+    padding: 12px 16px !important; /* Bigger input fields */
     transition: border-color 0.3s ease;
+    font-size: 18px !important; /* Larger input text */
+    border-width: 2px !important; /* Thicker borders */
 }
 
 .modal-body .form-control:focus {
@@ -278,9 +301,113 @@ body {
 /* Navigation Enhancement */
 .list-group-item {
     transition: all 0.3s ease;
+    font-size: 16px !important;
+    padding: 15px 20px !important;
 }
 
 .list-group-item:hover {
     background-color: #f5f5f5;
     transform: translateX(3px);
+}
+
+/* Enhanced elderly-friendly improvements */
+h1 {
+    font-size: 36px !important; /* Larger main heading */
+}
+
+h3, h4 {
+    font-size: 24px !important; /* Larger card headings */
+}
+
+.btn {
+    font-size: 16px !important; /* Larger button text */
+    padding: 12px 20px !important; /* Bigger buttons */
+    border-width: 2px !important; /* Thicker borders for visibility */
+}
+
+.btn-lg {
+    font-size: 20px !important;
+    padding: 16px 28px !important;
+}
+
+/* Time display improvements */
+.medication-time {
+    font-size: 22px !important;
+    font-weight: bold !important;
+    color: #2c3e50 !important;
+}
+
+/* Enhanced button styling */
+.medication-actions .btn {
+    margin: 5px !important;
+    min-width: 120px !important; /* Wider buttons */
+    height: 50px !important; /* Taller buttons */
+}
+
+/* Checkbox improvements */
+.checkbox label {
+    font-size: 18px !important;
+    padding-left: 25px !important;
+}
+
+.checkbox input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin-left: -25px !important;
+}
+
+/* Search panel improvements */
+.panel-heading h4 {
+    font-size: 18px !important;
+}
+
+#search-input {
+    height: 45px !important;
+}
+
+/* Alert and message improvements */
+.alert {
+    font-size: 18px !important;
+    padding: 20px !important;
+}
+
+/* High contrast improvements */
+.btn-primary {
+    background-color: #2980b9 !important;
+    border-color: #2980b9 !important;
+}
+
+.btn-success {
+    background-color: #27ae60 !important;
+    border-color: #27ae60 !important;
+}
+
+.btn-danger {
+    background-color: #e74c3c !important;
+    border-color: #e74c3c !important;
+}
+
+/* Focus improvements for accessibility */
+.form-control:focus,
+.btn:focus {
+    border-width: 3px !important;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.6) !important;
+}
+
+/* Taken medication styling */
+.medication-taken {
+    background-color: #d4edda !important;
+    border-color: #27ae60 !important;
+    opacity: 0.9 !important;
+}
+
+.medication-taken h3 {
+    color: #155724 !important;
+}
+
+/* Loading and status messages */
+.loading-message {
+    font-size: 20px !important;
+    text-align: center !important;
+    padding: 30px !important;
 }
