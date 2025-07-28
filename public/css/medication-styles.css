@@ -411,3 +411,60 @@ h3, h4 {
     text-align: center !important;
     padding: 30px !important;
 }
+
+/* Animation for due medications */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Due medication styling */
+.medication-due {
+    border-left: 6px solid #f39c12 !important;
+    background-color: #fef9e7 !important;
+}
+
+.medication-due .medication-time {
+    animation: pulse 2s infinite;
+}
+
+/* Better progress bar */
+.progress {
+    border-radius: 10px !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    border-radius: 10px !important;
+    transition: width 0.8s ease-in-out;
+}
+
+/* Enhanced counters */
+#total-meds, #taken-meds, #remaining-meds {
+    font-size: 36px !important;
+    font-weight: bold !important;
+    margin: 0 !important;
+}
+
+/* Status badges */
+.label {
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+    border-radius: 20px !important;
+}
+
+/* Button enhancements */
+.take-medication-btn {
+    animation: pulse 2s infinite;
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3) !important;
+}
+
+.take-medication-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(39, 174, 96, 0.4) !important;
+}
