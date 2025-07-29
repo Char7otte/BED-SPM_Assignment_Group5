@@ -1,9 +1,21 @@
 const chatMessageModel = require("../models/chatMessageModel");
+const chatModel = require("../models/chatModel");
 
 async function getAllMessagesInAChat(req, res) {
     try {
+        let messages;
+        const { id, role } = req.user;
         const chatID = req.params.chatID;
-        const messages = await chatMessageModel.getAllMessagesInAChat(chatID);
+
+        if (role == "U") {
+            //Verify that the user is the helpee
+            const chat = await chatModel.getChatByID(chatID);
+            if (!id == chat.helpee_id) {
+                return res.status(403).send("Forbidden");
+            }
+        }
+
+        messages = await chatMessageModel.getAllMessagesInAChat(chatID);
         return res.render("chat/oneChat", { chatID, messageData: messages });
     } catch (error) {
         console.error("Controller error: ", error);
