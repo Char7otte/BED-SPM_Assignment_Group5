@@ -61,12 +61,12 @@ async function createUser(req, res) {
 
     try {
         await userModel.createUser({ username, phone_number, password, age, gender, status });
-        res.status(201).json({ message: "User created successfully" });
         const user = await userModel.getUserByUsername(username);
         const token = jwt.sign({ id: user.user_id, role: user.role, username: user.username }, process.env.JWT_SECRET, { expiresIn: "3600s" });
         res.cookie("token", token, {
             maxAge: 3 * 60 * 60 * 1000, // 3 hours
         });
+        res.status(201).json({ message: "User created successfully" });
     } catch (err) {
         console.log("Error creating user:", err);
         if (err.message && err.message.includes("Violation of UNIQUE KEY")) {
