@@ -98,13 +98,14 @@ async function deleteAppointment(req, res) {
         return res.status(404).json({ error: "Appointment not found"});
       }
 
-      res.status(204).json(deletedAppointment);
+      res.status(204).end(); // No content to return
     } catch (error) {
         console.error("Controller error in deleteAppointment:", error);
         res.status(500).json({ error: "Error deleting appointment" });
     }
 }
 
+// Search appointments by search term
 async function searchAppointments(req, res) {
     const searchTerm = req.query.searchTerm; // Extract search term from query params
 
