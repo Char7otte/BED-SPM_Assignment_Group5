@@ -142,6 +142,38 @@ function openDate(dateKey) {
     }
 }
 
+// Handle automatic status updates
+function updateAppointmentStatus(appt, dateKey) {
+    // Only auto-update if current status is "Scheduled" or "Ongoing"
+    if (!appt.status || appt.status === "Scheduled" || appt.status === "Ongoing") {
+        const now = new Date();
+        const startTime = appt.startTime || '00:00:00';
+        const endTime = appt.endTime || '23:59:59';
+        const start = new Date(`${dateKey}T${startTime}`);
+        const end = new Date(`${dateKey}T${endTime}`);
+
+        let newStatus = appt.status || "Scheduled";
+
+        if (now > end) {
+            // After end time, check if it was "Ongoing" to set as "Attended"
+            if (appt.status === "Ongoing") {
+                newStatus = "Attended";
+            } else {
+                newStatus = "Missed";  // If it was never "Ongoing", mark as "Missed"
+            }
+        } else if (now >= start && now <= end) {
+            newStatus = "Ongoing";
+        }
+
+        // Update status locally only 
+        if (newStatus !== appt.status) {
+            appt.status = newStatus;
+            console.log(`Appointment ${appt.id} status automatically updated to ${newStatus} (local only)`);
+        }
+    }
+    return appt;
+}
+
 function displayDailyAppointments(dateKey) {
     const dailyAppointments = appointments[dateKey] || [];
     appointmentList.innerHTML = ""; // Clear previous appointments
@@ -153,17 +185,7 @@ function displayDailyAppointments(dateKey) {
     editingIndex !== null ? "Edit Appointment" : `New Appointment for ${selectedDate}`;
 
     dailyAppointments.forEach((appt, index) => {
-        if (!appt.status || appt.status === "Scheduled") {
-            const now = new Date();
-            const startTime = appt.startTime || '00:00:00';
-            const endTime = appt.endTime || '23:59:59';
-            const start = new Date(`${dateKey}T${startTime}`);
-            const end = new Date(`${dateKey}T${endTime}`);
-
-            if (now > end) appt.status = "Missed";
-            else if (now >= start && now <= end) appt.status = "Ongoing";
-        }
-
+        updateAppointmentStatus(appt, dateKey);
         const li = document.createElement("li");
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
@@ -321,6 +343,16 @@ function openNewAppointment() {
         selectedDateEl.innerText = selectedDate;
     }
 
+    // Validate that selected date is not in the past
+    const selectedDateObj = new Date(selectedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDateObj < today) {
+        alert("Cannot create appointments for past dates. Please select today's date or a future date.");
+        return;
+    }
+
     // Reset form values
     document.getElementById("appointment-date").value = "";
     document.getElementById("title").value = "";
@@ -356,6 +388,74 @@ function editAppointment(index) {
     document.getElementById("notes").value = appt.notes;
     document.getElementById("status").value = appt.status || "Scheduled"; // Default to Scheduled if no status
 
+    // Determine if this is a past appointment
+    const appointmentDate = new Date(appt.date);
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const isPastAppointment = appointmentDate < today;
+    const isCompletedToday = appointmentDate.getTime() === today.getTime() && 
+                            appt.endTime && 
+                            now > new Date(`${appt.date}T${appt.endTime}`);
+    
+    // Set up status dropdown based on appointment timing
+    const statusSelect = document.getElementById("status");
+    const currentStatus = appt.status || "Scheduled";
+    
+    // Clear existing options
+    statusSelect.innerHTML = "";
+    
+    if (isPastAppointment || isCompletedToday) {
+        // For past appointments, only allow certain statuses
+        const allowedStatuses = ["Attended", "Missed"];
+        
+        allowedStatuses.forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = getStatusDisplayText(status);
+            if (status === currentStatus) {
+                option.selected = true;
+            }
+            statusSelect.appendChild(option);
+        });
+        
+        // If current status is not in allowed list, set to "Missed" by default
+        if (!allowedStatuses.includes(currentStatus)) {
+            statusSelect.value = "Missed";
+        }
+
+        // Add visual notice for past appointments
+        const existingNotice = document.getElementById("past-appointment-notice");
+        if (existingNotice) {
+            existingNotice.remove();
+        }
+        
+        if (isPastAppointment || isCompletedToday) {
+            const notice = document.createElement("div");
+            notice.id = "past-appointment-notice";
+            notice.className = "past-appointment-notice";
+            notice.innerHTML = "⚠️ This is a past appointment. Status can only be set to 'Attended' or 'Missed'.";
+            
+            // Insert notice after the status select
+            statusSelect.parentNode.insertBefore(notice, statusSelect.nextSibling);
+        }
+
+    } else {
+        // For future appointments, allow all statuses except "Ongoing"
+        const allStatuses = ["Scheduled", "Attended", "Missed"];
+        
+        allStatuses.forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = getStatusDisplayText(status);
+            if (status === currentStatus) {
+                option.selected = true;
+            }
+            statusSelect.appendChild(option);
+        });
+    }
+
     editingIndex = index;
     originalDate = selectedDate; // Store the original date for later comparison
 
@@ -390,14 +490,41 @@ function saveAppointment() {
         return;
     }
 
-    // Check if date is in the past ONLY for NEW appointments
-    if (editingIndex === null) {
-        const selectedDate = new Date(date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
+    // Convert string to Date object properly
+    const selectedDateObj = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Validate status for past appointments
+    if (editingIndex !== null) {
+        const isPastAppointment = selectedDateObj < today;
+        const isCompletedToday = selectedDateObj.getTime() === today.getTime() && 
+                                endTimeRaw && 
+                                now > new Date(`${date}T${endTimeRaw}`);
         
-        if (selectedDate < today) {
-            alert("Cannot schedule appointments in the past");
+        if (isPastAppointment || isCompletedToday) {
+            if (status === "Scheduled" || status === "Ongoing") {
+                alert("Cannot set past appointments to 'Scheduled' or 'Ongoing' status. Please select 'Attended' or 'Missed'.");
+                return;
+            }
+        }
+    }
+
+    // Check if date is in the past for new appointments
+    if (editingIndex === null && selectedDateObj < today) {
+        alert("Cannot schedule appointments in the past. Please select today's date or a future date.");
+        return;
+    }
+
+    // For today's appointments, check if the start time has already passed
+    if (selectedDateObj.getTime() === today.getTime()) {
+        const now = new Date();
+        const [hours, minutes] = startTimeRaw.split(':').map(Number);
+        const appointmentDateTime = new Date();
+        appointmentDateTime.setHours(hours, minutes, 0, 0);
+        
+        if (appointmentDateTime < now) {
+            alert("Cannot schedule appointments for times that have already passed today. Please select a future time.");
             return;
         }
     }
@@ -419,6 +546,7 @@ function saveAppointment() {
         start_time,
         end_time,
         location, 
+        status: status || "Scheduled", // Default to Scheduled if no status provided
         notes 
     };
 
@@ -669,13 +797,24 @@ function highlightDay(dateKey) {
     });
 }
 
+// For dropdown status display
+function getStatusDisplayText(status) {
+    const statusMap = {
+        "Scheduled": "🟢 Scheduled",
+        "Ongoing": "🟡 Ongoing", 
+        "Attended": "✅ Attended",
+        "Missed": "🔴 Missed",
+    };
+    return statusMap[status] || status;
+}
+
+// For css styling
 function getStatusClass(status) {
     return {
         "Scheduled": "status-scheduled",
         "Ongoing": "status-ongoing",
         "Attended": "status-attended",
         "Missed": "status-missed",
-        "Cancelled": "status-cancelled"
     }[status] || "status-scheduled";
 }
 
@@ -953,10 +1092,20 @@ function quickNavigateToMonth(monthOffset) {
     viewAppointmentsByMonth();
 }
 
+function setDateInputMinimum() {
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const dateInput = document.getElementById("appointment-date");
+    if (dateInput) {
+        dateInput.min = todayString;
+    }
+}
+
 // Add event listener for search input
 document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
-    
+    setDateInputMinimum();
+
     // Add real-time validation
     const startTimeInput = document.getElementById("start-time");
     const endTimeInput = document.getElementById("end-time");

@@ -9,7 +9,7 @@ describe("medAppointmentController.getAllAppointmentsByUser", () => {
         jest.clearAllMocks();
     })
 
-    it("should fetch all appointments and return a JSON response", async () => {
+    it("should fetch all appointments for a user and return a JSON response", async () => {
         const mockAppointments = [
             { id: 1, userID: 1, date: "2025-07-11", time: "10:00" },
             { id: 2, userID: 1, date: "2025-07-12", time: "11:00" }
@@ -42,7 +42,7 @@ describe("medAppointmentController.getAllAppointmentsByUser", () => {
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({ error: "Error retrieving appointments" });
     });
-})
+});
 
 // Test for getAppointmentsByDate
 describe("medAppointmentController.getAppointmentsByDate", () => {
