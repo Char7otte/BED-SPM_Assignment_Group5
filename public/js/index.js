@@ -1,15 +1,8 @@
 // Maps the API's icons to the ones from https://erikflowers.github.io/weather-icons/
         
 
-        const apiUrl = "http://localhost:3000";
-        function getToken() {
-            const token = localStorage.getItem('authToken');
-            console.log("Token from localStorage:", token); // Debugging
-            return token ? token : null;
-        }
-
-const UserToken = getToken();
-
+const apiUrl = "http://localhost:3000";
+   
 function decodeJwtPayload(token) {
     const jwt = token.split(" ")[1]; // remove 'Bearer'
     const payloadBase64 = jwt.split(".")[1]; // get payload
@@ -144,39 +137,40 @@ async function weather() {
         }
     }
 
-async function getReadAlerts() {
+async function fetchReadAlerts(userId) {
     try {
-        const response = await fetch(`${apiUrl}/readstatus`);
+        const response = await fetch(`${apiUrl}/alerts/readstatus/${userId}`);
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        console.log("Fetched unread alerts:", data); // Debugging
-        return data; // ✅ THIS LINE IS IMPORTANT
+        const unreadAlerts = await response.json();
+        console.log("Fetched unread alerts:", unreadAlerts); // Debugging
+        return unreadAlerts; // ✅ fixed
     } catch (error) {
-        console.error('Error fetching unread alerts:', error);
-        return null; // return null to safely handle failure
+        console.error("Error fetching unread alerts:", error);
+        return [];
     }
 }
 
 async function alerts() {
     
-
+    const userId = decodeJwtPayload(token).id;
+    const readData = await fetchReadAlerts(userId);
+    const data = await fetchAlerts();
+    let list = [];
+    for (const alert of readData) {
+        list.push(alert.alertid);
+    }
 
     let alertDown = document.getElementsByClassName('alert-down')[0];
-    
-    
-    // Extract alert IDs from readData and store in a list
-    const readAlertIds = [];
-    if (readData && Array.isArray(readData)) {
-        for (const alert of readData) {
-            if (alert.alertid) {
-                readAlertIds.push(alert.alertid);
-            }
-        }
-    }
-    console.log("Read Alert IDs:", readAlertIds); // Debugging
+    alertDown.innerHTML = ''; // Clear previous alerts
 
+    if (data && Array.isArray(data)) {
+        // Filter unread alerts and sort by date (assuming alert.date exists)
+        const unreadAlerts = data.filter(alert => !list.includes(alert.id));
+        unreadAlerts.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const top3 = unreadAlerts.slice(0, 3);
+    }
 
 }
 

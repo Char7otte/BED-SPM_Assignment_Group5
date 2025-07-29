@@ -11,7 +11,7 @@
         <style>
             body {
                 font-family: Arial, sans-serif;
-                background-color: #f0f0f0;
+                background-color: #e7e1d8;
                 color: #333;
                 text-align: center;
             }
@@ -42,35 +42,44 @@
 
             }
             .container-left1, .container-right2, .container-left3 {
-                background-color: #b5c4c6;
+                /* background-color: #57b0e0; option 1*/
+                background-color: #7798AB;
                 width: 35%;
                 height: 350px;
                 padding: 10px;
-                
-                
+                box-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
+                transition: box-shadow 0.3s ease;
                 margin-top: 10px;
-                
+            }
+             .container-right1:hover, 
+            .container-left2:hover, .container-right2:hover, 
+            .container-left3:hover, .container-right3:hover {
+                box-shadow: 0 8px 24px rgba(44, 62, 80, 0.25);
+                cursor: pointer;
+                transform: translateY(-4px) scale(1.02);
+                transition: box-shadow 0.3s, transform 0.3s;
             }
             .container-left2, .container-right1, .container-right3 {
-                background-color: #e3d0a2;
+                background-color: #a2af9b;
                 width: 60%;
                 height: 350px;
                 padding: 10px;
-                
-                
+                box-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
                 margin-top: 10px;
                 
             }
+
+
             .weather-up {
-                background-color: #d1e7dd;
+                background-color: transparent;
                 width: 100%;
                 height: auto;
                 display: block;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.5em;
+                align-items: left;
+                justify-content: left;
+                font-size: 1.4em;
                 
-                border-bottom: 2px solid #b5c4c6;
+                
             }
             .wleft{
                 text-align: left;
