@@ -65,6 +65,8 @@ async function getUserByUsername(username) {
     let conn;
     try {
         conn = await sql.connect(dbConfig);
+
+
         const query = "SELECT user_id, username, phone_number, password, joined_date, age, gender, role FROM Users WHERE username = @username";
         const result = await conn.request()
             .input("username", sql.NVarChar, username)
@@ -119,18 +121,56 @@ async function createUser(user) {
 
 async function updateUser(id, user) {
     let conn;
+    let hashedLiao = null;
     try {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(user.password, salt); // Hash the password
-
+        if (user.password) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(user.password, salt); // Hash the password
+            const hashedLiao = hashedPassword;
+        }
         conn = await sql.connect(dbConfig);
+        if (!user.password) {
+            // If password is not provided, do not update it
+            user.password = null;
+        }
         const query = `
             UPDATE Users
-            SET username = @username,
-                phone_number = @phone_number,
-                password = @password,
-                age = @age,
-                gender = @gender
+            SET 
+            username = COALESCE(@username, username),
+            phone_number = COALESCE(@phone_number, phone_number),
+            password = COALESCE(@password, password),
+            age = COALESCE(@age, age),
+            gender = COALESCE(@gender, gender)
+            WHERE user_id = @id
+        `;
+        if (hashedLiao === null) {
+            const query = `
+            UPDATE Users
+            SET 
+            username = COALESCE(@username, username),
+            phone_number = COALESCE(@phone_number, phone_number),
+            age = COALESCE(@age, age),
+            gender = COALESCE(@gender, gender)
+            WHERE user_id = @id
+        `;
+            await conn.request()
+            .input("username", sql.NVarChar, user.username)
+            .input("phone_number", sql.NVarChar, user.phone_number)
+            
+            .input("age", sql.Int, user.age)
+            .input("gender", sql.NVarChar, user.gender)
+            .input("id", sql.Int, id)
+            .query(query);
+        }
+        else{
+            const query = `
+            UPDATE Users
+            SET 
+            username = COALESCE(@username, username),
+            phone_number = COALESCE(@phone_number, phone_number),
+            password = COALESCE(@password, password),
+            age = COALESCE(@age, age),
+            gender = COALESCE(@gender, gender)
             WHERE user_id = @id
         `;
         await conn.request()
@@ -141,8 +181,32 @@ async function updateUser(id, user) {
             .input("gender", sql.NVarChar, user.gender)
             .input("id", sql.Int, id)
             .query(query);
+        }
+        
     } catch (error) {
         console.error("Error updating user:", error);
+        throw error;
+    } finally {
+        if (conn) {
+            try {
+                await conn.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function deleteReadStatusByid(id) {
+    let conn;
+    try {
+        conn = await sql.connect(dbConfig);
+        const query = "DELETE FROM ReadStatus WHERE user_id = @id";
+        await conn.request()
+            .input("id", sql.Int, id)
+            .query(query);
+    } catch (error) {
+        console.error("Error deleting read status:", error);
         throw error;
     } finally {
         if (conn) {
@@ -159,7 +223,7 @@ async function deleteUser(id) {
     let conn;
     try {
         conn = await sql.connect(dbConfig);
-        const query = "DELETE FROM Users WHERE user_id = @id";
+        const query = "UPDATE Users SET status = 'deleted' WHERE user_id = @id";
         await conn.request()
             .input("id", sql.Int, id)
             .query(query);
@@ -225,8 +289,42 @@ async function changePassword(id, newPassword) {
             }
         }
     }
+} 
+async function searchUserByUsernameNid(username, id) {
+    console.log("modelSearching user by username or ID:", username, id);
+    let conn;
+    try {
+        conn = await sql.connect(dbConfig);
+        let query, result;
+        if (id === null && username != null) {
+            query = "SELECT user_id, username, phone_number, joined_date, age, gender, role, status FROM Users WHERE username LIKE '%' + @username + '%'";
+            result = await conn.request()
+                .input("username", sql.NVarChar, username)
+                .query(query);
+        } else {
+            query = "SELECT user_id, username, phone_number,  joined_date, age, gender, role, status FROM Users WHERE user_id = @id";
+            result = await conn.request()
+                .input("id", sql.Int, id)
+                .query(query);
+        }
+        await conn.close();
+        if (result.recordset.length === 0) {
+            return null; // No user found
+        }
+        return result.recordset;
+    } catch (error) {
+        console.error("Error searching user by username or id:", error);
+        throw error;
+    } finally {
+        if (conn) {
+            try {
+                await conn.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
 }
-
 
 async function verifyPassword (plainPassword, hashedPassword) {
     return await bcrypt.compare(plainPassword, hashedPassword);
@@ -242,6 +340,8 @@ module.exports = {
     deleteUser,
     verifyPassword,
     changePassword,
+    deleteReadStatusByid,
+    searchUserByUsernameNid,
 };
 
 
