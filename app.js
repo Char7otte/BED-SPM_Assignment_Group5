@@ -14,7 +14,7 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput, validateUserInputForUpdate, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
+const { validateUserInput, validateUserInputForUpdate, verifyJWT, validateUserID, onlyAllowUser } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
 //Import chat functions

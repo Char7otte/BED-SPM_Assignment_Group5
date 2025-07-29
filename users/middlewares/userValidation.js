@@ -114,11 +114,17 @@ function validateUserID(req, res, next) {
     next();
 }
 
+function onlyAllowUser(req, res, next) {
+    if (req.user.role != "U") return res.status(403).send("Forbidden");
+    next();
+}
+
 module.exports = {
     validateUserInput,
     validateUserInputForUpdate,
     verifyJWT,
     validateUserID,
+    onlyAllowUser,
 };
 
 // --bed_spm db v1.05
