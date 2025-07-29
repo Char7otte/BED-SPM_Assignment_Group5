@@ -32,6 +32,8 @@ const medTrackerController = require("./medication_tracker/controller/medTracker
 
 // import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
+const { validateNoteInput, validateNoteID, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
+
 const jwt = require("jsonwebtoken");
 
 // import feedback functions
@@ -168,12 +170,12 @@ app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedi
 
 // routes for note taker
 app.get("/notes", noteTakerController.getAllNotes);
-app.delete("/notes/bulk", noteTakerController.bulkDeleteNotes);
+app.delete("/notes/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
 app.get("/notes/search", noteTakerController.searchNotes);
-app.get("/notes/:id", noteTakerController.getNotesById);
-app.post("/notes", noteTakerController.createNote);
-app.delete("/notes/:id", noteTakerController.deleteNote);
-app.put("/notes/:id", noteTakerController.updateNote);
+app.get("/notes/:id", validateNoteID, noteTakerController.getNotesById);
+app.post("/notes", validateNoteInput, noteTakerController.createNote);
+app.delete("/notes/:id", validateNoteID, noteTakerController.deleteNote);
+app.put("/notes/:id", validateNoteInput, noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
 //Swagger

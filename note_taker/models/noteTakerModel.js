@@ -186,19 +186,28 @@ async function bulkDeleteNotes(noteIds) {
         connection = await sql.connect(dbConfig);
         const request = connection.request();
 
-        //
-        const allNoteIds = noteIds.map((id, index) => {
-            const aNoteId = `id${index}`;
-            request.input(aNoteId, sql.Int, id);
-            return `@${aNoteId}`;
-            // return `@id1... @idN` etc for parameterized query
-        });
+        // //
+        // const allNoteIds = noteIds.map((id, index) => {
+        //     const aNoteId = `id${index}`;
+        //     request.input(aNoteId, sql.Int, id);
+        //     return `@${aNoteId}`;
+        //     // return `@id1... @idN` etc for parameterized query
+        // });
+        // const noteInputParams = noteIds.map((id, index) => {
+        //     const noteParamName = `noteId${index}`;
+        //     request.input(noteParamName, sql.Int, id);
+        //     return `@${noteParamName}`;
+        // });
+
+        const noteIdsString = noteIds.join(", ");
+        request.input("noteIds", sql.NVarChar, noteIdsString);
 
         const query = `
             DELETE FROM Notes
-            WHERE NoteID IN (${allNoteIds.join(", ")});
+            WHERE NoteID IN (
+                SELECT CAST(value AS INT) FROM STRING_SPLIT(@noteIds, ',')
+            );
         `;
-        // join all note IDs into a single string for the IN clause
         await request.query(query);
         return { message: "Notes deleted successfully" };
     } catch (error) {
