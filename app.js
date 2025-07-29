@@ -71,7 +71,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/login.html', (req, res) => {
+app.get('/login', (req, res) => {
   //app.use(express.static(path.join(__dirname, 'public')));
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
 });
@@ -108,10 +108,6 @@ app.use(methodOverride("_method"));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
-app.get("/loginauth.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
-});
 
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category

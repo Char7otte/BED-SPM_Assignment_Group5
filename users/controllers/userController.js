@@ -58,35 +58,51 @@ async function getUserByUsername(req, res) {
 
 async function createUser(req, res) {
     const { username, phone_number, password, age, gender, status = 'active' } = req.body;
+
     if (!username || !phone_number || !password || !age || !gender) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
-        await userModel.createUser({ username, phone_number, password, age, gender, status  });
-        res.status(201).json({ message: 'User created successfully' });
+        // Create the user
+        await userModel.createUser({ username, phone_number, password, age, gender, status });
+
+        // Get user info
         const user = await userModel.getUserByUsername(username);
+
+        // Generate JWT
         const token = jwt.sign(
             { id: user.user_id, role: user.role, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: '3600s' }
         );
+
+        console.log("User created successfully, token generated:", token);
+
+        // Set cookie before sending the final response
         res.cookie('token', token, {
+            httpOnly: true,
             maxAge: 3 * 60 * 60 * 1000 // 3 hours
         });
 
+        // ✅ Send only one response
+        return res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            token: token
+        });
 
     } catch (err) {
         console.log('Error creating user:', err);
+
         if (err.message && err.message.includes('Violation of UNIQUE KEY')) {
             return res.status(409).json({ message: 'Username already exists' });
         }
-        else {
-            console.error('Error creating user:', err);
-            res.status(500).json({ message: 'Internal server error'});
-        }
+
+        return res.status(500).json({ message: 'Internal server error' });
     }
 }
+
 
 async function updateUser(req, res) {
     console.log("Update user data:", req.body);

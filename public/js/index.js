@@ -28,7 +28,7 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 
@@ -158,21 +158,62 @@ async function alerts() {
     const readData = await fetchReadAlerts(userId);
     const data = await fetchAlerts();
     let list = [];
+    console.log("Read alerts data:", readData); // Debugging
     for (const alert of readData) {
-        list.push(alert.alertid);
+        list.push(alert.AlertID);
     }
+    console.log("Read alerts list:", list); // Debugging
 
     let alertDown = document.getElementsByClassName('alert-down')[0];
     alertDown.innerHTML = ''; // Clear previous alerts
 
     if (data && Array.isArray(data)) {
-        // Filter unread alerts and sort by date (assuming alert.date exists)
-        const unreadAlerts = data.filter(alert => !list.includes(alert.id));
-        unreadAlerts.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const top3 = unreadAlerts.slice(0, 3);
+        // Filter out alerts whose AlertID is in the list
+        const filteredAlerts = data.filter(alert => !list.includes(alert.AlertID));
+        // Show top 3 alerts
+        const topAlerts = filteredAlerts.slice(0, 3);
+        topAlerts.forEach(alert => {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-item';
+            // Set alert class based on severity
+            let severityClass = 'alert-info';
+            if (alert.Severity) {
+                switch (alert.Severity.toLowerCase()) {
+                    case 'high':
+                        severityClass = '🚨';
+                        break;
+                    case 'medium':
+                        severityClass = '🟡';
+                        break;
+                    case 'low':
+                        severityClass = '🟢';
+                        break;
+                    case 'info':
+                        severityClass = 'ℹ️';
+                        break;
+                    default:
+                        severityClass = 'alert-secondary'; // Default class if severity is unknown
+                }
+            }
+            alertDiv.classList.add();
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.innerHTML = `
+                <div class="alert" id="hover" role="alert" style="cursor:pointer; text-align:left; height: 100%;" onclick="window.location.href='/alertdetail?id=${alert.AlertID}'">
+                    ${severityClass} <strong>${alert.Title || 'No title available'}</strong><br>
+                    ${alert.Message || 'No message available'}
+                </div>
+            `;
+            alertDown.appendChild(alertDiv);
+            console.log("Alert added:", alert.Message, severityClass); // Debugging
+        });
+
     }
 
 }
 
 alerts();
+
+
+
+
 
