@@ -142,7 +142,7 @@ app.get("/users/logout", userController.logoutUser); // Get user roles by ID #ok
 
 //Charlotte's Chat routes
 app.get("/chats", verifyJWT, chatController.getAllChats);
-app.post("/chats/create/:userID", validateUserID, chatController.createChat);
+app.post("/chats/create/:userID", verifyJWT, onlyAllowUser, validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
 app.get("/chats/:chatID", verifyJWT, validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
