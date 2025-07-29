@@ -6,6 +6,36 @@ $(document).ready(function() {
     let reminderInterval;
     let snoozedReminders = new Set(); // Track snoozed reminders
 
+    function decodeJwtPayload(token) {
+    const jwt = token.split(" ")[1]; // remove 'Bearer'
+    const payloadBase64 = jwt.split(".")[1]; // get payload
+    const payloadJson = atob(payloadBase64); // decode base64
+    return JSON.parse(payloadJson); // parse to JSON
+    }
+
+    function isTokenExpired(token) {
+        const decoded = decodeJwtPayload(token);
+        if (!decoded || !decoded.exp) return true;
+        return decoded.exp < Date.now() / 1000;
+    }
+
+    const token = localStorage.getItem('token');
+    console.log("Token from localStorage:", token);
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        window.location.href = '/login'; // Redirect to login
+    }
+
+    // Check for token in cookies if not found in localStorage
+    if (!localStorage.getItem('token')) {
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        if (match) {
+            localStorage.setItem('token', decodeURIComponent(match[1]));
+        } else {
+            window.location.href = "/login.html";
+        }
+    }
+
     // Initialize the page
     loadMedications();
     startReminderSystem();
