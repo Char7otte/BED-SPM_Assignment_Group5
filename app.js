@@ -38,6 +38,9 @@ const jwt = require("jsonwebtoken");
 const feedbackController = require("./feedback/controllers/feedbackController");
 const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
 
+// Import weather functions
+const weatherController = require("./Weather/controllers/weatherController");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -90,7 +93,13 @@ app.get('/users/updatedetail/:id', (req, res) => {
   const userId = req.params.id;
   res.render('user/updatedetail', { userId: userId, user: res.locals.user });
 });
+app.get('/users/profile', (req, res) => {
+  res.render('user/profile', { user: res.locals.user });
+});
 
+app.get('/homepage', (req, res) => {
+  res.render('index', { user: res.locals.user });
+});
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
@@ -135,7 +144,7 @@ app.get("/users/logout",userController.logoutUser); // Get user roles by ID #oka
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
-app.post("/chats/create/:userID", validateUserID, chatController.createChat);
+//app.post("/chats/create/:userID", validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
 app.get("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
@@ -184,6 +193,14 @@ app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeed
 app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
 app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
 
+//Weather API 3rd Party
+//app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
+app.get('/external', weatherController.fetchExternalData);
+app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
+
+app.get("/weather", async (req, res) => {
+  res.render("weather/weather", { user: res.locals.user }); 
+});
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

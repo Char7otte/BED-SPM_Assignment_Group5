@@ -81,7 +81,7 @@ async function register() {
     const data = await response.json();
     if (data.success || data.message === 'User created successfully') {
         document.getElementById("status").value = "Registration successful!";
-        window.location.href = "/dashboard"; // Redirect to dashboard or home page
+        window.location.href = "/homepage"; // Redirect to dashboard or home page
     } else {
         if (data.message == 'Username already exists') {
             document.getElementById("status").innerText = "Registration failed: " + "Username already exists";

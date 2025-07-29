@@ -414,3 +414,5 @@ function handleDisplaySearchResults(users) {
         </div>
     `;
 }
+
+
