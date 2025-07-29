@@ -127,7 +127,7 @@ async function searchFeedbacks(req, res) {
   const searchTerm = req.query.searchTerm; // Extract search term from query params
 
   if (!searchTerm) {
-    return res.status(400).json({ message: "Search term is required" });
+    return res.status(400).json({ error: "Search term is required" });
   }
 
   try {
@@ -136,7 +136,7 @@ async function searchFeedbacks(req, res) {
     res.json(feedbacks);
   } catch (error) {
     console.error("Controller error in searchFeedbacks:", error);
-    res.status(500).json({ message: "Error searching feedbacks" });
+    res.status(500).json({ error: "Error searching feedbacks" });
   }
 }
 
@@ -145,7 +145,7 @@ async function searchFeedbacksAdmin(req, res) {
   const searchTerm = req.query.searchTerm; // Extract search term from query params
 
   if (!searchTerm) {
-    return res.status(400).json({ message: "Search term is required" });
+    return res.status(400).json({ error: "Search term is required" });
   }
 
   try {
@@ -153,7 +153,7 @@ async function searchFeedbacksAdmin(req, res) {
     res.json(feedbacks);
   } catch (error) {
     console.error("Controller error in searchFeedbacksAdmin:", error);
-    res.status(500).json({ message: "Error searching feedbacks" });
+    res.status(500).json({ error: "Error searching feedbacks" });
   }
 }
 

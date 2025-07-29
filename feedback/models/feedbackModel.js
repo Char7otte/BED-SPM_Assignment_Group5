@@ -25,7 +25,7 @@ async function getAllFeedbacksByUser(userId) {
     return result.recordset;
     
   } catch(error){
-      console.error("Database error in getAllAppointments:", error);
+      console.error("Database error in getAllFeedbacksByUser:", error);
       throw error;
   } finally{
       if(connection){
@@ -60,7 +60,7 @@ async function getAllFeedbacks(){
         const result = await request.query(query);
         return result.recordset;
     } catch(error){
-        console.error("Database error in getAllAppointments:", error);
+        console.error("Database error in getAllFeedbacks:", error);
         throw error;
     } finally{
         if(connection){
@@ -274,7 +274,7 @@ async function deleteFeedbackAdmin(id) {
         if(result.rowsAffected[0] === 0){
             return null; // Feedback not found
         }
-        return { success: true };
+        return true;
     } catch (error) {
         console.error("Database error in deleteFeedbackAdmin:", error);
         throw error;
@@ -319,14 +319,14 @@ async function searchFeedbacks(searchTerm, userId) {
       const result = await request.query(query);
       return result.recordset;
   } catch (error) {
-      console.error("Database error in searchAppointments:", error); 
+      console.error("Database error in searchFeedbacks:", error); 
       throw error; 
   } finally {
       if (connection) {
         try {
             await connection.close();
         } catch (err) {
-            console.error("Error closing connection after searchAppointments:", err);
+            console.error("Error closing connection:", err);
         }
       }
   }
@@ -365,7 +365,7 @@ async function searchFeedbacksAdmin(searchTerm) {
         try {
             await connection.close();
         } catch (err) {
-            console.error("Error closing connection after searchFeedbacksAdmin:", err);
+            console.error("Error closing connection:", err);
         }
       }
   }
