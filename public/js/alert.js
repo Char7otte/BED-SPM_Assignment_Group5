@@ -1,6 +1,7 @@
 
 const apiurl = "http://localhost:3000";
 console.log("alert.js loaded");
+console.log();
 
 function decodeJwtPayload(token) {
     const jwt = token.split(" ")[1]; // remove 'Bearer'
