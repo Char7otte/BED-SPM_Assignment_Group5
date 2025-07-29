@@ -517,8 +517,14 @@ $(document).ready(function() {
         }
     });
 
-    // Enhanced mark as taken function
-    async function markAsTakenDaily(medicationId) {
+    // Helper function to format time for display
+    function formatTime(time24) {
+        const time12 = convertTo12Hour(time24);
+        return `${time12.hour}:${time12.minute} ${time12.ampm}`;
+    }
+
+    // Global function for marking medication as taken (called from HTML)
+    window.markAsTakenDaily = async function(medicationId) {
         try {
             // Add visual feedback immediately
             const card = $(`.medication-card[data-id="${medicationId}"]`);
@@ -559,190 +565,195 @@ $(document).ready(function() {
             button.prop('disabled', false)
                   .html('<i class="fa fa-check"></i> TAKE NOW');
         }
-    }
-
-    // Celebration function
-    function celebrateDailyCompletion() {
-        // Add confetti effect (simple version)
-        $('body').append(`
-            <div id="celebration-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                 background: rgba(39, 174, 96, 0.1); z-index: 9999; pointer-events: none;">
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                     text-align: center; color: #27ae60; font-size: 48px;">
-                    🎉 EXCELLENT! 🎉<br>
-                    <span style="font-size: 24px;">All medications taken today!</span>
-                </div>
-            </div>
-        `);
-        
-        setTimeout(() => {
-            $('#celebration-overlay').fadeOut(1000, () => {
-                $('#celebration-overlay').remove();
-            });
-        }, 3000);
-
-        // Play a sound if available
-    if (typeof Audio !== 'undefined') {
-        try {
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+PruW8gBjOCz/LCdCIEK3vM8+WRNA4dac7r4nIcFGPP5vlkTg0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1caD0mX3PVhTw0dhM71s1caDkmV3PVhTw0dhM71s1cZD0mW3P===');
-            audio.play();
-        } catch (e) {
-            console.log('Audio not supported');
-        }
-    }
-}
-
-// Enhanced message functions
-function showDailySuccessMessage(message) {
-    showDailyMessage(message, 'success');
-}
-
-function showDailyWarningMessage(message) {
-    showDailyMessage(message, 'warning');
-}
-
-function showDailyErrorMessage(message) {
-    showDailyMessage(message, 'danger');
-}
-
-function showDailyMessage(message, type) {
-    const alertHtml = `
-        <div class="alert alert-${type} alert-dismissible" role="alert" style="font-size: 18px; margin-top: 20px;">
-            <button type="button" class="close" data-dismiss="alert" style="font-size: 24px;">
-                <span>&times;</span>
-            </button>
-            <i class="fa fa-2x ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle'}" 
-               style="margin-bottom: 10px;"></i><br>
-            <strong style="font-size: 20px;">${message}</strong>
-        </div>
-    `;
-    $('#medication-container').prepend(alertHtml);
-    
-    // Auto-hide after 6 seconds
-    setTimeout(() => {
-        $(`.alert-${type}`).fadeOut();
-    }, 6000);
-}
-
-// Setup time dropdowns (same as before)
-function setupTimeDropdowns() {
-    // For add medication modal
-    $('#time-hour, #time-minute, #time-ampm').change(function() {
-        const hour = $('#time-hour').val();
-        const minute = $('#time-minute').val();
-        const ampm = $('#time-ampm').val();
-        
-        if (hour && minute && ampm) {
-            const time24 = convertTo24Hour(hour, minute, ampm);
-            $('#time').val(time24);
-        }
-    });
-    
-    // For edit medication modal
-    $('#edit-time-hour, #edit-time-minute, #edit-time-ampm').change(function() {
-        const hour = $('#edit-time-hour').val();
-        const minute = $('#edit-time-minute').val();
-        const ampm = $('#edit-time-ampm').val();
-        
-        if (hour && minute && ampm) {
-            const time24 = convertTo24Hour(hour, minute, ampm);
-            $('#edit-time').val(time24);
-        }
-    });
-}
-
-// Update your existing loadDailyMedications function
-async function loadDailyMedications() {
-    try {
-        $('#loading-message').show();
-        const response = await fetch(`/medications/user/${currentUserId}/daily`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to load daily medications');
-        }
-        
-        dailyMedications = await response.json();
-        $('#loading-message').hide();
-        
-        displayDailyMedications(dailyMedications);
-        updateDailyProgress(dailyMedications);
-        
-        // Set up reminder checking
-        if (reminderInterval) clearInterval(reminderInterval);
-        reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
-        
-    } catch (error) {
-        console.error('Error loading daily medications:', error);
-        $('#loading-message').html(`
-            <div class="alert alert-danger">
-                <i class="fa fa-exclamation-triangle"></i> 
-                <strong>Error loading medications.</strong> Please refresh the page to try again.
-            </div>
-        `);
-    }
-}
-
-// Update your existing displayDailyMedications function
-function displayDailyMedications(medications) {
-    if (medications.length === 0) {
-        $('#medication-container').html(`
-            <div class="alert alert-info text-center" style="font-size: 20px; padding: 40px;">
-                <i class="fa fa-smile-o fa-4x" style="color: #27ae60; margin-bottom: 20px;"></i><br>
-                <strong>Great News!</strong><br>
-                <span style="font-size: 18px;">You have no medications scheduled for today.</span>
-            </div>
-        `);
-        return;
-    }
-
-    // Sort by time
-    const sortedMeds = medications.sort((a, b) => {
-        return new Date(`1970/01/01 ${a.medication_time}`) - new Date(`1970/01/01 ${b.medication_time}`);
-    });
-
-    let html = '';
-    sortedMeds.forEach(medication => {
-        html += displayDailyMedicationForElderly(medication);
-    });
-    
-    $('#medication-container').html(html);
-}
-
-// Mark all remaining as taken
-$('#mark-all-taken').click(async function() {
-    if (confirm('Are you sure you want to mark ALL remaining medications as taken?')) {
-        try {
-            const response = await fetch(`/medications/${currentUserId}/tick-all`, {
-                method: 'PUT'
-            });
-
-            if (!response.ok) throw new Error('Failed to mark all medications');
-
-            showDailySuccessMessage('🎉 All remaining medications marked as taken!');
-            await loadDailyMedications();
-        } catch (error) {
-            console.error('Error marking all medications:', error);
-            showDailyErrorMessage('❌ Unable to mark all medications. Please try again.');
-        }
-    }
-});
-
-// Initialize when document ready
-$(document).ready(function() {
-    // Your existing initialization code...
-    setupTimeDropdowns();
-    
-    // Set today's date as default for new medications
-    const today = new Date().toISOString().split('T')[0];
-    $('#medication-date').val(today);
-    
-    // Display current date
-    const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
     };
-    $('#current-date').text(new Date().toLocaleDateString('en-US', options));
-});
+
+    // Global function for opening edit modal (called from HTML)
+    window.openEditModal = function(medicationId) {
+        const medication = dailyMedications.find(med => med.medication_id === medicationId);
+        if (!medication) return;
+
+        const time12 = convertTo12Hour(medication.medication_time);
+        
+        $('#edit-medication-id').val(medication.medication_id);
+        $('#edit-name').val(medication.medication_name);
+        $('#edit-dosage').val(medication.medication_dosage);
+        $('#edit-quantity').val(medication.medication_quantity);
+        $('#edit-medication-date').val(medication.medication_date);
+        $('#edit-notes').val(medication.medication_notes || '');
+        $('#edit-prescription-start').val(medication.prescription_startdate);
+        $('#edit-prescription-end').val(medication.prescription_enddate);
+        $('#edit-reminders').prop('checked', medication.medication_reminders);
+        
+        $('#edit-time-hour').val(time12.hour);
+        $('#edit-time-minute').val(time12.minute);
+        $('#edit-time-ampm').val(time12.ampm);
+        $('#edit-time').val(medication.medication_time);
+        
+        $('#editMedModal').modal('show');
+    };
+
+    // Global function for setting medication reminder (called from HTML)
+    window.setMedicationReminder = function(medicationId) {
+        const medication = dailyMedications.find(med => med.medication_id === medicationId);
+        if (!medication) return;
+        
+        const time12 = convertTo12Hour(medication.medication_time);
+        const timeDisplay = `${time12.hour}:${time12.minute} ${time12.ampm}`;
+        
+        alert(`⏰ Reminder set for ${medication.medication_name} at ${timeDisplay}.\nYou'll be notified when it's time to take this medication.`);
+    };
+
+    // Enhanced message functions
+    function showDailySuccessMessage(message) {
+        showDailyMessage(message, 'success');
+    }
+
+    function showDailyWarningMessage(message) {
+        showDailyMessage(message, 'warning');
+    }
+
+    function showDailyErrorMessage(message) {
+        showDailyMessage(message, 'danger');
+    }
+
+    function showDailyMessage(message, type) {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible" role="alert" style="font-size: 18px; margin-top: 20px;">
+                <button type="button" class="close" data-dismiss="alert" style="font-size: 24px;">
+                    <span>&times;</span>
+                </button>
+                <i class="fa fa-2x ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle'}" 
+                   style="margin-bottom: 10px;"></i><br>
+                <strong style="font-size: 20px;">${message}</strong>
+            </div>
+        `;
+        $('#medication-container').prepend(alertHtml);
+        
+        // Auto-hide after 6 seconds
+        setTimeout(() => {
+            $(`.alert-${type}`).fadeOut();
+        }, 6000);
+    }
+
+    // Setup time dropdowns (same as before)
+    function setupTimeDropdowns() {
+        // For add medication modal
+        $('#time-hour, #time-minute, #time-ampm').change(function() {
+            const hour = $('#time-hour').val();
+            const minute = $('#time-minute').val();
+            const ampm = $('#time-ampm').val();
+            
+            if (hour && minute && ampm) {
+                const time24 = convertTo24Hour(hour, minute, ampm);
+                $('#time').val(time24);
+            }
+        });
+        
+        // For edit medication modal
+        $('#edit-time-hour, #edit-time-minute, #edit-time-ampm').change(function() {
+            const hour = $('#edit-time-hour').val();
+            const minute = $('#edit-time-minute').val();
+            const ampm = $('#edit-time-ampm').val();
+            
+            if (hour && minute && ampm) {
+                const time24 = convertTo24Hour(hour, minute, ampm);
+                $('#edit-time').val(time24);
+            }
+        });
+    }
+
+    // Update your existing loadDailyMedications function
+    async function loadDailyMedications() {
+        try {
+            $('#loading-message').show();
+            const response = await fetch(`/medications/user/${currentUserId}/daily`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to load daily medications');
+            }
+            
+            dailyMedications = await response.json();
+            $('#loading-message').hide();
+            
+            displayDailyMedications(dailyMedications);
+            updateDailyProgress(dailyMedications);
+            
+            // Set up reminder checking
+            if (reminderInterval) clearInterval(reminderInterval);
+            reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
+            
+        } catch (error) {
+            console.error('Error loading daily medications:', error);
+            $('#loading-message').html(`
+                <div class="alert alert-danger">
+                    <i class="fa fa-exclamation-triangle"></i> 
+                    <strong>Error loading medications.</strong> Please refresh the page to try again.
+                </div>
+            `);
+        }
+    }
+
+    // Update your existing displayDailyMedications function
+    function displayDailyMedications(medications) {
+        if (medications.length === 0) {
+            $('#medication-container').html(`
+                <div class="alert alert-info text-center" style="font-size: 20px; padding: 40px;">
+                    <i class="fa fa-smile-o fa-4x" style="color: #27ae60; margin-bottom: 20px;"></i><br>
+                    <strong>Great News!</strong><br>
+                    <span style="font-size: 18px;">You have no medications scheduled for today.</span>
+                </div>
+            `);
+            return;
+        }
+
+        // Sort by time
+        const sortedMeds = medications.sort((a, b) => {
+            return new Date(`1970/01/01 ${a.medication_time}`) - new Date(`1970/01/01 ${b.medication_time}`);
+        });
+
+        let html = '';
+        sortedMeds.forEach(medication => {
+            html += displayDailyMedicationForElderly(medication);
+        });
+        
+        $('#medication-container').html(html);
+    }
+
+    // Mark all remaining as taken
+    $('#mark-all-taken').click(async function() {
+        if (confirm('Are you sure you want to mark ALL remaining medications as taken?')) {
+            try {
+                const response = await fetch(`/medications/${currentUserId}/tick-all`, {
+                    method: 'PUT'
+                });
+
+                if (!response.ok) throw new Error('Failed to mark all medications');
+
+                showDailySuccessMessage('🎉 All remaining medications marked as taken!');
+                await loadDailyMedications();
+            } catch (error) {
+                console.error('Error marking all medications:', error);
+                showDailyErrorMessage('❌ Unable to mark all medications. Please try again.');
+            }
+        }
+    });
+
+    // Initialize when document ready
+    $(document).ready(function() {
+        // Your existing initialization code...
+        setupTimeDropdowns();
+        
+        // Set today's date as default for new medications
+        const today = new Date().toISOString().split('T')[0];
+        $('#medication-date').val(today);
+        
+        // Display current date
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        $('#current-date').text(new Date().toLocaleDateString('en-US', options));
+    });
 })
