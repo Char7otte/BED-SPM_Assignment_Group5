@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Medication Tracker</title>
+  <title>Today's Medications - MedTracker</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
@@ -24,7 +24,7 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#"><i class="fa fa-home"></i> Home</a></li>
+        <li><a href="/medications"><i class="fa fa-home"></i> Home</a></li>
         <li><a href="#"><i class="fa fa-info-circle"></i> About</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -42,7 +42,7 @@
         <a href="/medications" class="list-group-item">
           <i class="fa fa-list"></i> All Medications
         </a>
-        <a href="#" class="list-group-item active">
+        <a href="/medications/daily" class="list-group-item active">
           <i class="fa fa-calendar-day"></i> Today's Medications
         </a>
         <a href="/medications/weekly" class="list-group-item">
@@ -52,50 +52,57 @@
           <i class="fa fa-plus-circle"></i> Add Medication
         </a>
       </div>
+      
+      <!-- Today's Date Panel -->
       <div class="panel panel-info" style="margin-top: 20px;">
         <div class="panel-heading">
           <h4><i class="fa fa-calendar"></i> Today's Date</h4>
         </div>
         <div class="panel-body text-center">
-          <h3 id="current-date"></h3>
+          <h3 id="current-date" style="font-size: 18px; margin: 5px 0; color: #337ab7; font-weight: bold;"></h3>
         </div>
       </div>
-      <div class="panel panel-info" style="margin-top: 20px;">
+      
+      <!-- Today's Progress Panel -->
+      <div class="panel panel-default" style="margin-top: 15px;">
         <div class="panel-heading">
-          <h4><i class="fa fa-chart-line"></i> Today's Progress</h4>
+          <h4><i class="fa fa-chart-bar"></i> Today's Progress</h4>
         </div>
-        <div class="panel-body">
-          <div class="row text-center">
-            <div class="col-xs-4">
-              <h3 id="total-meds" class="text-primary">0</h3>
-              <p><strong>Total</strong></p>
-            </div>
-            <div class="col-xs-4">
-              <h3 id="taken-meds" class="text-success">0</h3>
-              <p><strong>Taken</strong></p>
-            </div>
-            <div class="col-xs-4">
-              <h3 id="remaining-meds" class="text-warning">0</h3>
-              <p><strong>Remaining</strong></p>
+        <div class="panel-body text-center">
+          <div class="row">
+            <div class="col-xs-12">
+              <h4 id="total-meds" class="text-primary" style="font-size: 28px; margin: 10px 0;">0</h4>
+              <p style="font-size: 14px; margin: 5px 0;"><strong>Total Medications</strong></p>
             </div>
           </div>
-          <div class="progress" style="height: 25px; margin-top: 15px;">
+          <div class="row" style="margin-top: 10px;">
+            <div class="col-xs-6">
+              <h4 id="taken-meds" class="text-success" style="font-size: 24px; margin: 5px 0;">0</h4>
+              <p style="font-size: 12px; margin: 0;"><strong>Taken</strong></p>
+            </div>
+            <div class="col-xs-6">
+              <h4 id="remaining-meds" class="text-warning" style="font-size: 24px; margin: 5px 0;">0</h4>
+              <p style="font-size: 12px; margin: 0;"><strong>Remaining</strong></p>
+            </div>
+          </div>
+          <div class="progress" style="height: 25px; margin: 15px 0;">
             <div class="progress-bar progress-bar-success" role="progressbar" 
-                 id="daily-progress" style="min-width: 2em; font-size: 16px; font-weight: bold;">
+                 id="daily-progress" style="min-width: 2em; font-size: 14px; font-weight: bold;">
               0%
             </div>
           </div>
           <div class="text-center" style="margin-top: 15px;">
-            <button class="btn btn-success btn-lg" id="mark-all-taken" style="display: none;">
+            <button class="btn btn-success btn-sm" id="mark-all-taken" style="display: none; font-size: 12px; padding: 8px 12px;">
               <i class="fa fa-check-double"></i> Mark All as Taken
             </button>
-            <div id="completion-message" style="display: none;" class="alert alert-success">
-              <i class="fa fa-trophy"></i> <strong>Congratulations!</strong> You've taken all your medications today!
+            <div id="completion-message" style="display: none;" class="alert alert-success" style="margin-top: 10px; padding: 10px; font-size: 12px;">
+              <i class="fa fa-trophy"></i> <strong>Great job!</strong> All medications taken today!
             </div>
           </div>
         </div>
       </div>
     </div>
+    
     <div class="col-sm-8 text-left"> 
       <nav aria-label="breadcrumb" style="margin-bottom: 10px;">
         <ol class="breadcrumb" style="background-color: #f5f5f5; padding: 8px 15px; margin-bottom: 10px;">
@@ -103,21 +110,35 @@
           <li class="active"><i class="fa fa-calendar-day"></i> Today's Medications</li>
         </ol>
       </nav>
-      <h1><i class="fa fa-pills"></i> Today's Medications</h1>
-      <p class="text-muted" id="view-description">Medications scheduled for today</p>
-      <div class="text-right" style="margin-bottom: 15px;">
-        <a href="/medications" class="btn btn-default">
-          <i class="fa fa-list"></i> View All Medications
-        </a>
+      
+      <div class="row">
+        <div class="col-sm-6">
+          <h1 style="font-size: 42px; color: #2c3e50; margin-bottom: 10px;">
+            <i class="fa fa-calendar-check" style="color: #3498db;"></i> Today's Medications
+          </h1>
+          <p class="text-muted" style="font-size: 18px; margin-bottom: 20px;">
+            Your medication schedule for today - <span id="current-date-header"></span>
+          </p>
+        </div>
+        <div class="col-sm-6 text-right">
+          <div style="margin-top: 20px;">
+            <a href="/medications" class="btn btn-default btn-lg" style="font-size: 16px; padding: 12px 20px;">
+              <i class="fa fa-list"></i> View All Medications
+            </a>
+          </div>
+        </div>
       </div>
-      <hr>
+      <hr style="margin: 20px 0; border-color: #ddd;">
+      
       <div id="medication-container">
         <!-- Medications will be loaded here dynamically -->
-        <div class="alert alert-info" id="loading-message">
-          <i class="fa fa-spinner fa-spin"></i> Loading today's medications...
+        <div class="alert alert-info" id="loading-message" style="font-size: 18px; padding: 20px; text-align: center;">
+          <i class="fa fa-spinner fa-spin fa-2x" style="display: block; margin-bottom: 10px;"></i>
+          <strong>Loading today's medications...</strong>
         </div>
       </div>
     </div>
+    
     <div class="col-sm-2 sidenav">
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -125,7 +146,7 @@
         </div>
         <div class="panel-body">
           <div class="input-group">
-            <input type="text" class="form-control" id="search-input" placeholder="Medication name...">
+            <input type="text" class="form-control" id="search-input" placeholder="Medication name..." style="font-size: 14px;">
             <span class="input-group-btn">
               <button class="btn btn-default" type="button" id="search-btn">
                 <i class="fa fa-search"></i>
