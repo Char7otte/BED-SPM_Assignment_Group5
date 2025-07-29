@@ -3,16 +3,7 @@ const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
 
 function validateUserInput(req, res, next) {
-    const schema = joi.object({
-        username: joi.string().min(3).max(30).required(),
-        phone_number: joi.string().required(),
-        password: joi.string().min(8).max(100).required(),
-        age: joi.number().integer().min(0).required(),
-        gender: joi.string().valid("Male", "Female", "Other"),
-        role: joi.string().valid("A", "U", "V"),
-    });
-
-
+    
   const schema = joi.object({
     username: joi.string().min(3).max(30).required(),
     phone_number: joi.string().min(8).max(8).required(),
