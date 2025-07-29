@@ -5,7 +5,7 @@ const Joi = BaseJoi.extend(JoiDate);
 
 // Validation schema for appointments (used for POST/PUT)
 const medAppointmentSchema = Joi.object({
-    appointment_date: Joi.date().format('YYYY-MM-DD').required()
+    date: Joi.date().format('YYYY-MM-DD').required()
     .custom((value, helpers) => {
       const today = new Date();
       today.setHours(0,0,0,0); // ignore time, only prioritize date 
@@ -22,7 +22,7 @@ const medAppointmentSchema = Joi.object({
         "any.required": "Appointment date is required",
         "date.min": "Appointment date cannot be in the past"
     }),
-    appointment_title: Joi.string().min(1).max(50).required().messages({
+    title: Joi.string().min(1).max(50).required().messages({
         "string.base": "Appointment title must be a string",
         "string.empty": "Appointment title cannot be empty",
         "string.min": "Appointment title must be at least 1 character long",
@@ -53,6 +53,10 @@ const medAppointmentSchema = Joi.object({
         "string.max": "Location cannot exceed 100 characters",
         "any.required": "Location is required",
     }),
+    status: Joi.string().valid('Scheduled', 'Ongoing', 'Attended', 'Missed').optional().messages({
+        "string.base": "Status must be a string",
+        "any.only": "Status must be one of the following: Scheduled, Ongoing, Attended, Missed"
+    }),
     notes: Joi.string().max(500).optional().allow(null, "").messages({
         "string.base": "Notes must be a string",
         "string.max": "Notes cannot exceed 500 characters",
@@ -60,19 +64,36 @@ const medAppointmentSchema = Joi.object({
 });
 
 // Middleware to validate appointment data (for POST/PUT)
-function validateMedAppointment(req, res, next) {
-  // Validate the request body against the medAppointmentSchema
-  const { error } = medAppointmentSchema.validate(req.body, { abortEarly: false }); // abortEarly: false collects all errors
+const validateMedAppointment = (req, res, next) => {
+    const schema = Joi.object({
+        date: Joi.date().required(),
+        title: Joi.string().min(3).max(100).required(),
+        doctor: Joi.string().min(3).max(100).required(),
+        start_time: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/).required(),
+        end_time: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/).required(),
+        location: Joi.string().min(3).max(100).required(),
+        notes: Joi.string().max(500).allow(''),
+        status: Joi.string().valid('Scheduled', 'Ongoing', 'Attended', 'Missed', 'Cancelled').optional()
+    });
 
-  if (error) {
-    const errorMessage = error.details
-      .map((detail) => detail.message)
-      .join(", ");
-    return res.status(400).json({ error: errorMessage });
-  }
+    const { error } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
 
-  next();
-}
+    // Only check for past dates on POST (create) requests, not PUT (update)
+    if (req.method === 'POST') {
+        const appointmentDate = new Date(req.body.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+        if (appointmentDate < today) {
+            return res.status(400).json({ error: "Appointment date cannot be in the past" });
+        }
+    }
+
+    next();
+};
 
 // Middleware to validate appointment ID from URL parameters (for PUT, DELETE)
 function validateMedAppointmentId(req, res, next) {

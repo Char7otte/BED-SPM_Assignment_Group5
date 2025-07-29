@@ -12,6 +12,7 @@ async function getAllMessagesInAChat(chatID) {
         return result.recordset;
     } catch (error) {
         console.error("Database error:", error);
+        throw error;
     } finally {
         if (connection) {
             try {
@@ -36,6 +37,7 @@ async function createMessage(chatID, senderID, message) {
         return result.rowsAffected != 0;
     } catch (error) {
         console.error("Database error:", error);
+        throw error;
     } finally {
         if (connection) {
             try {
@@ -61,6 +63,7 @@ async function editMessage(chatID, messageID, newMessage) {
         return result.rowsAffected != 0;
     } catch (error) {
         console.error("Database error:", error);
+        throw error;
     } finally {
         if (connection) {
             try {
@@ -83,6 +86,7 @@ async function deleteMessage(chatID, messageID) {
         return result.rowsAffected != 0;
     } catch (error) {
         console.error("Database error:", error);
+        throw error;
     } finally {
         if (connection) {
             try {
