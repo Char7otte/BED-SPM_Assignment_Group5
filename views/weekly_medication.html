@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>My MedTracker</title>
+  <title>Weekly Medication Tracker</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
@@ -39,38 +39,85 @@
   <div class="row content">
     <div class="col-sm-2 sidenav">
       <div class="list-group">
-        <a href="/medications" class="list-group-item active view-toggle" data-view="all">
+        <a href="/medications" class="list-group-item">
           <i class="fa fa-list"></i> All Medications
         </a>
         <a href="/medications/daily" class="list-group-item">
           <i class="fa fa-calendar-day"></i> Today's Medications
         </a>
-        <a href="/medications/weekly" class="list-group-item view-toggle" data-view="weekly">
+        <a href="#" class="list-group-item active">
           <i class="fa fa-calendar-week"></i> Weekly View
         </a>
         <a href="#" class="list-group-item" data-toggle="modal" data-target="#addMedModal">
           <i class="fa fa-plus-circle"></i> Add Medication
         </a>
       </div>
+      <div class="panel panel-info" style="margin-top: 20px;">
+        <div class="panel-heading">
+          <h4><i class="fa fa-calendar"></i> Current Week</h4>
+        </div>
+        <div class="panel-body text-center">
+          <p id="current-week" style="font-size: 14px; margin: 0;"></p>
+        </div>
+      </div>
+      <div class="panel panel-default" style="margin-top: 15px;">
+        <div class="panel-heading">
+          <h4><i class="fa fa-chart-bar"></i> Week Summary</h4>
+        </div>
+        <div class="panel-body text-center">
+          <div class="row">
+            <div class="col-xs-12">
+              <h4 id="weekly-total" class="text-primary">0</h4>
+              <p><small>Total Medications</small></p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-6">
+              <h4 id="weekly-taken" class="text-success">0</h4>
+              <p><small>Taken</small></p>
+            </div>
+            <div class="col-xs-6">
+              <h4 id="weekly-remaining" class="text-warning">0</h4>
+              <p><small>Remaining</small></p>
+            </div>
+          </div>
+          <div class="progress" style="margin-top: 10px;">
+            <div class="progress-bar progress-bar-success" id="weekly-progress" style="min-width: 2em;">
+              0%
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="col-sm-8 text-left"> 
       <nav aria-label="breadcrumb" style="margin-bottom: 10px;">
         <ol class="breadcrumb" style="background-color: #f5f5f5; padding: 8px 15px; margin-bottom: 10px;">
-          <li class="active"><i class="fa fa-list"></i> All Medications</li>
+          <li><a href="/medications"><i class="fa fa-list"></i> All Medications</a></li>
+          <li class="active"><i class="fa fa-calendar-week"></i> Weekly View</li>
         </ol>
       </nav>
-      <h1><i class="fa fa-pills"></i> My Medications</h1>
-      <p class="text-muted" id="view-description">Showing all your medications</p>
-      <div class="text-right" style="margin-bottom: 15px;">
-        <a href="/medications/daily" class="btn btn-info">
-          <i class="fa fa-calendar-day"></i> View Today's Medications
-        </a>
+      <div class="row">
+        <div class="col-sm-6">
+          <h1><i class="fa fa-calendar-week"></i> Weekly Medications</h1>
+          <p class="text-muted">Your medication schedule for this week</p>
+        </div>
+        <div class="col-sm-6 text-right">
+          <div style="margin-top: 20px;">
+            <button class="btn btn-info" id="prev-week">
+              <i class="fa fa-chevron-left"></i> Previous Week
+            </button>
+            <button class="btn btn-info" id="next-week">
+              Next Week <i class="fa fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
       <hr>
-      <div id="medication-container">
-        <!-- Medications will be loaded here dynamically -->
-        <div class="alert alert-info" id="no-meds-message">
-          No medications found. Click "Add Medication" to get started.
+      
+      <!-- Weekly Calendar -->
+      <div id="weekly-calendar" class="weekly-calendar-container">
+        <div class="alert alert-info" id="loading-message">
+          <i class="fa fa-spinner fa-spin"></i> Loading weekly medications...
         </div>
       </div>
     </div>
@@ -172,7 +219,6 @@
                     </select>
                   </div>
                 </div>
-                <!-- Hidden field for the actual time value -->
                 <input type="hidden" id="time" name="time">
               </div>
             </div>
@@ -288,7 +334,6 @@
                     </select>
                   </div>
                 </div>
-                <!-- Hidden field for the actual time value -->
                 <input type="hidden" id="edit-time" name="edit-time">
               </div>
             </div>
@@ -365,6 +410,6 @@
   <p>&copy; 2023 MedTracker | Medication Management System</p>
 </footer>
 
-<script src="js/medication_script.js"></script>
+<script src="js/weekly_medication_script.js"></script>
 </body>
 </html>

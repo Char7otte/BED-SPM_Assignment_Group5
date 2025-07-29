@@ -468,3 +468,269 @@ h3, h4 {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(39, 174, 96, 0.4) !important;
 }
+
+/* Weekly Calendar Styles */
+.weekly-calendar-container {
+    margin: 20px 0;
+}
+
+.weekly-calendar {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.calendar-header {
+    margin-bottom: 15px;
+    border-bottom: 3px solid #337ab7;
+    padding-bottom: 10px;
+}
+
+.day-header {
+    padding: 10px 5px !important;
+    background-color: #337ab7;
+    color: white;
+    margin: 0 2px;
+    border-radius: 5px 5px 0 0;
+}
+
+.day-header h4 {
+    margin: 0 !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+.calendar-days {
+    min-height: 400px;
+}
+
+.calendar-day {
+    border: 2px solid #e9ecef;
+    border-radius: 0 0 5px 5px;
+    margin: 0 2px;
+    padding: 10px 5px !important;
+    min-height: 400px;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+}
+
+.calendar-day:hover {
+    background-color: #f0f8ff;
+    border-color: #337ab7;
+}
+
+.calendar-day.today {
+    background-color: #e8f4fd !important;
+    border-color: #337ab7 !important;
+    border-width: 3px !important;
+}
+
+.day-number {
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: white;
+    border-radius: 20px;
+    font-size: 18px !important;
+    position: relative;
+}
+
+.today-label {
+    display: block;
+    font-size: 10px !important;
+    color: #337ab7;
+    font-weight: bold !important;
+    margin-top: 2px;
+}
+
+.day-medications {
+    min-height: 320px;
+}
+
+.no-medications {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 20px 5px;
+    font-size: 14px !important;
+}
+
+.medication-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: 12px !important;
+    transition: all 0.3s ease;
+    border-left: 4px solid #f0ad4e;
+}
+
+.medication-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.medication-item.taken {
+    background-color: #d4edda !important;
+    border-left-color: #28a745 !important;
+    opacity: 0.8;
+}
+
+.medication-item.pending {
+    border-left-color: #ffc107 !important;
+}
+
+.med-time {
+    font-weight: bold !important;
+    color: #2c3e50;
+    margin-bottom: 3px;
+    font-size: 11px !important;
+}
+
+.med-name {
+    font-weight: bold !important;
+    color: #337ab7;
+    margin-bottom: 2px;
+    font-size: 13px !important;
+    line-height: 1.2;
+}
+
+.med-dosage {
+    color: #666;
+    font-size: 10px !important;
+    margin-bottom: 5px;
+}
+
+.med-actions {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.med-actions .btn {
+    margin: 1px !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    min-width: auto !important;
+    height: auto !important;
+}
+
+.taken-badge {
+    color: #28a745;
+    font-size: 14px !important;
+}
+
+/* Week Navigation */
+#prev-week, #next-week {
+    margin: 0 5px;
+    font-size: 16px !important;
+    padding: 10px 15px !important;
+}
+
+/* Weekly Summary Panel */
+.panel-body .row {
+    margin-bottom: 10px;
+}
+
+.panel-body h4 {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+}
+
+.panel-body p {
+    margin: 0 !important;
+    font-size: 12px !important;
+}
+
+/* Responsive adjustments for weekly view */
+@media (max-width: 991px) {
+    .calendar-day {
+        margin-bottom: 15px;
+        min-height: 250px;
+    }
+    
+    .day-header {
+        margin-bottom: 5px;
+    }
+    
+    .medication-item {
+        font-size: 13px !important;
+    }
+    
+    .med-name {
+        font-size: 14px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .weekly-calendar {
+        padding: 10px;
+    }
+    
+    .calendar-day {
+        min-height: 200px;
+        padding: 8px 3px !important;
+    }
+    
+    .medication-item {
+        padding: 6px;
+        margin-bottom: 6px;
+    }
+    
+    .day-header h4 {
+        font-size: 14px !important;
+    }
+}
+
+/* Animation for medication due now */
+.medication-due-now {
+    animation: pulse 2s infinite;
+    border-left-color: #dc3545 !important;
+    background-color: #f8d7da !important;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Loading message for weekly view */
+#loading-message {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px !important;
+}
+
+/* Success message styling */
+.alert-success {
+    border-left: 5px solid #28a745;
+    font-size: 16px !important;
+}
+
+/* Enhanced button styling for elderly */
+.take-btn {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white !important;
+}
+
+.take-btn:hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+    transform: scale(1.05);
+}
+
+.edit-btn {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+    color: white !important;
+}
+
+.edit-btn:hover {
+    background-color: #0056b3 !important;
+    border-color: #004085 !important;
+    transform: scale(1.05);
+}

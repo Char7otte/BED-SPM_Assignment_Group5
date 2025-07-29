@@ -45,6 +45,9 @@
         <a href="#" class="list-group-item active">
           <i class="fa fa-calendar-day"></i> Today's Medications
         </a>
+        <a href="/medications/weekly" class="list-group-item">
+          <i class="fa fa-calendar-week"></i> Weekly View
+        </a>
         <a href="#" class="list-group-item" data-toggle="modal" data-target="#addMedModal">
           <i class="fa fa-plus-circle"></i> Add Medication
         </a>
@@ -55,6 +58,41 @@
         </div>
         <div class="panel-body text-center">
           <h3 id="current-date"></h3>
+        </div>
+      </div>
+      <div class="panel panel-info" style="margin-top: 20px;">
+        <div class="panel-heading">
+          <h4><i class="fa fa-chart-line"></i> Today's Progress</h4>
+        </div>
+        <div class="panel-body">
+          <div class="row text-center">
+            <div class="col-xs-4">
+              <h3 id="total-meds" class="text-primary">0</h3>
+              <p><strong>Total</strong></p>
+            </div>
+            <div class="col-xs-4">
+              <h3 id="taken-meds" class="text-success">0</h3>
+              <p><strong>Taken</strong></p>
+            </div>
+            <div class="col-xs-4">
+              <h3 id="remaining-meds" class="text-warning">0</h3>
+              <p><strong>Remaining</strong></p>
+            </div>
+          </div>
+          <div class="progress" style="height: 25px; margin-top: 15px;">
+            <div class="progress-bar progress-bar-success" role="progressbar" 
+                 id="daily-progress" style="min-width: 2em; font-size: 16px; font-weight: bold;">
+              0%
+            </div>
+          </div>
+          <div class="text-center" style="margin-top: 15px;">
+            <button class="btn btn-success btn-lg" id="mark-all-taken" style="display: none;">
+              <i class="fa fa-check-double"></i> Mark All as Taken
+            </button>
+            <div id="completion-message" style="display: none;" class="alert alert-success">
+              <i class="fa fa-trophy"></i> <strong>Congratulations!</strong> You've taken all your medications today!
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -83,45 +121,6 @@
     <div class="col-sm-2 sidenav">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <div class="row" style="margin-bottom: 25px;">
-  <div class="col-md-12">
-    <div class="panel panel-info">
-      <div class="panel-heading">
-        <h4><i class="fa fa-chart-line"></i> Today's Progress</h4>
-      </div>
-      <div class="panel-body">
-        <div class="row text-center">
-          <div class="col-md-4">
-            <h3 id="total-meds" class="text-primary">0</h3>
-            <p><strong>Total Medications</strong></p>
-          </div>
-          <div class="col-md-4">
-            <h3 id="taken-meds" class="text-success">0</h3>
-            <p><strong>Taken Today</strong></p>
-          </div>
-          <div class="col-md-4">
-            <h3 id="remaining-meds" class="text-warning">0</h3>
-            <p><strong>Still to Take</strong></p>
-          </div>
-        </div>
-        <div class="progress" style="height: 25px; margin-top: 15px;">
-          <div class="progress-bar progress-bar-success" role="progressbar" 
-               id="daily-progress" style="min-width: 2em; font-size: 16px; font-weight: bold;">
-            0%
-          </div>
-        </div>
-        <div class="text-center" style="margin-top: 15px;">
-          <button class="btn btn-success btn-lg" id="mark-all-taken" style="display: none;">
-            <i class="fa fa-check-double"></i> Mark All Remaining as Taken
-          </button>
-          <div id="completion-message" style="display: none;" class="alert alert-success">
-            <i class="fa fa-trophy"></i> <strong>Congratulations!</strong> You've taken all your medications today!
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
           <h4><i class="fa fa-search"></i> Search Medication</h4>
         </div>
         <div class="panel-body">

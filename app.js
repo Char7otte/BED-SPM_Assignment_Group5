@@ -89,6 +89,11 @@ app.get("/medications/daily", (req, res) => {
     res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
 });
 
+// Route to serve the weekly medication HTML page
+app.get("/medications/weekly", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
+});
+
 app.get("/medications/user/:userId/reminders", medTrackerController.remindMedication);
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", validateDateRangeQuery, medTrackerController.getWeeklyMedicationByUser);
