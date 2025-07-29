@@ -3,7 +3,7 @@ const sql = require("mssql");
 const dotenv = require("dotenv");
 const path = require("path");
 const methodOverride = require("method-override");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
 
@@ -14,9 +14,8 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 //import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput,validateUserInputForUpdate, verifyJWT } = require("./users/middlewares/userValidation");
+const { validateUserInput, validateUserInputForUpdate, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
-
 
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
@@ -30,13 +29,13 @@ const { validateMedAppointment, validateMedAppointmentId } = require("./medical-
 
 //import functions from medication tracker
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
-const { 
+const {
     validateMedicationCreate,
     validateMedicationUpdate,
-    validateRefillRequest,  
+    validateRefillRequest,
     validateMedicationIdParam,
     validateDateRangeQuery,
-    validateSearchQuery
+    validateSearchQuery,
 } = require("./medication_tracker/middleware/medTrackerValidation");
 
 // import note taker functions
@@ -53,53 +52,52 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  const token = req.cookies?.token || null;
-  let tokenExpired = false;
-  let user = null;
+    const token = req.cookies?.token || null;
+    let tokenExpired = false;
+    let user = null;
 
-  if (token) {
-    try {
-      user = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      tokenExpired = true;
+    if (token) {
+        try {
+            user = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            tokenExpired = true;
+        }
+    } else {
+        tokenExpired = true;
     }
-  } else {
-    tokenExpired = true;
-  }
 
-  res.locals.user = user;
-  res.locals.tokenExpired = tokenExpired;
+    res.locals.user = user;
+    res.locals.tokenExpired = tokenExpired;
 
-  next();
+    next();
 });
 
-app.get('/login.html', (req, res) => {
-  //app.use(express.static(path.join(__dirname, 'public')));
-  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+app.get("/login.html", (req, res) => {
+    //app.use(express.static(path.join(__dirname, 'public')));
+    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
-app.get('/alert', (req, res) => {
-  res.render('alert/alert', { message: 'This is an alert message' });
+app.get("/alert", (req, res) => {
+    res.render("alert/alert", { message: "This is an alert message" });
 });
-app.get('/alertdetail', (req, res) => {
-  res.render('alert/alertdetail', { message: 'This is an alert detail message' });
+app.get("/alertdetail", (req, res) => {
+    res.render("alert/alertdetail", { message: "This is an alert detail message" });
 });
-app.get('/alertadmin', (req, res) => {
-  res.render('alert/alertadmin', { message: 'This is an alert admin message' });
+app.get("/alertadmin", (req, res) => {
+    res.render("alert/alertadmin", { message: "This is an alert admin message" });
 });
 //user routes
-app.get('/user', (req, res) => {
-  res.render('user/user', { user: res.locals.user });
+app.get("/user", (req, res) => {
+    res.render("user/user", { user: res.locals.user });
 });
-app.get('/users/updatedetail/:id', (req, res) => {
-  const userId = req.params.id;
-  res.render('user/updatedetail', { userId: userId, user: res.locals.user });
+app.get("/users/updatedetail/:id", (req, res) => {
+    const userId = req.params.id;
+    res.render("user/updatedetail", { userId: userId, user: res.locals.user });
 });
-
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
@@ -140,7 +138,7 @@ app.get("/users/:id", verifyJWT, userController.getUserById); // Get user by ID 
 app.patch("/users/updatedetail/:id", verifyJWT, validateUserInputForUpdate, userController.updateUser); // Update user details #okay
 app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
 app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
-app.get("/users/logout",userController.logoutUser); // Get user roles by ID #okay
+app.get("/users/logout", userController.logoutUser); // Get user roles by ID #okay
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
@@ -211,24 +209,23 @@ app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeed
 app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
 app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
 
-
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
 
 // Serve the calendar HTML file
 app.get("/calendar", (req, res) => {
-  res.render("medical-appointment/calendar");
+    res.render("medical-appointment/calendar");
 });
 
 // Serve the feedback-form HTML file
 app.get("/feedback-form", (req, res) => {
-  res.render("feedback/feedback-form");
+    res.render("feedback/feedback-form");
 });
 
 // Serve the all-feedbacks HTML file
 app.get("/feedbacks", (req, res) => {
-  res.render("feedback/all-feedbacks");
+    res.render("feedback/all-feedbacks");
 });
 
 process.on("SIGINT", async () => {
