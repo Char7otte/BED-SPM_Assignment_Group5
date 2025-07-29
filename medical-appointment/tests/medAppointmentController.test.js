@@ -213,28 +213,51 @@ describe("medAppointmentController.createAppointment", () => {
 describe("medAppointmentController.updateAppointment", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    })
+    });
 
-    it("should update the appointment and return a JSON response", async() => {
-        const mockAppointment = { id: 1, user_id: 1, date: "2025-07-11", time: "10:30"}
-
+    it("should update the appointment and return a JSON response", async () => {
+        const mockAppointment = { 
+            id: 1, 
+            userId: 1, 
+            date: "2025-07-11", 
+            time: "10:30",
+            status: "Scheduled"
+        };
+        
         medAppointment.updateAppointment.mockResolvedValue(mockAppointment);
-
-        const req = { user: { id: 1 }, params: { appointment_id: 1 }, body: { date: "2025-07-11", time: "10:30" } };
+    
+        const req = { 
+            user: { id: 1 }, 
+            params: { appointment_id: "1" }, // Keep as string - parseInt will handle it
+            body: { 
+                date: "2025-07-11", 
+                time: "10:30",
+                status: "Scheduled"
+            }
+        };
         const res = {
-            status : jest.fn().mockReturnThis(),
-            json : jest.fn()
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
         };
 
-        await medAppointmentController.updateAppointment(req, res);
+       await medAppointmentController.updateAppointment(req, res);
 
         expect(medAppointment.updateAppointment).toHaveBeenCalledTimes(1);
-        expect(medAppointment.updateAppointment).toHaveBeenCalledWith(1, 1, { date: "2025-07-11", time: "10:30"});
-        expect(res.json).toHaveBeenCalledWith(mockAppointment)
+        expect(medAppointment.updateAppointment).toHaveBeenCalledWith(1, 1, req.body);
+        expect(res.status).toHaveBeenCalledWith(200);  
+        expect(res.json).toHaveBeenCalledWith(mockAppointment);
     });
 
     it("should return 400 for invalid appointment id", async() => {
-        const req = { user: { id: 1 }, params: { appointment_id: "invalid" } };
+        const req = { 
+            user: { id: 1 }, 
+            params: { appointment_id: "invalid" },
+            body: { 
+                date: "2025-07-11", 
+                time: "10:30",
+                status: "Scheduled"
+            }
+        };
         const res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
@@ -248,7 +271,16 @@ describe("medAppointmentController.updateAppointment", () => {
 
     it("should return 404 if no appointment found", async() => {
         medAppointment.updateAppointment.mockResolvedValue(null);
-        const req = { user: { id: 1 }, params: { appointment_id: 999 } };
+        
+        const req = { 
+            user: { id: 1 }, 
+            params: { appointment_id: "999" }, // Keep as string
+            body: {
+                date: "2025-07-11",
+                time: "10:30",
+                status: "Scheduled"
+            }
+        };
         const res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
@@ -260,15 +292,25 @@ describe("medAppointmentController.updateAppointment", () => {
         expect(res.json).toHaveBeenCalledWith({ error: "Appointment not found" });
     });
 
+
     it("should handle errors and return a 500 status", async() => {
         const errorMessage = "Database error";
         medAppointment.updateAppointment.mockRejectedValue(new Error(errorMessage));
 
-        const req = { user: { id: 1 }, params: { appointment_id: 1 }, body: { date: "2025-07-11", time: "10:30" } };
+        const req = { 
+            user: { id: 1 }, 
+            params: { appointment_id: "1" }, // Keep as string
+            body: { 
+                date: "2025-07-11", 
+                time: "10:30",
+                status: "Scheduled"
+            } 
+        };
         const res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
+
         await medAppointmentController.updateAppointment(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);

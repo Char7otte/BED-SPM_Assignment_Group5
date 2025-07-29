@@ -73,31 +73,14 @@ async function updateAppointment(req, res) {
 
     const userId = req.user.id; // Get user ID from JWT token
 
+    if (!req.body) {
+      return res.status(400).json({ error: "Request body is required" });
+    }
+
     const appointmentData = {
       ...req.body,
       status: req.body.status || "Scheduled" // Provide default status if not provided
     };
-
-    // Validate status for past appointments
-    const appointmentDate = new Date(appointmentData.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const now = new Date();
-    
-    const isPastAppointment = appointmentDate < today;
-    const isCompletedToday = appointmentDate.getTime() === today.getTime() && 
-                            appointmentData.end_time && 
-                            now > new Date(`${appointmentData.date}T${appointmentData.end_time}`);
-    
-    if (isPastAppointment || isCompletedToday) {
-        if (appointmentData.status === "Scheduled" || appointmentData.status === "Ongoing") {
-            return res.status(400).json({ 
-                error: "Cannot set past appointments to 'Scheduled' or 'Ongoing' status. Please select 'Attended', 'Missed', or 'Cancelled'." 
-            });
-        }
-    }
-    
-    console.log("Updating appointment with data:", appointmentData);
 
     const updatedAppointment = await medAppointmentModel.updateAppointment(id, userId, appointmentData);
     if (!updatedAppointment) {

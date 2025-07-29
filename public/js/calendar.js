@@ -439,6 +439,63 @@ function editAppointment(index) {
             
             // Insert notice after the status select
             statusSelect.parentNode.insertBefore(notice, statusSelect.nextSibling);
+
+            // Add event listener to date input to revalidate when date changes
+            const dateInput = document.getElementById("appointment-date");
+            if (dateInput) {
+                dateInput.addEventListener('change', function() {
+                    const newDate = this.value;
+                    const newDateObj = new Date(newDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const isPastAppointment = newDateObj < today;
+                    const statusSelect = document.getElementById("status");
+                    
+                    // Remove existing notice
+                    const existingNotice = document.getElementById("past-appointment-notice");
+                    if (existingNotice) {
+                        existingNotice.remove();
+                    }
+                    
+                    // Clear and rebuild status options
+                    statusSelect.innerHTML = "";
+                    
+                    if (isPastAppointment) {
+                        // For past appointments, only allow certain statuses
+                        const allowedStatuses = ["Attended", "Missed"];
+                        
+                        allowedStatuses.forEach(status => {
+                            const option = document.createElement("option");
+                            option.value = status;
+                            option.textContent = getStatusDisplayText(status);
+                            statusSelect.appendChild(option);
+                        });
+                        
+                        // Add notice for past appointments
+                        const notice = document.createElement("div");
+                        notice.id = "past-appointment-notice";
+                        notice.className = "past-appointment-notice";
+                        notice.innerHTML = "⚠️ This is a past appointment. Status can only be set to 'Attended' or 'Missed'.";
+                        
+                        statusSelect.parentNode.insertBefore(notice, statusSelect.nextSibling);
+                        
+                    } else {
+                        // For future appointments, allow all statuses except "Ongoing"
+                        const allStatuses = ["Scheduled", "Attended", "Missed"];
+                        
+                        allStatuses.forEach(status => {
+                            const option = document.createElement("option");
+                            option.value = status;
+                            option.textContent = getStatusDisplayText(status);
+                            statusSelect.appendChild(option);
+                        });
+                        
+                        // Set to "Scheduled" by default for future appointments
+                        statusSelect.value = "Scheduled";
+                    }
+                });
+            }
         }
 
     } else {
