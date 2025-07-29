@@ -6,7 +6,7 @@ async function getMedicationById(medicationId, userId) {
     try {
         connection = await sql.connect(dbConfig);
         const query = ` 
-            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
             FROM Medications
             WHERE medication_id = @medicationId AND user_id = @userId
         `;
@@ -42,7 +42,7 @@ async function getAllMedicationByUser(userId) {
     try {
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
             FROM Medications
             WHERE user_id = @userId
         `;
@@ -89,7 +89,7 @@ async function getDailyMedicationByUser(userId) {
         const updateResult = await updateRequest.query(updateQuery);
 
         const getQuery = `
-            SELECT M.medication_id, M.medication_name, M.medication_time, M.medication_dosage, M.prescription_startdate, M.prescription_enddate, M.medication_notes, M.is_taken
+            SELECT M.medication_id, M.medication_name, M.medication_date, M.medication_time, M.medication_dosage, M.medication_quantity, M.medication_notes, M.medication_reminders, M.prescription_startdate, M.prescription_enddate, M.is_taken
             FROM Medications M
             WHERE M.user_id = @userId AND M.medication_date = @currentDate
             ORDER BY medication_time ASC
@@ -173,7 +173,7 @@ async function getWeeklyMedicationByUser(userId, startDate = null, endDate = nul
 
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT M.medication_date, M.medication_name, M.medication_time, M.medication_dosage, M.medication_notes, M.is_taken
+            SELECT M.medication_id, M.medication_name, M.medication_date, M.medication_time, M.medication_dosage, M.medication_quantity, M.medication_notes, M.medication_reminders, M.prescription_startdate, M.prescription_enddate, M.is_taken
             FROM Medications M
             WHERE M.user_id = @userId AND M.medication_date BETWEEN @startDate AND @endDate
             ORDER BY M.medication_date, M.medication_time
@@ -209,10 +209,10 @@ async function createMedication(medicationData) {
         connection = await sql.connect(dbConfig);
         const query = `
             INSERT INTO Medications 
-            (user_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken)
+            (user_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken)
             OUTPUT INSERTED.*
             VALUES 
-            (@userId, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
+            (@userId, @medicationName, @medicationDate, @medicationTime, @medicationDosage, @medicationQuantity, @medicationNotes, @medicationReminders, @prescriptionStartDate, @prescriptionEndDate, @isTaken)
         `;
         const request = connection.request();
         request.input("userId", sql.Int, medicationData.user_id);
@@ -220,6 +220,7 @@ async function createMedication(medicationData) {
         request.input("medicationDate", sql.Date, medicationData.medication_date);
         request.input("medicationTime", sql.VarChar, medicationData.medication_time);
         request.input("medicationDosage", sql.NVarChar, medicationData.medication_dosage);
+        request.input("medicationQuantity", sql.NVarChar, medicationData.medication_quantity);
         request.input("medicationNotes", sql.NVarChar, medicationData.medication_notes);
         request.input("medicationReminders", sql.Bit, medicationData.medication_reminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescription_startdate);
@@ -260,6 +261,7 @@ async function updateMedication(medicationId, medicationData) {
                 medication_date = @medicationDate,
                 medication_time = @medicationTime,
                 medication_dosage = @medicationDosage,
+                medication_quantity = @medicationQuantity,
                 medication_notes = @medicationNotes,
                 medication_reminders = @medicationReminders,
                 prescription_startdate = @prescriptionStartDate,
@@ -275,6 +277,7 @@ async function updateMedication(medicationId, medicationData) {
         request.input("medicationDate", sql.Date, medicationData.medicationDate);
         request.input("medicationTime", sql.VarChar, medicationData.medicationTime);
         request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
+        request.input("medicationQuantity", sql.NVarChar, medicationData.medicationQuantity);
         request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
         request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
@@ -341,23 +344,59 @@ async function tickOffMedication(medicationId, userId) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig);
-        const query = `
-            UPDATE Medications
-            SET is_taken = 1, updated_at = GETDATE()
+        
+        // First, get the current medication details
+        const getMedQuery = `
+            SELECT medication_quantity, medication_name 
+            FROM Medications 
             WHERE medication_id = @medicationId AND user_id = @userId
         `;
-        const request = connection.request();
-        request.input("medicationId", sql.Int, medicationId);
-        request.input("userId", sql.Int, userId);
-        const result = await request.query(query);
+        const getMedRequest = connection.request();
+        getMedRequest.input("medicationId", sql.Int, medicationId);
+        getMedRequest.input("userId", sql.Int, userId);
+        const medResult = await getMedRequest.query(getMedQuery);
+        
+        if (medResult.recordset.length === 0) {
+            return null;
+        }
+        
+        const currentQuantity = parseInt(medResult.recordset[0].medication_quantity) || 0;
+        const medicationName = medResult.recordset[0].medication_name;
+        
+        // Update medication as taken and decrement quantity
+        const updateQuery = `
+            UPDATE Medications
+            SET is_taken = 1, 
+                medication_quantity = CASE 
+                    WHEN medication_quantity > 0 THEN medication_quantity - 1 
+                    ELSE 0 
+                END,
+                updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+        const updateRequest = connection.request();
+        updateRequest.input("medicationId", sql.Int, medicationId);
+        updateRequest.input("userId", sql.Int, userId);
+        const result = await updateRequest.query(updateQuery);
 
         if (result.rowsAffected[0] === 0) {
             return null;
         }
 
-        return { medicationId, userId, isTaken: true };
+        const newQuantity = Math.max(0, currentQuantity - 1);
+        const isLowQuantity = newQuantity < 5;
+
+        return { 
+            medicationId, 
+            userId, 
+            isTaken: true, 
+            newQuantity,
+            isLowQuantity,
+            medicationName,
+            message: isLowQuantity ? `Warning: ${medicationName} is running low (${newQuantity} remaining)` : null
+        };
     }
-    catch {
+    catch (error) {
         console.error("Database error:", error);
         throw error;
     }
@@ -379,7 +418,7 @@ async function searchMedicationByName(userId, medicationName) {
         connection = await sql.connect(dbConfig);
         
         const query = `
-            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_notes, is_taken
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
             FROM Medications
             WHERE user_id = @userId AND medication_name LIKE @medicationName
         `;
@@ -406,6 +445,355 @@ async function searchMedicationByName(userId, medicationName) {
     }
 }
 
+async function remindMedication(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTime = new Date();
+        
+        // Calculate the time 5 minutes from now
+        const fiveMinutesFromNow = new Date(currentTime.getTime() + 5 * 60000);
+        const currentTimeStr = currentTime.toTimeString().substring(0, 5); // HH:MM format
+        const fiveMinutesFromNowStr = fiveMinutesFromNow.toTimeString().substring(0, 5);
+        
+        const query = `
+            SELECT medication_id, medication_name, medication_time, medication_dosage, medication_notes
+            FROM Medications
+            WHERE user_id = @userId 
+              AND medication_date = @currentDate 
+              AND is_taken = 0
+              AND medication_reminders = 1
+              AND medication_time BETWEEN @currentTime AND @fiveMinutesFromNow
+            ORDER BY medication_time ASC
+        `;
+        
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("currentDate", sql.Date, currentDate);
+        request.input("currentTime", sql.VarChar, currentTimeStr);
+        request.input("fiveMinutesFromNow", sql.VarChar, fiveMinutesFromNowStr);
+
+        const result = await request.query(query);
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function tickAllMedications(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET is_taken = 1, updated_at = GETDATE()
+            WHERE user_id = @userId AND is_taken = 0
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null
+        }
+
+        return { userId, message: "All medications marked as taken." };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function getLowQuantityMedication(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT medication_id, medication_name, medication_quantity
+            FROM Medications
+            WHERE user_id = @userId AND medication_quantity < 5
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function decrementMedicationQuantity(medicationId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET medication_quantity = medication_quantity - 1, updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId AND medication_quantity > 0
+        `;
+
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, userId, message: "Medication quantity decremented." };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function filterMedicationByStatus(userId, isTaken) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
+            FROM Medications
+            WHERE user_id = @userId AND is_taken = @isTaken
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("isTaken", sql.Bit, isTaken);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function filterMedicationByDate(userId, startDate, endDate) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query =`
+            SELECT medication_id, medication_name, medication_date, medication_time, medication_dosage, medication_quantity, medication_notes, medication_reminders, prescription_startdate, prescription_enddate, is_taken
+            FROM Medications
+            WHERE user_id = @userId AND medication_date BETWEEN @startDate AND @endDate
+        `;
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("startDate", sql.Date, new Date(startDate).toISOString().split('T')[0]);
+        request.input("endDate", sql.Date, new Date(endDate).toISOString().split('T')[0]);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } 
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function refillMedication(medicationId, userId, newQuantity) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET medication_quantity = @newQuantity, updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        request.input("newQuantity", sql.NVarChar, newQuantity.toString());
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, userId, newQuantity, message: "Medication refilled successfully." };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function getExpiredMedications(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const currentDate = new Date().toISOString().split('T')[0];
+        
+        const query = `
+            SELECT medication_id, medication_name, medication_quantity, prescription_enddate
+            FROM Medications
+            WHERE user_id = @userId AND prescription_enddate < @currentDate
+        `;
+
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("currentDate", sql.Date, currentDate);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset;
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+async function markMedicationAsMissed(medicationId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Medications
+            SET is_taken = 0, updated_at = GETDATE()
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+
+        const request = connection.request();
+        request.input("medicationId", sql.Int, medicationId);
+        request.input("userId", sql.Int, userId);
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0) {
+            return null;
+        }
+
+        return { medicationId, userId, message: "Medication marked as missed." };
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -415,5 +803,14 @@ module.exports = {
     updateMedication,
     deleteMedication,
     tickOffMedication,
-    searchMedicationByName
+    searchMedicationByName,
+    remindMedication,
+    tickAllMedications, 
+    getLowQuantityMedication,
+    decrementMedicationQuantity, 
+    filterMedicationByStatus,
+    filterMedicationByDate,
+    refillMedication,
+    getExpiredMedications,
+    markMedicationAsMissed
 };
