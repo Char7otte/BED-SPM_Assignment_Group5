@@ -47,7 +47,7 @@ async function getAppointmentsByMonthYear(req, res) {
     res.json(appointments);
   } catch (error) {
     console.error("Controller error in getAppointmentsByMonthYear:", error);
-    res.status(500).json({ error: "Error retrieving appointments for the month" });
+    res.status(500).json({ error: "Error retrieving appointments for the month and year" });
   }
 }
 
