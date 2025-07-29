@@ -24,29 +24,41 @@ const chatMessageController = require("./chat/controllers/chatMessageController"
 const { validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase } = require("./chat/middleware/ChatValidation");
 const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
+
 //import medical appointment functions
 const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
 const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
 
+
+//import medication tracker functions
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
+
 
 // import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
 const jwt = require("jsonwebtoken");
 
+
 // import feedback functions
 const feedbackController = require("./feedback/controllers/feedbackController");
 const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
+
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
+app.use(methodOverride("_method"));
 
+app.use(express.static(path.join(__dirname, "public")));
+app.use("/views", express.static(path.join(__dirname, "views")));
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+// JWT middleware
 app.use((req, res, next) => {
   const token = req.cookies?.token || null;
   let tokenExpired = false;
@@ -68,9 +80,12 @@ app.use((req, res, next) => {
   next();
 });
 
+///// Frontend routes /////
 app.get('/login.html', (req, res) => {
-  //app.use(express.static(path.join(__dirname, 'public')));
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+});
+app.get("/loginauth.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
 app.get('/alert', (req, res) => {
@@ -91,19 +106,35 @@ app.get('/users/updatedetail/:id', (req, res) => {
   res.render('user/updatedetail', { userId: userId, user: res.locals.user });
 });
 
-
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/views", express.static(path.join(__dirname, "views")));
-
-app.use(methodOverride("_method"));
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
-app.get("/loginauth.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+// Medical appointment calendar page
+app.get("/calendar", (req, res) => {
+  res.render("medical-appointment/calendar");
 });
 
+// Feedback pages
+app.get("/feedback-form", (req, res) => {
+  res.render("feedback/feedback-form");
+});
+app.get("/feedbacks", (req, res) => {
+  res.render("feedback/all-feedbacks");
+});
+app.get("/feedback-admin", (req, res) => {
+  res.render("feedback/feedback-admin");
+});
+
+// app.use(express.static(path.join(__dirname, "public")));
+// app.use("/views", express.static(path.join(__dirname, "views")));
+
+// app.use(methodOverride("_method"));
+
+// app.set("view engine", "ejs");
+// app.set("views", path.join(__dirname, "views"));
+
+// app.get("/loginauth.html", (req, res) => {
+//     res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+// });
+
+///// API routes /////
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
 app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
@@ -135,7 +166,7 @@ app.get("/users/logout",userController.logoutUser); // Get user roles by ID #oka
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
-app.post("/chats/create/:userID", validateUserID, chatController.createChat);
+app.post("/chats/create/:userID", chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
 app.get("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
@@ -174,34 +205,40 @@ app.delete("/notes/:id", noteTakerController.deleteNote);
 app.put("/notes/:id", noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
-//Swagger
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-//routes for feedback
+//routes for feedback - user
 app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
 app.get("/feedback/search", verifyJWT, feedbackController.searchFeedbacks);
 app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeedback);
 app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
 app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
+//routes for feedback - admin
+app.get("/feedback/admin", verifyJWT, feedbackController.getAllFeedbacks);
+app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksAdmin);
+app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
+app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
 
+//Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+
+
+// // Serve the calendar HTML file
+// app.get("/calendar", (req, res) => {
+//   res.render("medical-appointment/calendar");
+// });
+
+// // Serve the feedback-form HTML file
+// app.get("/feedback-form", (req, res) => {
+//   res.render("feedback/feedback-form");
+// });
+
+// // Serve the all-feedbacks HTML file
+// app.get("/feedbacks", (req, res) => {
+//   res.render("feedback/all-feedbacks");
+// });
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-});
-
-// Serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-  res.render("medical-appointment/calendar");
-});
-
-// Serve the feedback-form HTML file
-app.get("/feedback-form", (req, res) => {
-  res.render("feedback/feedback-form");
-});
-
-// Serve the all-feedbacks HTML file
-app.get("/feedbacks", (req, res) => {
-  res.render("feedback/all-feedbacks");
 });
 
 process.on("SIGINT", async () => {
