@@ -102,33 +102,55 @@ $(document).ready(function() {
         $('#current-date').text(today.toLocaleDateString('en-US', options));
     }
 
+    // Replace your existing loadDailyMedications function with this:
     async function loadDailyMedications() {
         try {
-            $('#loading-message').show();
+            // Show loading message if element exists
+            const loadingElement = $('#loading-message');
+            if (loadingElement.length) {
+                loadingElement.show();
+            }
+            
             const response = await fetch(`/medications/user/${currentUserId}/daily`);
             
             if (!response.ok) {
                 throw new Error('Failed to load daily medications');
             }
             
-            dailyMedications = await response.json();
-            $('#loading-message').hide();
+            const data = await response.json();
+            
+            // Handle different response formats
+            if (data.medications) {
+                dailyMedications = data.medications;
+            } else if (Array.isArray(data)) {
+                dailyMedications = data;
+            } else {
+                dailyMedications = [];
+            }
+            
+            // Hide loading message
+            if (loadingElement.length) {
+                loadingElement.hide();
+            }
             
             displayDailyMedications(dailyMedications);
             updateDailyProgress(dailyMedications);
             
             // Set up reminder checking
             if (reminderInterval) clearInterval(reminderInterval);
-            reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
+            reminderInterval = setInterval(checkForReminders, 30000);
             
         } catch (error) {
             console.error('Error loading daily medications:', error);
-            $('#loading-message').html(`
-                <div class="alert alert-danger">
-                    <i class="fa fa-exclamation-triangle"></i> 
-                    <strong>Error loading medications.</strong> Please refresh the page to try again.
-                </div>
-            `);
+            const loadingElement = $('#loading-message');
+            if (loadingElement.length) {
+                loadingElement.html(`
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-triangle"></i> 
+                        <strong>Error loading medications.</strong> Please refresh the page to try again.
+                    </div>
+                `);
+            }
         }
     }
 
@@ -665,31 +687,52 @@ $(document).ready(function() {
     // Update your existing loadDailyMedications function
     async function loadDailyMedications() {
         try {
-            $('#loading-message').show();
+            // Show loading message if element exists
+            const loadingElement = $('#loading-message');
+            if (loadingElement.length) {
+                loadingElement.show();
+            }
+            
             const response = await fetch(`/medications/user/${currentUserId}/daily`);
             
             if (!response.ok) {
                 throw new Error('Failed to load daily medications');
             }
             
-            dailyMedications = await response.json();
-            $('#loading-message').hide();
+            const data = await response.json();
+            
+            // Handle different response formats
+            if (data.medications) {
+                dailyMedications = data.medications;
+            } else if (Array.isArray(data)) {
+                dailyMedications = data;
+            } else {
+                dailyMedications = [];
+            }
+            
+            // Hide loading message
+            if (loadingElement.length) {
+                loadingElement.hide();
+            }
             
             displayDailyMedications(dailyMedications);
             updateDailyProgress(dailyMedications);
             
             // Set up reminder checking
             if (reminderInterval) clearInterval(reminderInterval);
-            reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
+            reminderInterval = setInterval(checkForReminders, 30000);
             
         } catch (error) {
             console.error('Error loading daily medications:', error);
-            $('#loading-message').html(`
-                <div class="alert alert-danger">
-                    <i class="fa fa-exclamation-triangle"></i> 
-                    <strong>Error loading medications.</strong> Please refresh the page to try again.
-                </div>
-            `);
+            const loadingElement = $('#loading-message');
+            if (loadingElement.length) {
+                loadingElement.html(`
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-triangle"></i> 
+                        <strong>Error loading medications.</strong> Please refresh the page to try again.
+                    </div>
+                `);
+            }
         }
     }
 
