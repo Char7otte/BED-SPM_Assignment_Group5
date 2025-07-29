@@ -46,6 +46,9 @@ const jwt = require("jsonwebtoken");
 const feedbackController = require("./feedback/controllers/feedbackController");
 const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
 
+// Import weather functions
+const weatherController = require("./Weather/controllers/weatherController");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -76,9 +79,11 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get("/login.html", (req, res) => {
-    //app.use(express.static(path.join(__dirname, 'public')));
-    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+
+app.get('/login', (req, res) => {
+  //app.use(express.static(path.join(__dirname, 'public')));
+  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+
 });
 
 app.get("/alert", (req, res) => {
@@ -98,6 +103,14 @@ app.get("/users/updatedetail/:id", (req, res) => {
     const userId = req.params.id;
     res.render("user/updatedetail", { userId: userId, user: res.locals.user });
 });
+app.get('/users/profile', (req, res) => {
+  res.render('user/profile', { user: res.locals.user });
+});
+
+
+app.get('/homepage', (req, res) => {
+  res.render('index', { user: res.locals.user });
+});
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/views", express.static(path.join(__dirname, "views")));
@@ -106,10 +119,6 @@ app.use(methodOverride("_method"));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
-app.get("/loginauth.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
-});
 
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
@@ -141,6 +150,7 @@ app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
 app.get("/users/logout", userController.logoutUser); // Get user roles by ID #okay
 
 //Charlotte's Chat routes
+
 app.get("/chats", verifyJWT, chatController.getAllChats);
 app.post("/chats/create/:userID", validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
@@ -208,6 +218,16 @@ app.get("/feedback/search", verifyJWT, feedbackController.searchFeedbacks);
 app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeedback);
 app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
 app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
+
+
+//Weather API 3rd Party
+//app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
+app.get('/external', weatherController.fetchExternalData);
+app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
+
+app.get("/weather", async (req, res) => {
+  res.render("weather/weather", { user: res.locals.user }); 
+});
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

@@ -12,11 +12,23 @@ function validateUserInput(req, res, next) {
         role: joi.string().valid("A", "U", "V"),
     });
 
-    const { error } = schema.validate(req.body);
-    if (error) {
-        console.log("Validation error:", error.details[0].message);
-        return res.status(400).json({ message: error.details[0].message });
-    }
+
+  const schema = joi.object({
+    username: joi.string().min(3).max(30).required(),
+    phone_number: joi.string().min(8).max(8).required(),
+    password: joi.string().min(8).max(100).required(),
+    age: joi.number().integer().min(0).required(),
+    gender: joi.string().valid('Male', 'Female', 'Other'),
+    role: joi.string().valid('A', 'U', 'V')
+
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    console.log("Validation error:", error.details[0].message);
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
 
     next();
 }
@@ -60,7 +72,10 @@ function verifyJWT(req, res, next) {
             //user management
             "GET /users": ["A"], // Only Admin can get all users
             "PUT /users/updatedetail/[0-9]+": ["A"], // Admin can update user details
-            "DELETE /users/[0-9]+": ["A"], // Only Admin can delete users
+            "PUT /users/delete/[0-9]+": ["A"], // Only Admin can delete users
+            "POST /users/login": ["A", "U"], // Admin and User can login
+            "POST /users/search": ["A"], // Admin and User can search users
+            "PATCH /users/updatedetail/:id": ["A"], // Admin and User can update their own details
 
             // Medical appointments - Only Users can access
             "GET /med-appointments": ["U"],
@@ -71,12 +86,21 @@ function verifyJWT(req, res, next) {
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
 
+            // Alerts
+            "GET /alerts": ['A', 'U'], // Admin and User can get all alerts
+            "GET /alerts/search": ['A', 'U'], // Admin and User can search alerts
+            "POST /alerts": ['A'], // Only Admin can create alerts
+            "PUT /alerts/[0-9]+": ['A'], // Only Admin can update alerts
+            "PUT /alerts/delete/[0-9]+": ['A'], // Only Admin can delete alerts
+
+
             // Feedback
             "GET /feedback": ["A", "U"], // Admin and User can get all feedback
             "GET /feedback/search": ["A", "U"], // Admin and User can search feedback
             "POST /feedback": ["U"], // Only User can create feedback
             "PUT /feedback/[0-9]+": ["U"], // Only User can update their own feedback
             "DELETE /feedback/[0-9]+": ["U"], // Only User can delete their own feedback
+
         };
 
         // Check if the current route requires role-based authorization
@@ -218,3 +242,4 @@ module.exports = {
 //     LastEditedDate DATE NOT NULL DEFAULT GETDATE(),
 //     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 // );
+
