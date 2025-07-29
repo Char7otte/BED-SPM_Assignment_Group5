@@ -2,7 +2,14 @@ const chatModel = require("../models/chatModel");
 
 async function getAllChats(req, res) {
     try {
-        const chats = await chatModel.getAllChats();
+        let chats;
+        const { id, role } = req.user;
+
+        if (role == "U") {
+            chats = await chatModel.getAllChatsByHelpeeID(id);
+        } else {
+            chats = await chatModel.getAllChats();
+        }
         return res.render("chat/allChats", { chatData: chats });
     } catch (error) {
         console.error("Controller error: ", error);
