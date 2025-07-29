@@ -3,6 +3,15 @@ const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
 
 function validateUserInput(req, res, next) {
+    const schema = joi.object({
+        username: joi.string().min(3).max(30).required(),
+        phone_number: joi.string().required(),
+        password: joi.string().min(8).max(100).required(),
+        age: joi.number().integer().min(0).required(),
+        gender: joi.string().valid("Male", "Female", "Other"),
+        role: joi.string().valid("A", "U", "V"),
+    });
+
 
   const schema = joi.object({
     username: joi.string().min(3).max(30).required(),
@@ -20,32 +29,32 @@ function validateUserInput(req, res, next) {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  next();
+
+    next();
 }
 
 function validateUserInputForUpdate(req, res, next) {
-  const schema = joi.object({
-    username: joi.string().min(3).max(30),
-    phone_number: joi.string(),
-    password: joi.string().min(8).max(100),
-    age: joi.number().integer().min(0),
-    gender: joi.string().valid('Male', 'Female', 'Other'),
-    role: joi.string().valid('A', 'U', 'V'),
-    status: joi.string().valid('active', 'inactive', 'deleted')
-  });
+    const schema = joi.object({
+        username: joi.string().min(3).max(30),
+        phone_number: joi.string(),
+        password: joi.string().min(8).max(100),
+        age: joi.number().integer().min(0),
+        gender: joi.string().valid("Male", "Female", "Other"),
+        role: joi.string().valid("A", "U", "V"),
+        status: joi.string().valid("active", "inactive", "deleted"),
+    });
 
-  const { error } = schema.validate(req.body);
-  if (error) {
-    console.log("Validation error:", error.details[0].message);
-    return res.status(400).json({ message: error.details[0].message });
-  }
+    const { error } = schema.validate(req.body);
+    if (error) {
+        console.log("Validation error:", error.details[0].message);
+        return res.status(400).json({ message: error.details[0].message });
+    }
 
-  next();
+    next();
 }
 
-
 function verifyJWT(req, res, next) {
-    const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
+    const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -70,19 +79,13 @@ function verifyJWT(req, res, next) {
 
             // Medical appointments - Only Users can access
             "GET /med-appointments": ["U"],
-            "GET /med-appointments/search": ['U'], // Get appointment by searchTerm
+            "GET /med-appointments/search": ["U"], // Get appointment by searchTerm
             "GET /med-appointments/.*": ["U"], // Match any date format
-            "GET /med-appointments/[0-9]{2}/[0-9]{4}": ['U'], // Get appointment by month and year
+            "GET /med-appointments/[0-9]{2}/[0-9]{4}": ["U"], // Get appointment by month and year
             "POST /med-appointments": ["U"],
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
-          
-            // Feedback 
-            "GET /feedback": ['A', 'U'], // Admin and User can get all feedback
-            "GET /feedback/search": ['A', 'U'], // Admin and User can search feedback
-            "POST /feedback": ['U'], // Only User can create feedback
-            "PUT /feedback/[0-9]+": ['U'], // Only User can update their own feedback
-            "DELETE /feedback/[0-9]+": ['U'], // Only User can delete their own feedback
+
             // Alerts
             "GET /alerts": ['A', 'U'], // Admin and User can get all alerts
             "GET /alerts/search": ['A', 'U'], // Admin and User can search alerts
@@ -90,6 +93,13 @@ function verifyJWT(req, res, next) {
             "PUT /alerts/[0-9]+": ['A'], // Only Admin can update alerts
             "PUT /alerts/delete/[0-9]+": ['A'], // Only Admin can delete alerts
 
+
+            // Feedback
+            "GET /feedback": ["A", "U"], // Admin and User can get all feedback
+            "GET /feedback/search": ["A", "U"], // Admin and User can search feedback
+            "POST /feedback": ["U"], // Only User can create feedback
+            "PUT /feedback/[0-9]+": ["U"], // Only User can update their own feedback
+            "DELETE /feedback/[0-9]+": ["U"], // Only User can delete their own feedback
 
         };
 
@@ -129,10 +139,10 @@ function validateUserID(req, res, next) {
 }
 
 module.exports = {
-  validateUserInput,
-  validateUserInputForUpdate,
-  verifyJWT,
-  validateUserID,
+    validateUserInput,
+    validateUserInputForUpdate,
+    verifyJWT,
+    validateUserID,
 };
 
 // --bed_spm db v1.05
