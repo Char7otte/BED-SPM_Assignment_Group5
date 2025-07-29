@@ -38,6 +38,41 @@ async function getAllFeedbacksByUser(userId) {
   }
 }
 
+// Get all feedbacks from all users - for admin use
+async function getAllFeedbacks(){
+    let connection;
+    try{
+        connection = await sql.connect(dbConfig);
+
+        const query = `
+        SELECT 
+            fbk_id as id, 
+            user_id,
+            FORMAT(creation_date, 'yyyy-MM-dd') as DateOfCreation, 
+            title, 
+            feature, 
+            description, 
+            status
+        FROM Feedbacks
+        ORDER BY creation_date DESC`; 
+
+        const request = connection.request();
+        const result = await request.query(query);
+        return result.recordset;
+    } catch(error){
+        console.error("Database error in getAllAppointments:", error);
+        throw error;
+    } finally{
+        if(connection){
+            try{
+                await connection.close();
+            } catch(err){
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Get feedback by id
 async function getFeedbackById(id) {
   let connection;
@@ -155,6 +190,40 @@ async function updateFeedback(id, userId, feedbackData){
   }
 }
 
+// Update status of feedback - for admin use
+async function editFeedbackStatus(id, status) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        const query = `
+            UPDATE Feedbacks
+            SET status = @status
+            WHERE fbk_id = @fbk_id`;
+
+        const request = connection.request();
+        request.input("status", status);
+        request.input("fbk_id", id);
+        const result = await request.query(query);
+
+        if(result.rowsAffected[0] === 0){
+            return null; // Feedback not found
+        }
+        return await getFeedbackById(id);
+    } catch (error) {
+        console.error("Database error in editFeedbackStatus:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Delete feedback by feedback id
 async function deleteFeedback(id, userId) {
   let connection;
@@ -188,6 +257,38 @@ async function deleteFeedback(id, userId) {
   }
 }
 
+// Delete feedback - for admin use
+async function deleteFeedbackAdmin(id) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        const query = `
+            DELETE FROM Feedbacks
+            WHERE fbk_id = @fbk_id`;
+
+        const request = connection.request();
+        request.input("fbk_id", id);
+        const result = await request.query(query);
+
+        if(result.rowsAffected[0] === 0){
+            return null; // Feedback not found
+        }
+        return { success: true };
+    } catch (error) {
+        console.error("Database error in deleteFeedbackAdmin:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Search feedbacks by search term
 async function searchFeedbacks(searchTerm, userId) {
   let connection;
@@ -197,6 +298,7 @@ async function searchFeedbacks(searchTerm, userId) {
       const query = `
       SELECT 
         fbk_id as id, 
+        user_id,
         FORMAT(creation_date, 'yyyy-MM-dd') as DateOfCreation, 
         title, 
         feature, 
@@ -230,11 +332,54 @@ async function searchFeedbacks(searchTerm, userId) {
   }
 }
 
+// Search feedbacks by title or status - for admin use
+async function searchFeedbacksAdmin(searchTerm) {
+  let connection;
+  try {
+      connection = await sql.connect(dbConfig);
+
+      const query = `
+      SELECT 
+        fbk_id as id, 
+        user_id,
+        FORMAT(creation_date, 'yyyy-MM-dd') as DateOfCreation, 
+        title, 
+        feature, 
+        description, 
+        status
+      FROM Feedbacks
+      WHERE 
+        title LIKE '%' + @searchTerm + '%'
+        OR status LIKE '%' + @searchTerm + '%'
+      ORDER BY creation_date ASC`; 
+
+      const request = connection.request();
+      request.input("searchTerm", sql.NVarChar, searchTerm); // Explicitly define type
+      const result = await request.query(query);
+      return result.recordset;
+  } catch (error) {
+      console.error("Database error in searchFeedbacksAdmin:", error); 
+      throw error; 
+  } finally {
+      if (connection) {
+        try {
+            await connection.close();
+        } catch (err) {
+            console.error("Error closing connection after searchFeedbacksAdmin:", err);
+        }
+      }
+  }
+}
+
 module.exports = {
   getAllFeedbacksByUser,
+  getAllFeedbacks,
   getFeedbackById,
   createFeedback,
   updateFeedback,
+  editFeedbackStatus,
   deleteFeedback,
+  deleteFeedbackAdmin,
   searchFeedbacks,
+  searchFeedbacksAdmin
 };

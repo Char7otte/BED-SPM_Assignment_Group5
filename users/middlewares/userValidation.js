@@ -45,8 +45,8 @@ function validateUserInputForUpdate(req, res, next) {
 
 
 function verifyJWT(req, res, next) {
-    const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
-
+    // const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
+    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
     if (!token) {
         return res.status(401).json({ message: "Unauthorized" });
     }
@@ -74,12 +74,18 @@ function verifyJWT(req, res, next) {
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
           
-            // Feedback 
-            "GET /feedback": ['A', 'U'], // Admin and User can get all feedback
-            "GET /feedback/search": ['A', 'U'], // Admin and User can search feedback
-            "POST /feedback": ['U'], // Only User can create feedback
-            "PUT /feedback/[0-9]+": ['U'], // Only User can update their own feedback
-            "DELETE /feedback/[0-9]+": ['U'], // Only User can delete their own feedback
+            // Feedback - Only for Users 
+            "GET /feedback": ['U'], 
+            "GET /feedback/search": ['U'], 
+            "POST /feedback": ['U'], 
+            "PUT /feedback/[0-9]+": ['U'], 
+            "DELETE /feedback/[0-9]+": ['U'], 
+
+            // Feedback - Only for admins
+            "GET /feedback/admin": ['A'], 
+            "GET /feedback/admin/search": ['A'], 
+            "PUT /feedback/admin/[0-9]+": ['A'],
+            "DELETE /feedback/admin/[0-9]+": ['A'], 
         };
 
         // Check if the current route requires role-based authorization
