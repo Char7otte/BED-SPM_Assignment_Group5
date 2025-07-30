@@ -77,21 +77,25 @@ function verifyJWT(req, res, next) {
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
 
+            // Feedback - Only for Users 
+            "GET /feedback": ['U'], 
+            "GET /feedback/search": ['U'], 
+            "POST /feedback": ['U'], 
+            "PUT /feedback/[0-9]+": ['U'], 
+            "DELETE /feedback/[0-9]+": ['U'], 
+
+            // Feedback Admin - Only for admins
+            "GET /feedback/admin": ['A'], 
+            "GET /feedback/admin/search": ['A'], 
+            "PUT /feedback/admin/[0-9]+": ['A'],
+            "DELETE /feedback/admin/[0-9]+": ['A'], 
+
             // Alerts
             "GET /alerts": ['A', 'U'], // Admin and User can get all alerts
             "GET /alerts/search": ['A', 'U'], // Admin and User can search alerts
             "POST /alerts": ['A'], // Only Admin can create alerts
             "PUT /alerts/[0-9]+": ['A'], // Only Admin can update alerts
             "PUT /alerts/delete/[0-9]+": ['A'], // Only Admin can delete alerts
-
-
-            // Feedback
-            "GET /feedback": ["A", "U"], // Admin and User can get all feedback
-            "GET /feedback/search": ["A", "U"], // Admin and User can search feedback
-            "POST /feedback": ["U"], // Only User can create feedback
-            "PUT /feedback/[0-9]+": ["U"], // Only User can update their own feedback
-            "DELETE /feedback/[0-9]+": ["U"], // Only User can delete their own feedback
-
         };
 
         // Check if the current route requires role-based authorization

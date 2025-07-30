@@ -264,6 +264,9 @@ async function updateAppointment(id, userId, appointmentData){
       
       console.log("Final time values being sent to database:", { startTime, endTime });
 
+      // Default status to 'Scheduled' if not provided
+      const status = appointmentData.status || "Scheduled";
+
       const query = `
         UPDATE MedAppointments 
         SET date = @date, title = @title, doctor = @doctor, start_time = @start_time, end_time = @end_time, location = @location, status = @status, notes = @notes 
@@ -277,7 +280,7 @@ async function updateAppointment(id, userId, appointmentData){
       request.input("start_time", startTime);
       request.input("end_time", endTime);
       request.input("location", appointmentData.location);
-      request.input("status", appointmentData.status);
+      request.input("status", status);
       request.input("notes", appointmentData.notes);
       
       const result = await request.query(query);
