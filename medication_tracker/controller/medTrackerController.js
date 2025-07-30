@@ -191,7 +191,7 @@ async function tickOffMedication(req, res) {
 async function searchMedicationByName(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-        const name = req.query.name;
+        const name = req.query.name; // Changed from medicationName to name
         
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });

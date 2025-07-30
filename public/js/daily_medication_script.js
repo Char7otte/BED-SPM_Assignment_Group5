@@ -105,12 +105,7 @@ $(document).ready(function() {
     // Replace your existing loadDailyMedications function with this:
     async function loadDailyMedications() {
         try {
-            // Show loading message if element exists
-            const loadingElement = $('#loading-message');
-            if (loadingElement.length) {
-                loadingElement.show();
-            }
-            
+            $('#loading-message').show();
             const response = await fetch(`/medications/user/${currentUserId}/daily`);
             
             if (!response.ok) {
@@ -118,20 +113,9 @@ $(document).ready(function() {
             }
             
             const data = await response.json();
-            
-            // Handle different response formats
-            if (data.medications) {
-                dailyMedications = data.medications;
-            } else if (Array.isArray(data)) {
-                dailyMedications = data;
-            } else {
-                dailyMedications = [];
-            }
-            
-            // Hide loading message
-            if (loadingElement.length) {
-                loadingElement.hide();
-            }
+            // Handle the response properly
+            dailyMedications = Array.isArray(data) ? data : data.medications || [];
+            $('#loading-message').hide();
             
             displayDailyMedications(dailyMedications);
             updateDailyProgress(dailyMedications);
@@ -142,15 +126,12 @@ $(document).ready(function() {
             
         } catch (error) {
             console.error('Error loading daily medications:', error);
-            const loadingElement = $('#loading-message');
-            if (loadingElement.length) {
-                loadingElement.html(`
-                    <div class="alert alert-danger">
-                        <i class="fa fa-exclamation-triangle"></i> 
-                        <strong>Error loading medications.</strong> Please refresh the page to try again.
-                    </div>
-                `);
-            }
+            $('#loading-message').html(`
+                <div class="alert alert-danger">
+                    <i class="fa fa-exclamation-triangle"></i> 
+                    <strong>Error loading medications.</strong> Please refresh the page to try again.
+                </div>
+            `);
         }
     }
 
@@ -286,7 +267,7 @@ $(document).ready(function() {
                     <div class="col-md-4 text-center">
                         <div class="medication-actions">
                             ${actionButton}
-                            <button class="btn btn-primary" onclick="openEditModal(${medication.medication_id})" style="margin-bottom: 5px;">
+                            <button class="btn btn-primary" onclick="openEditModalDaily(${medication.medication_id})" style="margin-bottom: 5px;">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
                             <button class="btn btn-info" onclick="setMedicationReminder(${medication.medication_id})" style="margin-bottom: 5px;">
@@ -374,6 +355,14 @@ $(document).ready(function() {
         $('#edit-prescription-end').val(medication.prescriptionEnd);
         $('#edit-reminders').prop('checked', medication.reminders);
         $('#editMedModal').modal('show');
+    }
+
+    function openEditModalDaily(medicationId) {
+        const medication = dailyMedications.find(med => med.medication_id === medicationId);
+        if (!medication) return;
+
+        const mappedMed = mapMedicationData(medication);
+        openEditModal(mappedMed);
     }
 
     function updateMedication() {
@@ -687,12 +676,7 @@ $(document).ready(function() {
     // Update your existing loadDailyMedications function
     async function loadDailyMedications() {
         try {
-            // Show loading message if element exists
-            const loadingElement = $('#loading-message');
-            if (loadingElement.length) {
-                loadingElement.show();
-            }
-            
+            $('#loading-message').show();
             const response = await fetch(`/medications/user/${currentUserId}/daily`);
             
             if (!response.ok) {
@@ -700,20 +684,9 @@ $(document).ready(function() {
             }
             
             const data = await response.json();
-            
-            // Handle different response formats
-            if (data.medications) {
-                dailyMedications = data.medications;
-            } else if (Array.isArray(data)) {
-                dailyMedications = data;
-            } else {
-                dailyMedications = [];
-            }
-            
-            // Hide loading message
-            if (loadingElement.length) {
-                loadingElement.hide();
-            }
+            // Handle the response properly
+            dailyMedications = Array.isArray(data) ? data : data.medications || [];
+            $('#loading-message').hide();
             
             displayDailyMedications(dailyMedications);
             updateDailyProgress(dailyMedications);
@@ -724,15 +697,12 @@ $(document).ready(function() {
             
         } catch (error) {
             console.error('Error loading daily medications:', error);
-            const loadingElement = $('#loading-message');
-            if (loadingElement.length) {
-                loadingElement.html(`
-                    <div class="alert alert-danger">
-                        <i class="fa fa-exclamation-triangle"></i> 
-                        <strong>Error loading medications.</strong> Please refresh the page to try again.
-                    </div>
-                `);
-            }
+            $('#loading-message').html(`
+                <div class="alert alert-danger">
+                    <i class="fa fa-exclamation-triangle"></i> 
+                    <strong>Error loading medications.</strong> Please refresh the page to try again.
+                </div>
+            `);
         }
     }
 
@@ -799,4 +769,33 @@ $(document).ready(function() {
         };
         $('#current-date').text(new Date().toLocaleDateString('en-US', options));
     });
-})
+
+    // Global functions for inline onclick handlers
+    window.markAsTakenDaily = async function(medicationId) {
+        try {
+            const response = await fetch(`/medications/${currentUserId}/${medicationId}/is-taken`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to mark medication as taken');
+
+            showDailySuccessMessage('✅ Medication marked as taken!');
+            await loadDailyMedications();
+            
+        } catch (error) {
+            console.error('Error marking medication as taken:', error);
+            showDailyErrorMessage('❌ Unable to mark medication as taken. Please try again.');
+        }
+    };
+
+    window.openEditModalDaily = function(medicationId) {
+        const medication = dailyMedications.find(med => med.medication_id === medicationId);
+        if (!medication) return;
+
+        const mappedMed = mapMedicationData(medication);
+        openEditModal(mappedMed);
+    };
+});
