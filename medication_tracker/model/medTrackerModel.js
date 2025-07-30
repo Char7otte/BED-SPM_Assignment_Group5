@@ -277,7 +277,7 @@ async function updateMedication(medicationId, medicationData) {
         request.input("medicationDate", sql.Date, medicationData.medicationDate);
         request.input("medicationTime", sql.VarChar, medicationData.medicationTime);
         request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
-        request.input("medicationQuantity", sql.NVarChar, medicationData.medicationQuantity);
+        request.input("medicationQuantity", sql.Int, medicationData.medicationQuantity);
         request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
         request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
