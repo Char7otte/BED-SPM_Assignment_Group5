@@ -56,12 +56,16 @@ async function getDailyMedicationByUser(req, res) {
         const result = await medTrackerModel.getDailyMedicationByUser(userId);
 
         if (result.medications.length === 0) {
-            return res.status(404).json({ error: "No medications found for this user on the specified date" });
+            return res.json({ 
+                date: result.date, 
+                medications: [] 
+            });
         }
 
-        res.json(result);
+        res.json(result.medications); // Return just the medications array
     } 
     catch (error) {
+        console.error("Controller error:", error);
         res.status(500).json({ error: "Failed to get daily medications" });
     }
 };
