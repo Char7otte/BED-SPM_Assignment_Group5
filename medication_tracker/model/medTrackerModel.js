@@ -220,7 +220,7 @@ async function createMedication(medicationData) {
         request.input("medicationDate", sql.Date, medicationData.medication_date);
         request.input("medicationTime", sql.VarChar, medicationData.medication_time);
         request.input("medicationDosage", sql.NVarChar, medicationData.medication_dosage);
-        request.input("medicationQuantity", sql.NVarChar, medicationData.medication_quantity);
+        request.input("medicationQuantity", sql.Int, medicationData.medication_quantity);
         request.input("medicationNotes", sql.NVarChar, medicationData.medication_notes);
         request.input("medicationReminders", sql.Bit, medicationData.medication_reminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescription_startdate);

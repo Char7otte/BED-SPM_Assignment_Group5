@@ -2,6 +2,14 @@ const Joi = require('joi');
 
 // Joi schemas for medication tracking validation
 const medicationCreateSchema = Joi.object({
+    user_id: Joi.number().integer().positive().required()
+        .messages({
+            'number.base': 'User ID must be a number',
+            'number.integer': 'User ID must be an integer',  
+            'number.positive': 'User ID must be positive',
+            'any.required': 'User ID is required'
+        }),
+        
     medication_name: Joi.string().trim().min(1).max(100).required()
         .messages({
             'string.base': 'Medication name must be a string',
@@ -255,6 +263,9 @@ const validateRefillRequest = (req, res, next) => {
             details: errorMessages 
         });
     }
+    
+    req.body = bodyValue;
+    next();
 };
 
 const validateMedicationIdParam = (req, res, next) => {
