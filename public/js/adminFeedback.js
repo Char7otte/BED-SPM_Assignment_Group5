@@ -34,7 +34,7 @@ if (token) {
     const decoded = decodeJwtPayload(token);
     console.log(decoded);
     if (decoded.role !== "A") {
-        window.location.href = "/dashboard"; // Redirect non-admin
+        window.location.href = "/homepage"; // Redirect non-admin
     }
 }
 
