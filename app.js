@@ -9,25 +9,28 @@ const swaggerDocument = require("./swagger-output.json");
 
 dotenv.config();
 
-//import functions from alertRoutes
+// Import functions from alertRoutes
 const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
-//import functions from userRoutes
+// Import functions from userRoutes
 const userController = require("./users/controllers/userController");
 const { validateUserInput, validateUserInputForUpdate, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
-//Import chat functions
+
+// Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
 const { validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase } = require("./chat/middleware/ChatValidation");
 const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
-//import medical appointment functions
+
+// Import medical appointment functions
 const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
 const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
 
-//import functions from medication tracker
+
+// Import functions from medication tracker
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
 const {
     validateMedicationCreate,
@@ -38,13 +41,16 @@ const {
     validateSearchQuery,
 } = require("./medication_tracker/middleware/medTrackerValidation");
 
-// import note taker functions
+
+// Import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
 const jwt = require("jsonwebtoken");
 
-// import feedback functions
+
+// Import feedback functions
 const feedbackController = require("./feedback/controllers/feedbackController");
 const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
+
 
 // Import weather functions
 const weatherController = require("./Weather/controllers/weatherController");
@@ -54,10 +60,16 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(methodOverride("_method"));
 
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cookieParser());
+app.use("/views", express.static(path.join(__dirname, "views")));
 
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+// JWT middleware
 app.use((req, res, next) => {
     const token = req.cookies?.token || null;
     let tokenExpired = false;
@@ -79,13 +91,19 @@ app.use((req, res, next) => {
     next();
 });
 
-
+///// Frontend routes /////
 app.get('/login', (req, res) => {
-  //app.use(express.static(path.join(__dirname, 'public')));
-  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
-
+    res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+});
+app.get("/loginauth.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
+app.get('/homepage', (req, res) => {
+  res.render('index', { user: res.locals.user });
+});
+
+// Alert routes
 app.get("/alert", (req, res) => {
     res.render("alert/alert", { message: "This is an alert message" });
 });
@@ -95,7 +113,8 @@ app.get("/alertdetail", (req, res) => {
 app.get("/alertadmin", (req, res) => {
     res.render("alert/alertadmin", { message: "This is an alert admin message" });
 });
-//user routes
+
+// User routes
 app.get("/user", (req, res) => {
     res.render("user/user", { user: res.locals.user });
 });
@@ -107,19 +126,43 @@ app.get('/users/profile', (req, res) => {
   res.render('user/profile', { user: res.locals.user });
 });
 
-
-app.get('/homepage', (req, res) => {
-  res.render('index', { user: res.locals.user });
+// Medical appointment calendar page
+app.get("/calendar", (req, res) => {
+  res.render("medical-appointment/calendar");
 });
 
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/views", express.static(path.join(__dirname, "views")));
+// Route to serve the medication tracker HTML page
+app.get("/medications", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "medication_index.html"));
+});
 
-app.use(methodOverride("_method"));
+// Route to serve the daily medication HTML page
+app.get("/medications/daily", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
+});
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+// Route to serve the weekly medication HTML page
+app.get("/medications/weekly", (req, res) => {
+    res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
+});
+  
+// Feedback pages
+app.get("/feedback-form", (req, res) => {
+  res.render("feedback/feedback-form");
+});
+app.get("/feedbacks", (req, res) => {
+  res.render("feedback/all-feedbacks");
+});
+app.get("/feedback-admin", (req, res) => {
+  res.render("feedback/feedback-admin");
+});
 
+// Weather
+app.get("/weather", async (req, res) => {
+  res.render("weather/weather", { user: res.locals.user }); 
+});
+
+///// API routes /////
 //ALERT SEARCH + READ STATUS (specific paths FIRST)/
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
 app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
@@ -149,8 +192,7 @@ app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
 app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
 app.get("/users/logout", userController.logoutUser); // Get user roles by ID #okay
 
-//Charlotte's Chat routes
-
+//routes for chats
 app.get("/chats", verifyJWT, chatController.getAllChats);
 app.post("/chats/create/:userID", validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
@@ -169,21 +211,7 @@ app.post("/med-appointments", verifyJWT, validateMedAppointment, medAppointmentC
 app.put("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, validateMedAppointment, medAppointmentController.updateAppointment);
 app.delete("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, medAppointmentController.deleteAppointment);
 
-// Route to serve the medication tracker HTML page
-app.get("/medications", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "medication_index.html"));
-});
-
-// Route to serve the daily medication HTML page
-app.get("/medications/daily", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
-});
-
-// Route to serve the weekly medication HTML page
-app.get("/medications/weekly", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
-});
-
+//routes for medication tracker
 app.get("/medications/user/:userId/reminders", medTrackerController.remindMedication);
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", validateDateRangeQuery, medTrackerController.getWeeklyMedicationByUser);
@@ -209,43 +237,29 @@ app.delete("/notes/:id", noteTakerController.deleteNote);
 app.put("/notes/:id", noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
-//Swagger
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-//routes for feedback
+//routes for feedback - user
 app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
 app.get("/feedback/search", verifyJWT, feedbackController.searchFeedbacks);
 app.post("/feedback", verifyJWT, validateFeedback, feedbackController.createFeedback);
 app.put("/feedback/:feedback_id", verifyJWT, validateFeedbackId, validateFeedback, feedbackController.updateFeedback);
 app.delete("/feedback/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedback);
 
+//routes for feedback - admin
+app.get("/feedback/admin", verifyJWT, feedbackController.getAllFeedbacks);
+app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksAdmin);
+app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
+app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
 
 //Weather API 3rd Party
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
 app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
 
-app.get("/weather", async (req, res) => {
-  res.render("weather/weather", { user: res.locals.user }); 
-});
+//Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-});
-
-// Serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-    res.render("medical-appointment/calendar");
-});
-
-// Serve the feedback-form HTML file
-app.get("/feedback-form", (req, res) => {
-    res.render("feedback/feedback-form");
-});
-
-// Serve the all-feedbacks HTML file
-app.get("/feedbacks", (req, res) => {
-    res.render("feedback/all-feedbacks");
 });
 
 process.on("SIGINT", async () => {

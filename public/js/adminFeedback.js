@@ -33,60 +33,34 @@ if (!localStorage.getItem('token')) {
 if (token) {
     const decoded = decodeJwtPayload(token);
     console.log(decoded);
-    if (decoded.role === "A") {
-        window.location.href = "/adminindex"; // Redirect admin
+    if (decoded.role !== "A") {
+        window.location.href = "/dashboard"; // Redirect non-admin
     }
 }
 
 // Global variable to store all feedback data for filtering
 let allFeedbackData = [];
 
-// Function to convert stored feature values to display-friendly names
-function getDisplayFeatureName(featureValue) {
-    const featureMapping = {
-        'Chat': 'Chat',
-        'Medication Tracker': 'Medication Tracker',
-        'Medical Appointments Calendar': 'Medical Appointments Calendar',
-        'Note Taker': 'Note Taker',
-        'Alert': 'Alert',
-        'Weather': 'Weather',
-        'Lottery': 'Lottery',
-        'Bus Arrival': 'Bus Arrival',
-        'Feedback': 'Feedback',
-        'Reputation System': 'Reputation System',
-        'Previous Asked Questions Log': 'Previous Asked Questions Log',
-        'Other': 'Other'
-    };
-    
-    return featureMapping[featureValue] || featureValue;
-}
-
 // Function to filter feedback based on search criteria
 function filterFeedback() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    const featureFilter = document.getElementById('featureFilter').value;
     const statusFilter = document.getElementById('statusFilter').value;
     
     let filteredData = allFeedbackData.filter(feedback => {
-        // Search in title and description
+        // Search in title only
         const matchesSearch = !searchTerm || 
-            feedback.title.toLowerCase().includes(searchTerm) ||
-            feedback.description.toLowerCase().includes(searchTerm);
-        
-        // Filter by feature
-        const displayFeature = getDisplayFeatureName(feedback.feature);
-        const matchesFeature = !featureFilter || displayFeature === featureFilter;
+            feedback.title.toLowerCase().includes(searchTerm);
         
         // Filter by status (using normalized status)
         const normalizedStatus = getNormalizedStatus(feedback.status);
         const matchesStatus = !statusFilter || normalizedStatus === statusFilter;
         
-        return matchesSearch && matchesFeature && matchesStatus;
+        return matchesSearch && matchesStatus;
     });
     
     // Update search results count
     const searchResults = document.getElementById('searchResults');
-    if (searchTerm || featureFilter || statusFilter) {
+    if (searchTerm || statusFilter) {
         searchResults.textContent = `Showing ${filteredData.length} of ${allFeedbackData.length} feedback items`;
     } else {
         searchResults.textContent = '';
@@ -121,20 +95,9 @@ function displayFeedbackItems(feedbackList) {
     // Clear previous content
     feedbackDiv.innerHTML = "";
 
-    // Add "Create New Feedback" button at the top
-    const createButtonDiv = document.createElement("div");
-    createButtonDiv.classList.add("mb-4");
-    createButtonDiv.innerHTML = `
-        <button class="btn btn-success" onclick="createNewFeedback()">
-            <i class="fas fa-plus"></i> Create New Feedback
-        </button>
-    `;
-    feedbackDiv.appendChild(createButtonDiv);
-
     if (!feedbackList || feedbackList.length === 0) {
         const noFeedbackDiv = document.createElement("div");
         const hasFilters = document.getElementById('searchInput').value || 
-                          document.getElementById('featureFilter').value ||
                           document.getElementById('statusFilter').value;
         
         if (hasFilters) {
@@ -145,7 +108,7 @@ function displayFeedbackItems(feedbackList) {
                 </div>
             `;
         } else {
-            noFeedbackDiv.innerHTML = "<p>No feedback found. Be the first to submit feedback!</p>";
+            noFeedbackDiv.innerHTML = "<p>No feedback found.</p>";
         }
         feedbackDiv.appendChild(noFeedbackDiv);
     } else {
@@ -191,15 +154,13 @@ function displayFeedbackItems(feedbackList) {
                 }
             }
             
-            // Highlight search terms in title and description
+            // Highlight search terms in title
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
             let highlightedTitle = feedback.title;
-            let highlightedDescription = feedback.description;
             
             if (searchTerm) {
                 const regex = new RegExp(`(${searchTerm})`, 'gi');
                 highlightedTitle = feedback.title.replace(regex, '<mark>$1</mark>');
-                highlightedDescription = feedback.description.replace(regex, '<mark>$1</mark>');
             }
             
             // Create the feedback item HTML
@@ -207,15 +168,17 @@ function displayFeedbackItems(feedbackList) {
                 <div class="card-body">
                     <h5 class="card-title">${highlightedTitle}</h5>
                     <p class="card-text">
-                        <strong>Feature:</strong> ${getDisplayFeatureName(feedback.feature)}<br>
-                        <strong>Description:</strong> ${highlightedDescription}<br>
-                        <strong>Status:</strong> <span class="badge badge-${getStatusBadgeClass(feedback.status)}" style="font-size: 15px;">${getNormalizedStatus(feedback.status)}</span> <br>
+                        <strong>Feature:</strong> ${feedback.feature}<br>
+                        <strong>Description:</strong> ${feedback.description}<br>
+                        <strong>Status:</strong> 
+                        <select class="form-control d-inline-block" style="width: auto; display: inline-block;" 
+                                onchange="updateFeedbackStatus(${feedback.id}, this.value)">
+                            <option value="Pending" ${getNormalizedStatus(feedback.status) === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Reviewed" ${getNormalizedStatus(feedback.status) === 'Reviewed' ? 'selected' : ''}>Reviewed</option>
+                        </select><br>
                         <strong>Created at:</strong> ${formattedDate}
                     </p>
                     <div class="btn-group" role="group">
-                        <button class="btn btn-primary btn-sm" style="margin-right: 10px;" onclick="editFeedback(${feedback.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
                         <button class="btn btn-danger btn-sm delete-btn" data-id="${feedback.id}">
                             <i class="fas fa-trash"></i> Delete
                         </button>
@@ -234,6 +197,56 @@ function displayFeedbackItems(feedbackList) {
     }
 }
 
+// Function to update feedback status
+async function updateFeedbackStatus(feedbackId, newStatus) {
+    try {
+        const response = await fetch(`${apiBaseUrl}/feedback/admin/${feedbackId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            const errorBody = response.headers
+                .get("content-type")
+                ?.includes("application/json")
+                ? await response.json()
+                : { message: response.statusText };
+            throw new Error(
+                `HTTP error! status: ${response.status}, message: ${errorBody.message}`
+            );
+        }
+
+        // Update the local data
+        const feedbackIndex = allFeedbackData.findIndex(f => f.id === feedbackId);
+        if (feedbackIndex !== -1) {
+            allFeedbackData[feedbackIndex].status = newStatus;
+        }
+
+        // Show success message
+        messageDiv.textContent = `Feedback status updated to ${newStatus} successfully.`;
+        messageDiv.style.color = "green";
+
+        // Hide the success message after 3 seconds
+        setTimeout(() => {
+            messageDiv.textContent = "";
+        }, 3000);
+
+        // Re-apply current filters to refresh the display
+        filterFeedback();
+
+    } catch (error) {
+        console.error("Error updating feedback status:", error);
+        messageDiv.textContent = `Failed to update status: ${error.message}`;
+        messageDiv.style.color = "red";
+        
+        // Reset the dropdown to previous value
+        fetchAllFeedback();
+    }
+}
+
 // Function to fetch all feedback from the API and display them
 async function fetchAllFeedback() {
     try {
@@ -241,7 +254,7 @@ async function fetchAllFeedback() {
         messageDiv.textContent = ""; // Clear any previous messages
 
         // Make a GET request to your API endpoint for all feedback
-        const response = await fetch(`${apiBaseUrl}/feedback`);
+        const response = await fetch(`${apiBaseUrl}/feedback/admin`);
 
         if (!response.ok) {
             const errorBody = response.headers
@@ -273,78 +286,9 @@ async function fetchAllFeedback() {
 // Function to clear all filters
 function clearAllFilters() {
     document.getElementById('searchInput').value = '';
-    document.getElementById('featureFilter').value = '';
     document.getElementById('statusFilter').value = '';
     document.getElementById('searchResults').textContent = '';
     displayFeedbackItems(allFeedbackData);
-}
-
-// Function to create new feedback
-function createNewFeedback() {
-    console.log("Redirecting to create new feedback");
-    window.location.href = '/feedback-form';
-}
-
-// Function to edit feedback
-function editFeedback(feedbackId) {
-    console.log("Edit feedback with ID:", feedbackId);
-    
-    // Find the feedback data from the current list and store it
-    const feedbackElement = document.querySelector(`[data-feedback-id="${feedbackId}"]`);
-    if (feedbackElement) {
-        const title = feedbackElement.querySelector('.card-title').textContent.trim();
-        const cardText = feedbackElement.querySelector('.card-text').innerHTML;
-        
-        console.log('Card text HTML:', cardText);
-        
-        // Parse the feature and description from the card text with better regex
-        const featureMatch = cardText.match(/<strong>Feature:<\/strong>\s*([^<\n\r]+)/);
-        const descriptionMatch = cardText.match(/<strong>Description:<\/strong>\s*([^<\n\r]+)/);
-        
-        // Clean the extracted values
-        let feature = featureMatch ? featureMatch[1].trim() : '';
-        let description = descriptionMatch ? descriptionMatch[1].trim() : '';
-        
-        console.log('Extracted feature:', feature);
-        
-        // Convert display name back to stored value for editing
-        const displayToValueMapping = {
-            'Chat': 'Chat',
-            'Medication Tracker': 'Medication Tracker',
-            'Medical Appointments Calendar': 'Medical Appointments Calendar',
-            'Note Taker': 'Note Taker',
-            'Alert': 'Alert',
-            'Weather': 'Weather',
-            'Lottery': 'Lottery',
-            'Bus Arrival': 'Bus Arrival',
-            'Feedback': 'Feedback',
-            'Reputation System': 'Reputation System',
-            'Previous Asked Questions Log': 'Previous Asked Questions Log'
-        };
-        
-        // Keep the display name for new records, or convert if needed
-        feature = displayToValueMapping[feature] || feature;
-        
-        // Remove the "..." if it was truncated and remove HTML tags
-        if (description.endsWith('...')) {
-            description = description.slice(0, -3).trim();
-        }
-        // Remove any HTML tags from description
-        description = description.replace(/<[^>]*>/g, '');
-        
-        // Store the data in localStorage for the edit form to use
-        const feedbackData = {
-            id: feedbackId,
-            title: title,
-            feature: feature,
-            description: description
-        };
-        
-        console.log('Storing feedback data for edit:', feedbackData);
-        localStorage.setItem('editFeedbackData', JSON.stringify(feedbackData));
-    }
-    
-    window.location.href = `/feedback-form?id=${feedbackId}`;
 }
 
 // Function to handle delete button clicks
@@ -363,7 +307,7 @@ function handleDeleteClick(event) {
     deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
     deleteButton.disabled = true;
 
-    fetch(`${apiBaseUrl}/feedback/${feedbackId}`, {
+    fetch(`${apiBaseUrl}/feedback/admin/${feedbackId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -430,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners for search and filter functionality
     const searchInput = document.getElementById('searchInput');
-    const featureFilter = document.getElementById('featureFilter');
     const statusFilter = document.getElementById('statusFilter');
     const clearFiltersBtn = document.getElementById('clearFilters');
     
@@ -442,9 +385,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Filter on dropdown changes
-    featureFilter.addEventListener('change', filterFeedback);
     statusFilter.addEventListener('change', filterFeedback);
     
     // Clear filters button
-    clearFiltersBtn.addEventListener('click', clearAllFilters);
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearAllFilters);
+    }
 });
