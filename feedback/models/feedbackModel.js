@@ -174,7 +174,6 @@ async function updateFeedback(id, userId, feedbackData){
       if(result.rowsAffected[0] === 0){
           return null; // Feedback not found
       }
-
       return await getFeedbackById(id);
   } catch(error){
       console.error("Database error in updateFeedback:", error);
@@ -204,6 +203,7 @@ async function editFeedbackStatus(id, status) {
         const request = connection.request();
         request.input("status", status);
         request.input("fbk_id", id);
+        
         const result = await request.query(query);
 
         if(result.rowsAffected[0] === 0){
@@ -237,6 +237,7 @@ async function deleteFeedback(id, userId) {
       const request = connection.request();
       request.input("fbk_id", id);
       request.input("user_id", userId);
+      
       const result = await request.query(query);
 
       if(result.rowsAffected[0] === 0){
@@ -269,6 +270,7 @@ async function deleteFeedbackAdmin(id) {
 
         const request = connection.request();
         request.input("fbk_id", id);
+        
         const result = await request.query(query);
 
         if(result.rowsAffected[0] === 0){
@@ -316,6 +318,7 @@ async function searchFeedbacks(searchTerm, userId) {
       const request = connection.request();
       request.input("user_id", userId); 
       request.input("searchTerm", sql.NVarChar, searchTerm); // Explicitly define type
+      
       const result = await request.query(query);
       return result.recordset;
   } catch (error) {
@@ -355,6 +358,7 @@ async function searchFeedbacksAdmin(searchTerm) {
 
       const request = connection.request();
       request.input("searchTerm", sql.NVarChar, searchTerm); // Explicitly define type
+      
       const result = await request.query(query);
       return result.recordset;
   } catch (error) {

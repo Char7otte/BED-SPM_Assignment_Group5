@@ -147,6 +147,25 @@ describe("feedbackModel.getFeedbackById", () => {
         expect(feedback.creation_date).toBe("2025-07-11");
     });
 
+    it("should return null if feedback not found", async () => {
+        const mockRequest = {
+            input: jest.fn().mockReturnThis(),
+            query: jest.fn().mockResolvedValue({ recordset: [] }),
+        };
+        const mockConnection = {
+            request: jest.fn().mockReturnValue(mockRequest),
+            close: jest.fn().mockResolvedValue(undefined),
+        };
+
+        sql.connect.mockResolvedValue(mockConnection); // Return the mock connection
+        
+        const feedback = await feedbackModel.getFeedbackById(1);
+        
+        expect(sql.connect).toHaveBeenCalledWith(expect.any(Object));
+        expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        expect(feedback).toBeNull();
+    });
+
     it("should handle error when retrieving feedback by ID", async () => {
         const errorMessage = "Database Error";
         sql.connect.mockRejectedValue(new Error(errorMessage));
@@ -270,6 +289,29 @@ describe("feedbackModel.updateFeedback", () => {
         expect(feedback.creation_date).toBe("2025-07-11");
     });
 
+    it("should return null if feedback not found for update", async () => {
+        const mockUpdateRequest = {
+            input: jest.fn().mockReturnThis(),
+            query: jest.fn().mockResolvedValue({ rowsAffected: [0] }),
+        };
+        const mockUpdateConnection = {
+            request: jest.fn().mockReturnValue(mockUpdateRequest),
+            close: jest.fn().mockResolvedValue(undefined),
+        };
+        
+        // Since rowsAffected is 0, the function should return null early and not call getFeedbackById
+        sql.connect.mockResolvedValueOnce(mockUpdateConnection);
+
+        const feedback = await feedbackModel.updateFeedback(1, 1, { title: "Calendar cannot load - Updated" });
+
+        // Verify only one connection was used since it returns early
+        expect(sql.connect).toHaveBeenCalledTimes(1);
+        expect(mockUpdateConnection.close).toHaveBeenCalledTimes(1);
+
+        // Verify the returned feedback data
+        expect(feedback).toBeNull();
+    });
+
     it("should handle error when updating feedback", async () => {
         const errorMessage = "Database Error";
         sql.connect.mockRejectedValue(new Error(errorMessage));
@@ -289,7 +331,7 @@ describe("feedbackModel.editFeedbackStatus", () => {
             user_id: 1, 
             title: "Calendar cannot load", 
             creation_date: "2025-07-11", 
-            status: "Resolved" 
+            status: "Reviewed" 
         };
 
         // Mock the UPDATE operation
@@ -317,7 +359,7 @@ describe("feedbackModel.editFeedbackStatus", () => {
             .mockResolvedValueOnce(mockUpdateConnection)  // First call - editFeedbackStatus
             .mockResolvedValueOnce(mockSelectConnection); // Second call - getFeedbackById
 
-        const feedback = await feedbackModel.editFeedbackStatus(1, "Resolved");
+        const feedback = await feedbackModel.editFeedbackStatus(1, "Reviewed");
 
         // Verify both connections were used and closed
         expect(sql.connect).toHaveBeenCalledTimes(2);
@@ -329,13 +371,36 @@ describe("feedbackModel.editFeedbackStatus", () => {
         expect(feedback.user_id).toBe(1);
         expect(feedback.title).toBe("Calendar cannot load");
         expect(feedback.creation_date).toBe("2025-07-11");
-        expect(feedback.status).toBe("Resolved");
+        expect(feedback.status).toBe("Reviewed");
+    });
+
+    it("should return null if feedback not found for status update", async () => {
+        const mockUpdateRequest = {
+            input: jest.fn().mockReturnThis(),
+            query: jest.fn().mockResolvedValue({ rowsAffected: [0] }),
+        };
+        const mockUpdateConnection = {
+            request: jest.fn().mockReturnValue(mockUpdateRequest),
+            close: jest.fn().mockResolvedValue(undefined),
+        };
+        
+        // Since rowsAffected is 0, the function should return null early and not call getFeedbackById
+        sql.connect.mockResolvedValueOnce(mockUpdateConnection);
+
+        const feedback = await feedbackModel.editFeedbackStatus(1, "Reviewed");
+
+        // Verify only one connection was used since it returns early
+        expect(sql.connect).toHaveBeenCalledTimes(1);
+        expect(mockUpdateConnection.close).toHaveBeenCalledTimes(1);
+
+        // Verify the returned feedback data
+        expect(feedback).toBeNull();
     });
 
     it("should handle error when updating feedback status", async () => {
         const errorMessage = "Database Error";
         sql.connect.mockRejectedValue(new Error(errorMessage));
-        await expect(feedbackModel.editFeedbackStatus(1, "Resolved")).rejects.toThrow(errorMessage);
+        await expect(feedbackModel.editFeedbackStatus(1, "Reviewed")).rejects.toThrow(errorMessage);
     });
 });
 
@@ -362,6 +427,25 @@ describe("feedbackModel.deleteFeedback", () => {
         expect(sql.connect).toHaveBeenCalledWith(expect.any(Object));
         expect(mockConnection.close).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
+    });
+
+    it("should return null if feedback not found for deletion", async () => {
+        const mockRequest = {
+            input: jest.fn().mockReturnThis(),
+            query: jest.fn().mockResolvedValue({ rowsAffected: [0] }),
+        };
+        const mockConnection = {
+            request: jest.fn().mockReturnValue(mockRequest),
+            close: jest.fn().mockResolvedValue(undefined),
+        };
+
+        sql.connect.mockResolvedValue(mockConnection); // Return the mock connection
+
+        const result = await feedbackModel.deleteFeedback(1, 1);
+
+        expect(sql.connect).toHaveBeenCalledWith(expect.any(Object));
+        expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        expect(result).toBeNull();
     });
 
     it("should handle error when deleting feedback", async () => {
@@ -394,6 +478,25 @@ describe("feedbackModel.deleteFeedbackAdmin", () => {
         expect(sql.connect).toHaveBeenCalledWith(expect.any(Object));
         expect(mockConnection.close).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
+    });
+
+    it("should return null if feedback not found for admin deletion", async () => {
+        const mockRequest = {
+            input: jest.fn().mockReturnThis(),
+            query: jest.fn().mockResolvedValue({ rowsAffected: [0] }),
+        };
+        const mockConnection = {
+            request: jest.fn().mockReturnValue(mockRequest),
+            close: jest.fn().mockResolvedValue(undefined),
+        };
+
+        sql.connect.mockResolvedValue(mockConnection); // Return the mock connection
+        
+        const result = await feedbackModel.deleteFeedbackAdmin(1);
+        
+        expect(sql.connect).toHaveBeenCalledWith(expect.any(Object));
+        expect(mockConnection.close).toHaveBeenCalledTimes(1);
+        expect(result).toBeNull();
     });
 
     it("should handle error when deleting feedback for admin", async () => {
