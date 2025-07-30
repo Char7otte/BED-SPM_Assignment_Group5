@@ -242,19 +242,19 @@ async function tickAllMedications(req, res) {
         console.log("Ticking off all medications.");
         const tickedOffMedications = await medTrackerModel.tickAllMedications(userId);
 
-        if (!tickedMedications || tickedMedications.length === 0) {
+        if (!tickedOffMedications || tickedOffMedications.length === 0) {
             return res.json({ 
                 message: "No untaken medications found for this user",
                 tickedCount: 0,
                 medications: []
             });
         }   
-        
-        if (!tickedOffMedications) {
-            return res.status(404).json({ error: "No medications found for this user" });
-        }
 
-        res.json(tickedOffMedications);
+        res.json({
+            message: `Successfully marked ${tickedOffMedications.length} medications as taken`,
+            tickedCount: tickedOffMedications.length,
+            medications: tickedOffMedications
+        });
     }
     catch (error) {
         console.error("Controller error:", error);

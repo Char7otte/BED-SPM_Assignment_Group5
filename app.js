@@ -166,11 +166,12 @@ app.get("/medications/user/:userId/reminders", medTrackerController.remindMedica
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", validateDateRangeQuery, medTrackerController.getWeeklyMedicationByUser);
 app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerController.searchMedicationByName);
-app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser); // Add this missing route
+app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
+
+app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
 app.post("/medications", validateMedicationCreate, medTrackerController.createMedication);
 app.put("/medications/:userId/:medicationId", validateMedicationUpdate, medTrackerController.updateMedication);
 app.put("/medications/:userId/:medicationId/is-taken", validateMedicationIdParam, medTrackerController.tickOffMedication);
-app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
 app.put("/medications/:userId/:id/refill", validateRefillRequest, medTrackerController.refillMedication);
 app.put("/medications/:userId/:id/missed", validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
 app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
