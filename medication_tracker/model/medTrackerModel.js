@@ -501,18 +501,33 @@ async function tickAllMedications(userId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = `
+
+        const getMedicationsQuery = `
+            SELECT medication_id, medication_name, medication_quantity
+            FROM Medications
+            WHERE user_id = @userId AND is_taken = 0
+        `;
+
+        const getMedicationsRequest = connection.request();
+        getMedicationsRequest.input("userId", sql.Int, userId);
+        const medicationsResult = await getMedicationsRequest.query(getMedicationsQuery);
+
+        if (medicationsResult.recordset.length === 0) {
+            return [];
+        }
+
+        const updateQuery = `
             UPDATE Medications
             SET is_taken = 1, updated_at = GETDATE()
             WHERE user_id = @userId AND is_taken = 0
         `;
 
-        const request = connection.request();
-        request.input("userId", sql.Int, userId);
-        const result = await request.query(query);
+        const updateRequest = connection.request();
+        updateRequest.input("userId", sql.Int, userId);
+        const result = await updateRequest.query(updateQuery);
 
         if (result.rowsAffected[0] === 0) {
-            return null
+            return null;
         }
 
         return { userId, message: "All medications marked as taken." };
