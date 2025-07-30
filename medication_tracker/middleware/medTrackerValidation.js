@@ -291,7 +291,7 @@ const validateDateRangeQuery = (req, res, next) => {
 
 const validateSearchQuery = (req, res, next) => {
     const searchSchema = Joi.object({
-        medicationName: Joi.string().trim().min(1).max(100).required()
+        name: Joi.string().trim().min(1).max(100).required()
             .messages({
                 'string.base': 'Medication name must be a string',
                 'string.empty': 'Medication name cannot be empty',

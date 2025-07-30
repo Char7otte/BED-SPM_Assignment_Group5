@@ -162,17 +162,18 @@ app.put("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId
 app.delete("/med-appointments/:appointment_id", verifyJWT, validateMedAppointmentId, medAppointmentController.deleteAppointment);
 
 // Medication tracker routes
-app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
+app.get("/medications/user/:userId/reminders", medTrackerController.remindMedication);
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
-app.get("/medications/user/:userId/weekly", medTrackerController.getWeeklyMedicationByUser);
+app.get("/medications/user/:userId/weekly", validateDateRangeQuery, medTrackerController.getWeeklyMedicationByUser);
+app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerController.searchMedicationByName);
+app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser); // Add this missing route
 app.post("/medications", validateMedicationCreate, medTrackerController.createMedication);
 app.put("/medications/:userId/:medicationId", validateMedicationUpdate, medTrackerController.updateMedication);
-app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
 app.put("/medications/:userId/:medicationId/is-taken", validateMedicationIdParam, medTrackerController.tickOffMedication);
-app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerController.searchMedicationByName);
-app.get("/medications/user/:userId/reminders", medTrackerController.remindMedication);
 app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
-app.get("/medications/user/:userId/low-quantity", medTrackerController.getLowQuantityMedication);
+app.put("/medications/:userId/:id/refill", validateRefillRequest, medTrackerController.refillMedication);
+app.put("/medications/:userId/:id/missed", validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
+app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
 
 // Serve medication pages
 app.get("/medications", (req, res) => {
