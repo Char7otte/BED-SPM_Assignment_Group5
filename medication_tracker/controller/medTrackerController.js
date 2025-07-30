@@ -311,24 +311,39 @@ async function refillMedication(req, res) {
     try {
         const medicationId = parseInt(req.params.id);
         const userId = parseInt(req.params.userId);
-        const { newQuantity } = req.body;
-
+        
         if (isNaN(medicationId) || isNaN(userId)) {
             return res.status(400).json({ error: "Invalid medication ID or user ID" });
         }
 
-        if (!newQuantity || isNaN(parseInt(newQuantity))) {
-            return res.status(400).json({ error: "Valid quantity is required" });
-        }
+        console.log('Refill request data:', req.body);
+        
+        const refillData = {
+            refillQuantity: req.body.refillQuantity,
+            refillDate: req.body.refillDate,
+            userId: userId
+        };
 
-        const result = await medTrackerModel.refillMedication(medicationId, userId, parseInt(newQuantity));
-
+        console.log('Calling model with:', refillData);
+        
+        const result = await medTrackerModel.refillMedication(medicationId, refillData);
+        
         if (!result) {
             return res.status(404).json({ error: "Medication not found" });
         }
 
-        res.json(result);
-    } catch (error) {
+        res.json({
+            message: "Medication refilled successfully",
+            medicationId: result.medicationId,
+            medicationName: result.medicationName,
+            previousQuantity: result.previousQuantity,
+            refillQuantity: result.refillQuantity,
+            newQuantity: result.newQuantity,
+            refillDate: result.refillDate,
+            updatedAt: new Date().toISOString()
+        });
+    }
+    catch (error) {
         console.error("Controller error:", error);
         res.status(500).json({ error: "Error refilling medication" });
     }

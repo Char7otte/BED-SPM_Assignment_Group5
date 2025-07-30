@@ -695,27 +695,59 @@ async function filterMedicationByDate(userId, startDate, endDate) {
     }
 }
 
-async function refillMedication(medicationId, userId, newQuantity) {
+async function refillMedication(medicationId, refillData) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = `
+        
+        const getCurrentQuery = `
+            SELECT medication_quantity, medication_name 
+            FROM Medications 
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+        
+        const getCurrentRequest = connection.request();
+        getCurrentRequest.input("medicationId", sql.Int, medicationId);
+        getCurrentRequest.input("userId", sql.Int, refillData.userId);
+        
+        const currentResult = await getCurrentRequest.query(getCurrentQuery);
+        
+        if (currentResult.recordset.length === 0) {
+            return null; // Medication not found
+        }
+        
+        const currentQuantity = currentResult.recordset[0].medication_quantity;
+        const medicationName = currentResult.recordset[0].medication_name;
+        
+        const newQuantity = currentQuantity + refillData.refillQuantity;
+        
+        const updateQuery = `
             UPDATE Medications
             SET medication_quantity = @newQuantity, updated_at = GETDATE()
             WHERE medication_id = @medicationId AND user_id = @userId
         `;
 
-        const request = connection.request();
-        request.input("medicationId", sql.Int, medicationId);
-        request.input("userId", sql.Int, userId);
-        request.input("newQuantity", sql.NVarChar, newQuantity.toString());
-        const result = await request.query(query);
+        const updateRequest = connection.request();
+        updateRequest.input("medicationId", sql.Int, medicationId);
+        updateRequest.input("userId", sql.Int, refillData.userId);
+        updateRequest.input("newQuantity", sql.Int, newQuantity);
+        
+        const result = await updateRequest.query(updateQuery);
 
         if (result.rowsAffected[0] === 0) {
             return null;
         }
 
-        return { medicationId, userId, newQuantity, message: "Medication refilled successfully." };
+        return { 
+            medicationId, 
+            userId: refillData.userId, 
+            medicationName,
+            previousQuantity: currentQuantity,
+            refillQuantity: refillData.refillQuantity,
+            newQuantity: newQuantity,
+            refillDate: refillData.refillDate,
+            message: "Medication refilled successfully." 
+        };
     }
     catch (error) {
         console.error("Database error:", error);
