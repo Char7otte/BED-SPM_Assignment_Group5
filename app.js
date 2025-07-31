@@ -92,6 +92,11 @@ app.get('/users/updatedetail/:id', (req, res) => {
   const userId = req.params.id;
   res.render('user/updatedetail', { userId: userId, user: res.locals.user });
 });
+app.get('/notes', (req, res) => {
+  res.render('note-taker/notes');
+});
+
+
 
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -169,14 +174,14 @@ app.put("/medications/:userId/:medicationId", medTrackerController.updateMedicat
 app.delete("/medications/:userId/:medicationId", medTrackerController.deleteMedication);
 
 // routes for note taker
-app.get("/notes", noteTakerController.getAllNotes);
-app.delete("/notes/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
-app.get("/notes/search", noteTakerController.searchNotes);
-app.get("/notes/:id", validateNoteID, noteTakerController.getNotesById);
-app.post("/notes", validateNoteInput, noteTakerController.createNote);
-app.delete("/notes/:id", validateNoteID, noteTakerController.deleteNote);
-app.put("/notes/:id", validateNoteInput, noteTakerController.updateNote);
-app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+app.get("/notes-api", noteTakerController.getAllNotes);
+app.delete("/notes-api/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
+app.get("/notes-api/search", noteTakerController.searchNotes);
+app.get("/notes-api/:id", validateNoteID, noteTakerController.getNotesById);
+app.post("/notes-api", noteTakerController.createNote);
+app.delete("/notes-api/:id", validateNoteID, noteTakerController.deleteNote);
+app.put("/notes-api/:id", validateNoteInput, noteTakerController.updateNote);
+app.get("/notes-api/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

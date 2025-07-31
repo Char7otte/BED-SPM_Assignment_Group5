@@ -6,7 +6,7 @@ async function getAllNotes(req, res) {
         const notes = await noteTakerModel.getAllNotes();
         res.json(notes);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in getAllNotes:", error.message, error.stack);
         res.status(500).json({ error: "Error retrieving notes" });
     }
 }
@@ -29,7 +29,7 @@ async function getNotesById(req, res) {
 
         res.json(note);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in getNotesById:", error.message, error.stack);
         res.status(500).json({ error: "Error retrieving note" });
     }
 }
@@ -52,7 +52,7 @@ async function searchNotes(req, res) {
 
         res.json(note);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in searchNotes:", error.message, error.stack);
         res.status(500).json({ error: "Error retrieving note" });
     }
 }
@@ -71,7 +71,7 @@ async function createNote(req, res) {
         const newNote = await noteTakerModel.createNote(noteData);
         res.status(201).json({ message: 'Note created successfully', note: newNote });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in createNote:", error.message, error.stack);
         res.status(500).json({ error: "Error creating note" });
     }
 }
@@ -93,7 +93,7 @@ async function updateNote(req, res) {
         }
         res.json({ message: "Note updated successfully", note: updatedNote });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in updateNote:", error.message, error.stack);
         res.status(500).json({ error: "Error updating note" });
     }
 }
@@ -112,7 +112,7 @@ async function deleteNote(req, res) {
         await noteTakerModel.deleteNote(noteId);
         res.status(200).json({ message: "Note deleted successfully" });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in deleteNote:", error.message, error.stack);
         res.status(500).json({ error: "Error deleting note" });
     }
 }
@@ -146,7 +146,7 @@ async function exportNoteAsMarkdown(req, res) {
 
         res.send(markdownContent);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in expostNoteAsMarkdown:", error.message, error.stack);
         res.status(500).json({ error: "Error exporting note" });
     }
 }
@@ -165,7 +165,7 @@ async function bulkDeleteNotes(req, res) {
         await noteTakerModel.bulkDeleteNotes(noteIds);
         res.status(200).json({ message: "Notes deleted successfully" });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in bulkDeleteNotes:", error.message, error.stack);
         res.status(500).json({ error: "Error deleting notes" });
     }
 }

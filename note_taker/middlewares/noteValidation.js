@@ -1,17 +1,26 @@
 const jwt = require("jsonwebtoken");
 const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
+const { parse } = require("dotenv");
 
 const schema = joi.object({
-    user_id: joi.number().integer().required(),
+    user_id: joi.number().integer().positive().required(),
     NoteTitle: joi.string().min(1).max(100).required(),
-    NoteContent: joi.string().min(1).max(5000).required(),
-    CreatedDate: joi.date(),
-    LastEditedDate: joi.date()
+    NoteContent: joi.string().min(1).max(5000).required()
 });
 
+const idSchema = joi.object({
+    id: joi.number().positive().required()
+});
+
+
 function validateNoteID(req, res, next) {
-    if (!validateID(req.params.note_id)) return res.status(400).send("Invalid note ID");
+    console.log("Validating note ID:", req.params.id);
+    const id = parseInt(req.params.id, 10);
+    const { error } = idSchema.validate({ id });
+    if (error) {
+        return res.status(400).json({ message: `Invalid note ID: ${id}` });
+    }
     next();
 }
 
