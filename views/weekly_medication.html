@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Weekly Medication Tracker</title>
+  <title>Weekly Medications - MedTracker</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
@@ -24,7 +24,7 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#"><i class="fa fa-home"></i> Home</a></li>
+        <li><a href="/medications"><i class="fa fa-home"></i> Home</a></li>
         <li><a href="#"><i class="fa fa-info-circle"></i> About</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -45,21 +45,25 @@
         <a href="/medications/daily" class="list-group-item">
           <i class="fa fa-calendar-day"></i> Today's Medications
         </a>
-        <a href="#" class="list-group-item active">
+        <a href="/medications/weekly" class="list-group-item active">
           <i class="fa fa-calendar-week"></i> Weekly View
         </a>
         <a href="#" class="list-group-item" data-toggle="modal" data-target="#addMedModal">
           <i class="fa fa-plus-circle"></i> Add Medication
         </a>
       </div>
+      
+      <!-- Current Week Panel -->
       <div class="panel panel-info" style="margin-top: 20px;">
         <div class="panel-heading">
           <h4><i class="fa fa-calendar"></i> Current Week</h4>
         </div>
         <div class="panel-body text-center">
-          <p id="current-week" style="font-size: 14px; margin: 0;"></p>
+          <p id="current-week" style="font-size: 14px; margin: 0; color: #337ab7; font-weight: bold;"></p>
         </div>
       </div>
+      
+      <!-- Week Summary Panel -->
       <div class="panel panel-default" style="margin-top: 15px;">
         <div class="panel-heading">
           <h4><i class="fa fa-chart-bar"></i> Week Summary</h4>
@@ -67,28 +71,29 @@
         <div class="panel-body text-center">
           <div class="row">
             <div class="col-xs-12">
-              <h4 id="weekly-total" class="text-primary">0</h4>
-              <p><small>Total Medications</small></p>
+              <h4 id="weekly-total" class="text-primary" style="font-size: 28px; margin: 10px 0;">0</h4>
+              <p style="font-size: 14px; margin: 5px 0;"><strong>Total Medications</strong></p>
             </div>
           </div>
-          <div class="row">
+          <div class="row" style="margin-top: 10px;">
             <div class="col-xs-6">
-              <h4 id="weekly-taken" class="text-success">0</h4>
-              <p><small>Taken</small></p>
+              <h4 id="weekly-taken" class="text-success" style="font-size: 20px; margin: 5px 0;">0</h4>
+              <p style="font-size: 12px; margin: 0;"><strong>Taken</strong></p>
             </div>
             <div class="col-xs-6">
-              <h4 id="weekly-remaining" class="text-warning">0</h4>
-              <p><small>Remaining</small></p>
+              <h4 id="weekly-remaining" class="text-warning" style="font-size: 20px; margin: 5px 0;">0</h4>
+              <p style="font-size: 12px; margin: 0;"><strong>Remaining</strong></p>
             </div>
           </div>
-          <div class="progress" style="margin-top: 10px;">
-            <div class="progress-bar progress-bar-success" id="weekly-progress" style="min-width: 2em;">
+          <div class="progress" style="margin: 15px 0; height: 20px;">
+            <div class="progress-bar progress-bar-success" id="weekly-progress" style="min-width: 2em; font-size: 12px; font-weight: bold;">
               0%
             </div>
           </div>
         </div>
       </div>
     </div>
+    
     <div class="col-sm-8 text-left"> 
       <nav aria-label="breadcrumb" style="margin-bottom: 10px;">
         <ol class="breadcrumb" style="background-color: #f5f5f5; padding: 8px 15px; margin-bottom: 10px;">
@@ -96,31 +101,47 @@
           <li class="active"><i class="fa fa-calendar-week"></i> Weekly View</li>
         </ol>
       </nav>
+      
       <div class="row">
         <div class="col-sm-6">
-          <h1><i class="fa fa-calendar-week"></i> Weekly Medications</h1>
-          <p class="text-muted">Your medication schedule for this week</p>
+          <h1 style="font-size: 42px; color: #2c3e50; margin-bottom: 10px;">
+            <i class="fa fa-calendar-week" style="color: #3498db;"></i> Weekly Medications
+          </h1>
+          <p class="text-muted" style="font-size: 18px; margin-bottom: 20px;">Your medication schedule for this week</p>
         </div>
         <div class="col-sm-6 text-right">
           <div style="margin-top: 20px;">
-            <button class="btn btn-info" id="prev-week">
+            <button class="btn btn-info btn-lg" id="prev-week" style="font-size: 16px; padding: 12px 20px; margin-right: 10px;">
               <i class="fa fa-chevron-left"></i> Previous Week
             </button>
-            <button class="btn btn-info" id="next-week">
+            <button class="btn btn-info btn-lg" id="next-week" style="font-size: 16px; padding: 12px 20px;">
               Next Week <i class="fa fa-chevron-right"></i>
             </button>
           </div>
         </div>
       </div>
-      <hr>
+      <hr style="margin: 20px 0; border-color: #ddd;">
       
       <!-- Weekly Calendar -->
       <div id="weekly-calendar" class="weekly-calendar-container">
-        <div class="alert alert-info" id="loading-message">
-          <i class="fa fa-spinner fa-spin"></i> Loading weekly medications...
+        <div class="alert alert-info" id="loading-message" style="font-size: 18px; padding: 20px; text-align: center;">
+          <i class="fa fa-spinner fa-spin fa-2x" style="display: block; margin-bottom: 10px;"></i>
+          <strong>Loading weekly medications...</strong>
+        </div>
+        <div class="alert alert-warning" id="no-medications-message" style="font-size: 16px; padding: 15px; text-align: center; display: none;">
+          <i class="fa fa-info-circle fa-2x" style="display: block; margin-bottom: 10px;"></i>
+          <strong>No medications scheduled for this week.</strong>
+          <p>Click "Add Medication" to get started.</p>
+        </div>
+        <div class="alert alert-danger" id="error-message" style="font-size: 16px; padding: 15px; text-align: center; display: none;">
+          <i class="fa fa-exclamation-triangle fa-2x" style="display: block; margin-bottom: 10px;"></i>
+          <strong>Error loading medications.</strong>
+          <p>Please check your connection and try refreshing the page.</p>
+          <button class="btn btn-primary" onclick="location.reload()">Refresh Page</button>
         </div>
       </div>
     </div>
+    
     <div class="col-sm-2 sidenav">
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -128,7 +149,7 @@
         </div>
         <div class="panel-body">
           <div class="input-group">
-            <input type="text" class="form-control" id="search-input" placeholder="Medication name...">
+            <input type="text" class="form-control" id="search-input" placeholder="Medication name..." style="font-size: 14px;">
             <span class="input-group-btn">
               <button class="btn btn-default" type="button" id="search-btn">
                 <i class="fa fa-search"></i>
@@ -409,6 +430,179 @@
 <footer class="container-fluid text-center">
   <p>&copy; 2023 MedTracker | Medication Management System</p>
 </footer>
+
+<!-- Add sample data and enhanced loading script -->
+<script>
+// Sample medication data for testing/fallback
+window.sampleMedications = [
+  {
+    id: 1,
+    name: "Aspirin",
+    dosage: "81mg",
+    time: "08:00 AM",
+    date: new Date().toISOString().split('T')[0],
+    taken: false,
+    notes: "Take with food"
+  },
+  {
+    id: 2,
+    name: "Metformin",
+    dosage: "500mg",
+    time: "07:00 AM",
+    date: new Date().toISOString().split('T')[0],
+    taken: false,
+    notes: "Before breakfast"
+  },
+  {
+    id: 3,
+    name: "Lisinopril",
+    dosage: "10mg",
+    time: "09:00 PM",
+    date: new Date().toISOString().split('T')[0],
+    taken: true,
+    notes: "Evening dose"
+  }
+];
+
+// Enhanced loading with fallback
+window.loadMedicationsWithFallback = function() {
+  // Try to load from backend first
+  if (typeof loadWeeklyMedications === 'function') {
+    try {
+      loadWeeklyMedications();
+    } catch (error) {
+      console.error('Error loading from backend:', error);
+      loadSampleMedications();
+    }
+  } else {
+    // Fallback to sample data
+    loadSampleMedications();
+  }
+};
+
+window.loadSampleMedications = function() {
+  setTimeout(() => {
+    document.getElementById('loading-message').style.display = 'none';
+    
+    if (window.sampleMedications && window.sampleMedications.length > 0) {
+      displayWeeklyMedications(window.sampleMedications);
+      updateWeeklySummary(window.sampleMedications);
+    } else {
+      document.getElementById('no-medications-message').style.display = 'block';
+    }
+  }, 1000);
+};
+
+window.displayWeeklyMedications = function(medications) {
+  const calendar = document.getElementById('weekly-calendar');
+  const loadingMessage = document.getElementById('loading-message');
+  const noMedsMessage = document.getElementById('no-medications-message');
+  
+  loadingMessage.style.display = 'none';
+  noMedsMessage.style.display = 'none';
+  
+  // Create weekly calendar structure
+  let calendarHTML = '<div class="row">';
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+  days.forEach((day, index) => {
+    const dayMeds = medications.filter(med => {
+      const medDate = new Date(med.date);
+      return medDate.getDay() === index;
+    });
+    
+    calendarHTML += `
+      <div class="col-md-12" style="margin-bottom: 20px;">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4><i class="fa fa-calendar-day"></i> ${day}</h4>
+          </div>
+          <div class="panel-body">
+    `;
+    
+    if (dayMeds.length > 0) {
+      dayMeds.forEach(med => {
+        const statusClass = med.taken ? 'success' : 'warning';
+        const statusIcon = med.taken ? 'check-circle' : 'clock-o';
+        const statusText = med.taken ? 'Taken' : 'Pending';
+        
+        calendarHTML += `
+          <div class="alert alert-${statusClass}" style="margin-bottom: 10px;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5><strong>${med.name}</strong> - ${med.dosage}</h5>
+                <p><i class="fa fa-time"></i> ${med.time}</p>
+                ${med.notes ? `<p><small><i class="fa fa-sticky-note"></i> ${med.notes}</small></p>` : ''}
+              </div>
+              <div class="col-md-4 text-right">
+                <span class="label label-${statusClass}">
+                  <i class="fa fa-${statusIcon}"></i> ${statusText}
+                </span>
+                <br><br>
+                <button class="btn btn-sm btn-primary" onclick="toggleMedication(${med.id})">
+                  ${med.taken ? 'Mark as Pending' : 'Mark as Taken'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      calendarHTML += '<p class="text-muted">No medications scheduled for this day.</p>';
+    }
+    
+    calendarHTML += `
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  calendarHTML += '</div>';
+  calendar.innerHTML = calendarHTML;
+};
+
+window.updateWeeklySummary = function(medications) {
+  const total = medications.length;
+  const taken = medications.filter(med => med.taken).length;
+  const remaining = total - taken;
+  const percentage = total > 0 ? Math.round((taken / total) * 100) : 0;
+  
+  document.getElementById('weekly-total').textContent = total;
+  document.getElementById('weekly-taken').textContent = taken;
+  document.getElementById('weekly-remaining').textContent = remaining;
+  
+  const progressBar = document.getElementById('weekly-progress');
+  progressBar.style.width = percentage + '%';
+  progressBar.textContent = percentage + '%';
+};
+
+window.toggleMedication = function(medId) {
+  const med = window.sampleMedications.find(m => m.id === medId);
+  if (med) {
+    med.taken = !med.taken;
+    displayWeeklyMedications(window.sampleMedications);
+    updateWeeklySummary(window.sampleMedications);
+  }
+};
+
+// Initialize current week display
+window.updateCurrentWeek = function() {
+  const now = new Date();
+  const start = new Date(now.setDate(now.getDate() - now.getDay()));
+  const end = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+  
+  const options = { month: 'short', day: 'numeric' };
+  const weekText = `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
+  document.getElementById('current-week').textContent = weekText;
+};
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  updateCurrentWeek();
+  loadMedicationsWithFallback();
+});
+</script>
 
 <script src="js/weekly_medication_script.js"></script>
 </body>

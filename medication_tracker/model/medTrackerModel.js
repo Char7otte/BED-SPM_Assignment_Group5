@@ -220,7 +220,7 @@ async function createMedication(medicationData) {
         request.input("medicationDate", sql.Date, medicationData.medication_date);
         request.input("medicationTime", sql.VarChar, medicationData.medication_time);
         request.input("medicationDosage", sql.NVarChar, medicationData.medication_dosage);
-        request.input("medicationQuantity", sql.NVarChar, medicationData.medication_quantity);
+        request.input("medicationQuantity", sql.Int, medicationData.medication_quantity);
         request.input("medicationNotes", sql.NVarChar, medicationData.medication_notes);
         request.input("medicationReminders", sql.Bit, medicationData.medication_reminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescription_startdate);
@@ -277,7 +277,7 @@ async function updateMedication(medicationId, medicationData) {
         request.input("medicationDate", sql.Date, medicationData.medicationDate);
         request.input("medicationTime", sql.VarChar, medicationData.medicationTime);
         request.input("medicationDosage", sql.NVarChar, medicationData.medicationDosage);
-        request.input("medicationQuantity", sql.NVarChar, medicationData.medicationQuantity);
+        request.input("medicationQuantity", sql.Int, medicationData.medicationQuantity);
         request.input("medicationNotes", sql.NVarChar, medicationData.medicationNotes);
         request.input("medicationReminders", sql.Bit, medicationData.medicationReminders);
         request.input("prescriptionStartDate", sql.Date, medicationData.prescriptionStartDate);
@@ -501,18 +501,33 @@ async function tickAllMedications(userId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = `
+
+        const getMedicationsQuery = `
+            SELECT medication_id, medication_name, medication_quantity
+            FROM Medications
+            WHERE user_id = @userId AND is_taken = 0
+        `;
+
+        const getMedicationsRequest = connection.request();
+        getMedicationsRequest.input("userId", sql.Int, userId);
+        const medicationsResult = await getMedicationsRequest.query(getMedicationsQuery);
+
+        if (medicationsResult.recordset.length === 0) {
+            return [];
+        }
+
+        const updateQuery = `
             UPDATE Medications
             SET is_taken = 1, updated_at = GETDATE()
             WHERE user_id = @userId AND is_taken = 0
         `;
 
-        const request = connection.request();
-        request.input("userId", sql.Int, userId);
-        const result = await request.query(query);
+        const updateRequest = connection.request();
+        updateRequest.input("userId", sql.Int, userId);
+        const result = await updateRequest.query(updateQuery);
 
         if (result.rowsAffected[0] === 0) {
-            return null
+            return null;
         }
 
         return { userId, message: "All medications marked as taken." };
@@ -680,27 +695,59 @@ async function filterMedicationByDate(userId, startDate, endDate) {
     }
 }
 
-async function refillMedication(medicationId, userId, newQuantity) {
+async function refillMedication(medicationId, refillData) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = `
+        
+        const getCurrentQuery = `
+            SELECT medication_quantity, medication_name 
+            FROM Medications 
+            WHERE medication_id = @medicationId AND user_id = @userId
+        `;
+        
+        const getCurrentRequest = connection.request();
+        getCurrentRequest.input("medicationId", sql.Int, medicationId);
+        getCurrentRequest.input("userId", sql.Int, refillData.userId);
+        
+        const currentResult = await getCurrentRequest.query(getCurrentQuery);
+        
+        if (currentResult.recordset.length === 0) {
+            return null; // Medication not found
+        }
+        
+        const currentQuantity = currentResult.recordset[0].medication_quantity;
+        const medicationName = currentResult.recordset[0].medication_name;
+        
+        const newQuantity = currentQuantity + refillData.refillQuantity;
+        
+        const updateQuery = `
             UPDATE Medications
             SET medication_quantity = @newQuantity, updated_at = GETDATE()
             WHERE medication_id = @medicationId AND user_id = @userId
         `;
 
-        const request = connection.request();
-        request.input("medicationId", sql.Int, medicationId);
-        request.input("userId", sql.Int, userId);
-        request.input("newQuantity", sql.NVarChar, newQuantity.toString());
-        const result = await request.query(query);
+        const updateRequest = connection.request();
+        updateRequest.input("medicationId", sql.Int, medicationId);
+        updateRequest.input("userId", sql.Int, refillData.userId);
+        updateRequest.input("newQuantity", sql.Int, newQuantity);
+        
+        const result = await updateRequest.query(updateQuery);
 
         if (result.rowsAffected[0] === 0) {
             return null;
         }
 
-        return { medicationId, userId, newQuantity, message: "Medication refilled successfully." };
+        return { 
+            medicationId, 
+            userId: refillData.userId, 
+            medicationName,
+            previousQuantity: currentQuantity,
+            refillQuantity: refillData.refillQuantity,
+            newQuantity: newQuantity,
+            refillDate: refillData.refillDate,
+            message: "Medication refilled successfully." 
+        };
     }
     catch (error) {
         console.error("Database error:", error);
