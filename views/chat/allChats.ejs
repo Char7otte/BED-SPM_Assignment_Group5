@@ -18,12 +18,14 @@
 
                         <div class="fixed-grid has-1-cols">
                             <div class="grid">
-                                <%for (const c of chatData) {%>
+                                <% if (chatData.length == 0) { %>
+                                <h2>You have no chats. Press the button above to start one!</h2>
+                                <% } else { %> <%for (const c of chatData) {%>
                                 <div class="cell">
                                     <%- include("./partials/chatCard", {chatID: c.chat_id, helpeeID: c.helpee_id, username: c.username, status:
                                     c.chat_status, createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time }) %>
                                 </div>
-                                <%}%>
+                                <%}%> <% } %>
                             </div>
                         </div>
                     </div>
