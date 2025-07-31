@@ -33,14 +33,11 @@ async function getChatByID(req, res) {
 async function createChat(req, res) {
     try {
         const userID = req.params.userID;
-        const newChatID = await chatModel.createChat(userID);
+        const chatTitle = req.body.question;
+        const newChat = await chatModel.createChat(userID, chatTitle);
 
-        if (!newChatID) return res.status(404).send("Error creating chat.");
-
-        const newChat = await chatModel.getChatByID(newChatID);
-
-        if (!newChat) return res.status(404).send("Error retrieving chat.");
-        return res.redirect(`/chats/${newChatID}`);
+        if (!newChat) return res.status(404).send("Error creating chat.");
+        return res.redirect(`/chats/${newChat.chat_id}`);
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error creating chat");

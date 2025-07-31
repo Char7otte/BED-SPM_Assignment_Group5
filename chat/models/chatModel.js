@@ -72,16 +72,16 @@ async function getChatByID(chatID) {
     }
 }
 
-async function createChat(creatorUserID) {
+async function createChat(creatorUserID, chatTitle) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `INSERT INTO Chats (helpee_id, title) VALUES(@creatorUserID, 'test123') SELECT SCOPE_IDENTITY() AS newChatID`;
+        const query = `INSERT INTO Chats (helpee_id, title) VALUES(@creatorUserID, @chatTitle) SELECT * FROM Chats WHERE chat_id = SCOPE_IDENTITY()`;
         const request = connection.request();
-        request.input("creatorUserID", creatorUserID);
+        request.input("creatorUserID", creatorUserID).input("chatTitle", chatTitle);
         const result = await request.query(query);
 
-        return result.recordset[0].newChatID;
+        return result.recordset[0];
     } catch (error) {
         console.error("Database error:", error);
         throw error;
