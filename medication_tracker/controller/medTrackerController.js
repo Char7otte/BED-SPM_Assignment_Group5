@@ -56,12 +56,16 @@ async function getDailyMedicationByUser(req, res) {
         const result = await medTrackerModel.getDailyMedicationByUser(userId);
 
         if (result.medications.length === 0) {
-            return res.status(404).json({ error: "No medications found for this user on the specified date" });
+            return res.json({ 
+                date: result.date, 
+                medications: [] 
+            });
         }
 
-        res.json(result);
+        res.json(result.medications); // Return just the medications array
     } 
     catch (error) {
+        console.error("Controller error:", error);
         res.status(500).json({ error: "Failed to get daily medications" });
     }
 };
@@ -187,7 +191,7 @@ async function tickOffMedication(req, res) {
 async function searchMedicationByName(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-        const name = req.query.name;
+        const name = req.query.name; // Changed from medicationName to name
         
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
@@ -235,13 +239,22 @@ async function tickAllMedications(req, res) {
             return res.status(400).json({ error: "Invalid user ID" });
         }
 
+        console.log("Ticking off all medications.");
         const tickedOffMedications = await medTrackerModel.tickAllMedications(userId);
 
-        if (!tickedOffMedications) {
-            return res.status(404).json({ error: "No medications found for this user" });
-        }
+        if (!tickedOffMedications || tickedOffMedications.length === 0) {
+            return res.json({ 
+                message: "No untaken medications found for this user",
+                tickedCount: 0,
+                medications: []
+            });
+        }   
 
-        res.json(tickedOffMedications);
+        res.json({
+            message: `Successfully marked ${tickedOffMedications.length} medications as taken`,
+            tickedCount: tickedOffMedications.length,
+            medications: tickedOffMedications
+        });
     }
     catch (error) {
         console.error("Controller error:", error);
@@ -298,24 +311,39 @@ async function refillMedication(req, res) {
     try {
         const medicationId = parseInt(req.params.id);
         const userId = parseInt(req.params.userId);
-        const { newQuantity } = req.body;
-
+        
         if (isNaN(medicationId) || isNaN(userId)) {
             return res.status(400).json({ error: "Invalid medication ID or user ID" });
         }
 
-        if (!newQuantity || isNaN(parseInt(newQuantity))) {
-            return res.status(400).json({ error: "Valid quantity is required" });
-        }
+        console.log('Refill request data:', req.body);
+        
+        const refillData = {
+            refillQuantity: req.body.refillQuantity,
+            refillDate: req.body.refillDate,
+            userId: userId
+        };
 
-        const result = await medTrackerModel.refillMedication(medicationId, userId, parseInt(newQuantity));
-
+        console.log('Calling model with:', refillData);
+        
+        const result = await medTrackerModel.refillMedication(medicationId, refillData);
+        
         if (!result) {
             return res.status(404).json({ error: "Medication not found" });
         }
 
-        res.json(result);
-    } catch (error) {
+        res.json({
+            message: "Medication refilled successfully",
+            medicationId: result.medicationId,
+            medicationName: result.medicationName,
+            previousQuantity: result.previousQuantity,
+            refillQuantity: result.refillQuantity,
+            newQuantity: result.newQuantity,
+            refillDate: result.refillDate,
+            updatedAt: new Date().toISOString()
+        });
+    }
+    catch (error) {
         console.error("Controller error:", error);
         res.status(500).json({ error: "Error refilling medication" });
     }
