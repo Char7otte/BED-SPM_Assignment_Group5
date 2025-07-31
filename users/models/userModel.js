@@ -57,29 +57,6 @@ async function getUserById(id) {
     }
 }
 
-async function getUserByIDBoolean(userID) {
-    let connection;
-    try {
-        connection = await sql.connect(config);
-        const query = `SELECT * FROM Users WHERE user_id = @userID`;
-        const request = connection.request();
-        request.input("userID", userID);
-        const result = await request.query(query);
-        if (!result) return false;
-        return true;
-    } catch (error) {
-        console.error("Database error:", error);
-    } finally {
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (error) {
-                console.error("Error closing connection:", error);
-            }
-        }
-    }
-}
-
 async function getUserByUsername(username) {
     let conn;
     try {

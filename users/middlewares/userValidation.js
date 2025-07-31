@@ -42,7 +42,7 @@ function validateUserInputForUpdate(req, res, next) {
     next();
 }
 
-function verifyJWT(req, res, next) {
+async function verifyJWT(req, res, next) {
     const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
@@ -54,8 +54,8 @@ function verifyJWT(req, res, next) {
         }
 
         //Check that the user is actually in the database(Prevent deleted account JWT from being valid)
-        const userExists = await userModel.getUserByIDBoolean;
-        if (!userExists) return res.status(401).send("Please log in again.");
+        const user = await userModel.getUserById(decoded.id);
+        if (!user) return res.status(404).send("Invalid account");
 
         const authorizedRoles = {
             //user
