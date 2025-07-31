@@ -10,7 +10,7 @@ async function getAllChats(req, res) {
         } else {
             chats = await chatModel.getAllChats();
         }
-        return res.render("chat/allChats", { chatData: chats });
+        return res.render("chat/allChats", { chatData: chats, userID: id });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error retrieving chats");
