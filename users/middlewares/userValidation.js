@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
+const userModel = require("../models/userModel");
 
 function validateUserInput(req, res, next) {
     const schema = joi.object({
@@ -47,10 +48,14 @@ function verifyJWT(req, res, next) {
     if (!token) {
         return res.status(401).json({ message: "Unauthorized" });
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: "Unauthorized" });
         }
+
+        //Check that the user is actually in the database(Prevent deleted account JWT from being valid)
+        const userExists = await userModel.getUserByIDBoolean;
+        if (!userExists) return res.status(401).send("Please log in again.");
 
         const authorizedRoles = {
             //user
