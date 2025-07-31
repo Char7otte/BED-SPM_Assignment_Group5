@@ -17,6 +17,7 @@ async function getAllChats(req, res) {
     }
 }
 
+//This function is here for testing and is replaced by chatMessageController.getAllMessagesInAChat
 async function getChatByID(req, res) {
     try {
         const chatID = req.params.chatID;
