@@ -5,7 +5,7 @@ async function getAllChats() {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `SELECT c.chat_id, c.helpee_id, u.username, c.status, c.created_date_time, c.last_activity_date_time
+        const query = `SELECT c.chat_id, c.helpee_id, u.username, c.chat_status, c.created_date_time, c.last_activity_date_time
         FROM Chats c
         INNER JOIN Users u
         ON c.helpee_id = u.user_id
