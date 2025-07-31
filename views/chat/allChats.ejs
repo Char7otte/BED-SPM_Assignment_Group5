@@ -14,12 +14,13 @@
                         <form action="/chats/create/<%= userID%>" class="mb-5" method="POST">
                             <div class="field"><button class="button is-primary">Start a new chat</button></div>
                         </form>
+
                         <div class="fixed-grid has-1-cols">
                             <div class="grid">
                                 <%for (const c of chatData) {%>
                                 <div class="cell">
                                     <%- include("./partials/chatCard", {chatID: c.chat_id, helpeeID: c.helpee_id, username: c.username, status:
-                                    c.status, createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time }) %>
+                                    c.chat_status, createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time }) %>
                                 </div>
                                 <%}%>
                             </div>
