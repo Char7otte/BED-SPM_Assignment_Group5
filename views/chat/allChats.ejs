@@ -11,7 +11,8 @@
                 <div class="columns">
                     <div class="column is-half is-offset-one-quarter">
                         <h1 class="title">Chats</h1>
-                        <form action="/chats/create/<%= userID%>" class="mb-5" method="POST">
+                        <form action="/chats/create/<%= userID%>" class="mb-5 create-new-chat-form" method="POST">
+                            <input type="hidden" name="question" id="question" />
                             <div class="field"><button class="button is-primary">Start a new chat</button></div>
                         </form>
 
@@ -31,5 +32,6 @@
         </main>
         <%- include("../partials/footer.ejs")%>
         <script src="/js/deleteContent.js" data-class-of-form-to-look-for="delete-chat-form" data-class-of-element-to-hide="chat-card"></script>
+        <script src="/js/chat/createNewChat.js"></script>
     </body>
 </html>
