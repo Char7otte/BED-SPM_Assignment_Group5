@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Medications</title>
+  <link rel="stylesheet" href="/css/all-medications.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <%- include('../partials/head') %>
+</head>'
+<%- include('../partials/navbar') %>
+<body>
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">MedTrack</div>
+        <div class="nav-links">
+          <a href="/medications" class="active">All Medications</a>
+          <a href="/medications/daily">Daily View</a>
+          <a href="/medications/weekly">Weekly View</a>
+          <a href="/medications/create">Add Medication</a>
+          <a href="#" id="logout">Logout</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="alert-container"></div>
+    
+    <!-- Add testing notice -->
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      <strong>Testing Mode:</strong> Authentication disabled. Using test user ID: 1
+    </div>
+    
+    <!-- Search and Filter Section -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Search & Filter</h2>
+      </div>
+      <div class="search-filter-section">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Search medications..." class="form-control">
+          <button id="search-btn" class="btn btn-primary">
+            <i class="fa fa-search"></i> Search
+          </button>
+        </div>
+        <div class="filter-box">
+          <select id="status-filter" class="form-control">
+            <option value="">All Medications</option>
+            <option value="taken">Taken</option>
+            <option value="not-taken">Not Taken</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Medications Section -->
+    <div class="card">
+      <div class="card-header">
+        <h2>All Medications</h2>
+        <a href="/medications/create" class="btn btn-primary">
+          <i class="fa fa-plus"></i> Add New Medication
+        </a>
+      </div>
+      <div id="medications-container" class="medications-grid">
+        <div class="loading-message">
+          <i class="fa fa-spinner fa-spin"></i> Loading medications...
+        </div>
+      </div>
+    </div>
+
+    <!-- Low Quantity Medications -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fa fa-exclamation-triangle text-warning"></i> Low Quantity Medications</h2>
+      </div>
+      <div id="low-quantity-container" class="medications-grid">
+        <div class="loading-message">
+          <i class="fa fa-spinner fa-spin"></i> Loading low quantity medications...
+        </div>
+      </div>
+    </div>
+
+    <!-- Expired Medications -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fa fa-calendar-times text-danger"></i> Expired Medications</h2>
+      </div>
+      <div id="expired-container" class="medications-grid">
+        <div class="loading-message">
+          <i class="fa fa-spinner fa-spin"></i> Loading expired medications...
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/medication_script.js"></script>
+</body>
+<%- include('../partials/footer') %>
+</html>

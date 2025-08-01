@@ -34,8 +34,9 @@ async function getAllMedicationByUser(req, res) {
 
         const medications = await medTrackerModel.getAllMedicationByUser(userId);
 
+        // Return empty array instead of 404 when no medications found for testing
         if (!medications || medications.length === 0) {
-            return res.status(404).json({ error: "No medications found for this user" });
+            return res.json([]);
         }
 
         res.json(medications);
@@ -82,8 +83,9 @@ async function getWeeklyMedicationByUser(req, res) {
 
         const weeklyMedications = await medTrackerModel.getWeeklyMedicationByUser(userId, startDate, endDate);
 
+        // Return empty array instead of 404 when no medications found for testing
         if (!weeklyMedications || weeklyMedications.length === 0) {
-            return res.status(404).json({ error: "No weekly medications found for this user in the specified date range" });
+            return res.json([]);
         }
 
         res.json(weeklyMedications);
@@ -191,7 +193,7 @@ async function tickOffMedication(req, res) {
 async function searchMedicationByName(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-        const name = req.query.name; // Changed from medicationName to name
+        const name = req.query.name;
         
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
@@ -203,8 +205,9 @@ async function searchMedicationByName(req, res) {
 
         const medications = await medTrackerModel.searchMedicationByName(userId, name);
 
+        // Return empty array instead of 404 when no medications found for testing
         if (!medications || medications.length === 0) {
-            return res.status(404).json({ error: "No medications found with the specified name" });
+            return res.json([]);
         }
 
         res.json(medications);
@@ -224,6 +227,12 @@ async function remindMedication(req, res) {
         }
 
         const reminders = await medTrackerModel.remindMedication(userId);
+        
+        // Return empty array instead of null when no reminders found for testing
+        if (!reminders || reminders.length === 0) {
+            return res.json([]);
+        }
+        
         res.json(reminders);
     } catch (error) {
         console.error("Controller error:", error);
@@ -272,8 +281,9 @@ async function getLowQuantityMedication(req, res) {
 
         const lowQuantityMedications = await medTrackerModel.getLowQuantityMedication(userId);
 
+        // Return empty array instead of 404 when no medications found
         if (!lowQuantityMedications || lowQuantityMedications.length === 0) {
-            return res.status(404).json({ error: "No low quantity medications found for this user" });
+            return res.json([]);
         }
 
         res.json(lowQuantityMedications);
@@ -282,6 +292,7 @@ async function getLowQuantityMedication(req, res) {
         res.status(500).json({ error: "Error retrieving low quantity medications" });
     }
 }
+
 async function decrementMedicationQuantity(req, res) {
     try {
         const medicationId = parseInt(req.params.medicationId);
@@ -359,11 +370,12 @@ async function getExpiredMedications(req, res) {
 
         const expiredMedications = await medTrackerModel.getExpiredMedications(userId);
 
+        // Return empty array instead of special message format
         if (!expiredMedications) {
-            return res.json({ message: "No expired medications found", data: [] });
+            return res.json([]);
         }
 
-        res.json({ data: expiredMedications });
+        res.json(expiredMedications);
     } catch (error) {
         console.error("Controller error:", error);
         res.status(500).json({ error: "Error retrieving expired medications" });
