@@ -1,0 +1,59 @@
+.daily-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.date-display {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.time-group {
+  margin-bottom: 20px;
+}
+
+.time-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.time-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-right: 10px;
+}
+
+.time-line {
+  flex: 1;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.tick-all-btn {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.reminder-banner {
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 4px solid var(--warning);
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reminder-text {
+  font-weight: 500;
+}
+
+.reminder-time {
+  font-weight: 600;
+  color: var(--warning);
+}
