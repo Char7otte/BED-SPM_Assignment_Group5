@@ -1,7 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // Skip authentication for testing - use hardcoded user ID
-  const TEST_USER_ID = 8; // Change this to match a user ID in your database
-  
+document.addEventListener('DOMContentLoaded', function() { 
   try {
     // Load medications
     if (window.location.pathname === '/medications') {
