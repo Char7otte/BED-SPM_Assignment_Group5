@@ -11,6 +11,9 @@ async function getAllChats(req, res) {
             chats = await chatModel.getAllChats();
         }
         return res.render("chat/allChats", { chatData: chats, userID: id });
+        //Removing the time zone part of the DATETIME2s. I'm pretty
+        chats[0].created_date_time = chats[0].created_date_time.toLocaleString();
+        chats[0].last_activity_date_time = chats[0].last_activity_date_time.toLocaleString();
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error retrieving chats");
