@@ -18,7 +18,7 @@
                                     <%for (const m of messageData) {%>
                                     <div class="cell">
                                         <%- include("./partials/chatMessageCard",{chatID, messageID:m.message_id, senderID: m.sender_id, message:
-                                        m.message, sentDateTime: m.sent_date_time}) %>
+                                        m.message, sentDateTime: m.sent_date_time, username: m.username}) %>
                                     </div>
                                     <%}%>
                                 </div>

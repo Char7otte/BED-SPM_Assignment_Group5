@@ -5,7 +5,7 @@ async function getAllMessagesInAChat(chatID) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `SELECT * FROM ChatMessages WHERE chat_id = @chatID ORDER BY message_id asc`;
+        const query = `SELECT cm.*, u.username FROM ChatMessages cm INNER JOIN Users u ON cm.sender_id = u.user_id WHERE chat_id = 1 ORDER BY message_id asc`;
         const request = connection.request();
         request.input("chatID", chatID);
         const result = await request.query(query);
