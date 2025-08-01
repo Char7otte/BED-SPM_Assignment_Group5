@@ -3,17 +3,19 @@ const chatModel = require("../models/chatModel");
 async function getAllChats(req, res) {
     try {
         let chats;
-        const { id, role } = req.user;
+        const { id, role, username } = req.user;
 
         if (role == "U") {
             chats = await chatModel.getAllChatsByHelpeeID(id);
         } else {
             chats = await chatModel.getAllChats();
         }
-        return res.render("chat/allChats", { chatData: chats, userID: id });
+
         //Removing the time zone part of the DATETIME2s. I'm pretty
         chats[0].created_date_time = chats[0].created_date_time.toLocaleString();
         chats[0].last_activity_date_time = chats[0].last_activity_date_time.toLocaleString();
+
+        return res.render("chat/allChats", { chatData: chats, userID: id, username });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error retrieving chats");
