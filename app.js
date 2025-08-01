@@ -166,6 +166,8 @@ app.get("/medications/user/:userId/reminders", medTrackerController.remindMedica
 app.get("/medications/user/:userId/daily", medTrackerController.getDailyMedicationByUser);
 app.get("/medications/user/:userId/weekly", validateDateRangeQuery, medTrackerController.getWeeklyMedicationByUser);
 app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerController.searchMedicationByName);
+app.get("/medications/user/:userId/low-quantity", medTrackerController.getLowQuantityMedication);
+app.get("/medications/user/:userId/expired", medTrackerController.getExpiredMedications);
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
 
 app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
@@ -176,17 +178,21 @@ app.put("/medications/:userId/:id/refill", validateRefillRequest, medTrackerCont
 app.put("/medications/:userId/:id/missed", validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
 app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
 
-// Serve medication pages
+// Route to serve the medication tracker HTML files
 app.get("/medications", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "medication_index.html"));
+    res.render("medication-tracker/all-medications");
 });
 
 app.get("/medications/daily", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
+    res.render("medication-tracker/daily_medication");
 });
 
 app.get("/medications/weekly", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
+    res.render("medication-tracker/weekly_medication");
+});
+
+app.get("/medications/create", (req, res) => {
+    res.render("medication-tracker/create-medication");
 });
 
 // Route to serve the calendar HTML file

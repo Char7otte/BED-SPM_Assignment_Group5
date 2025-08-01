@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Medication View</title>
+  <link rel="stylesheet" href="/css/all-medications.css">
+  <link rel="stylesheet" href="/css/weekly-medications.css">
+  <%- include('../partials/head') %>
+</head>
+<%- include('../partials/navbar') %>
+<body>
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">MedTrack</div>
+        <div class="nav-links">
+          <a href="/medications">All Medications</a>
+          <a href="/medications/daily">Daily View</a>
+          <a href="/medications/weekly" class="active">Weekly View</a>
+          <a href="/medications/create">Add Medication</a>
+          <a href="#" id="logout">Logout</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="alert-container"></div>
+    
+    <!-- Add testing notice -->
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      <strong>Testing Mode:</strong> Authentication disabled. Using test user ID: 8
+    </div>
+    
+    <div class="weekly-header">
+      <h1>Weekly Medications</h1>
+      <div class="week-navigation">
+        <button id="prev-week" class="btn btn-outline">Previous</button>
+        <div class="week-range">
+          <span id="current-week"></span>
+        </div>
+        <button id="next-week" class="btn btn-outline">Next</button>
+      </div>
+    </div>
+
+    <!-- Add the missing elements that JavaScript expects -->
+    <div id="loading-message" style="display: none;"></div>
+    <div id="no-medications-message" style="display: none;" class="alert alert-info">
+      <i class="fa fa-info-circle"></i> No medications scheduled for this week.
+    </div>
+    <div id="error-message" style="display: none;" class="alert alert-danger"></div>
+
+    <!-- Change this ID from weekly-container to weekly-calendar -->
+    <div id="weekly-calendar">
+      <!-- Calendar content will be populated by JavaScript -->
+    </div>
+
+    <!-- Weekly Summary -->
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-header">
+        <h3>Weekly Summary</h3>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-number" id="weekly-total">0</div>
+              <div class="stat-label">Total</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-number" id="weekly-taken">0</div>
+              <div class="stat-label">Taken</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-number" id="weekly-remaining">0</div>
+              <div class="stat-label">Remaining</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="progress" style="height: 20px;">
+              <div id="weekly-progress" class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/weekly_medication_script.js"></script>
+</body>
+<%- include('../partials/footer') %>
+</html>

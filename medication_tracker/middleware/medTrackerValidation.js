@@ -220,6 +220,11 @@ const dateRangeQuerySchema = Joi.object({
 
 // Validation middleware functions
 const validateMedicationCreate = (req, res, next) => {
+    // Skip validation for GET requests to /medications (HTML page)
+    if (req.method === 'GET') {
+        return next();
+    }
+    
     const { error, value } = medicationCreateSchema.validate(req.body, { 
         abortEarly: false,
         stripUnknown: true 
