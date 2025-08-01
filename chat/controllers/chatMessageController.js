@@ -19,7 +19,7 @@ async function getAllMessagesInAChat(req, res) {
         messages.forEach((message) => {
             message.sent_date_time = format(message.sent_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
         });
-        return res.render("chat/oneChat", { chatID, messageData: messages, title });
+        return res.render("chat/oneChat", { chatID, messageData: messages, title, userID: id });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error getting chat messages");

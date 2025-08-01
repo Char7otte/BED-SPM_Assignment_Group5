@@ -27,19 +27,13 @@
                         <section class="messaging">
                             <h2 class="subtitle">Submit a mesage:</h2>
                             <form action="/chats/<%= chatID %>" method="POST">
-                                <div class="field">
-                                    <label class="label" for="sender-id">User ID:</label>
-                                    <div class="control">
-                                        <input class="input" type="text" placeholder="ID of User" id="sender-id" name="senderID" />
-                                    </div>
-                                </div>
+                                <input type="text" hidden value="<%= userID %>" name="senderID" />
                                 <div class="field">
                                     <label class="label" for="message">Message</label>
                                     <div class="control">
                                         <textarea class="textarea" placeholder="Write your message here" id="message" name="message"></textarea>
                                     </div>
                                 </div>
-
                                 <div class="field is-grouped">
                                     <div class="control">
                                         <button class="button is-link">Submit</button>
