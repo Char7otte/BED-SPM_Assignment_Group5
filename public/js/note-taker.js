@@ -1,7 +1,13 @@
+let selectedNoteId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
+
     const noteListContainer = document.getElementById('noteList');
-    const noteTitle = document.getElementById('noteTitle');
-    const noteContent = document.getElementById('noteContent');
+
+    // Note title and content fields
+    const noteTitleField = document.getElementById('NoteTitle');
+    const noteContentField = document.getElementById('NoteContent');
+
     const searchBtn = document.getElementById('searchBtn');
     // Add event listener for Enter key in search input
     const searchInput = document.getElementById('searchInput');
@@ -11,10 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
             searchBtn.click();
         }
     });
-    const createNoteBtn = document.getElementById('toolbarCreateBtn');
-    const deleteNoteBtn = document.getElementById('toolbarDeleteBtn');
-
-    let selectedNoteId = null;
 
     // Get all notes to display in the list, and auto-select first note
     async function fetchNotes() {
@@ -29,6 +31,20 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Error fetching notes:', err.message);
             noteListContainer.innerHTML = '<p class="text-danger">Failed to load notes.</p>';
+        }
+    }
+    async function fetchNoteById(noteId) {
+        try {
+            const res = await fetch(`/notes-api/${noteId}`);
+            if (!res.ok) {
+                throw new Error(`Error fetching note with ID ${noteId}: ${res.statusText}`);
+            }
+            const note = await res.json();
+            return note;
+        } catch (err) {
+            console.error(`Error fetching note with ID ${noteId}:`, err);
+            noteListContainer.innerHTML = `<p class="text-danger">Failed to load note with ID ${noteId}.</p>`;
+            return null;
         }
     }
 
@@ -58,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     noteDiv.classList.add('selected');
                 });
                 // Highlight if selected (safe check)
+                // apparently this prevents all notes from being selected?
                 if (selectedNoteId && note.id === selectedNoteId) {
                     noteDiv.classList.add('selected');
                 }
@@ -66,31 +83,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load note by ID (and make it editable?)
+    function renderSelectedNote(selectedNoteId) {
+        // render the selected note 
+        // with id = selectedNoteId
+
+
+    }
+
+    // Load note by ID
     async function loadNoteById(id) {
         try {
             const res = await fetch(`/notes-api/${id}`);
             const note = await res.json();
-            noteTitle.value = note.NoteTitle;
-            noteContent.value = note.NoteContent;
 
-            noteTitle.readOnly = true;
-            noteContent.readOnly = true;
+            const noteTitleField = document.getElementById('NoteTitle');
+            const noteContentField = document.getElementById('NoteContent');
 
-            noteTitle.addEventListener('dblclick', () => {
-                noteTitle.readOnly = false;
-                noteTitle.focus();
+            noteTitleField.value = note.NoteTitle;
+            noteContentField.value = note.NoteContent;
+
+            noteTitleField.readOnly = true;
+            noteContentField.readOnly = true;
+
+            noteTitleField.addEventListener('dblclick', () => {
+                noteTitleField.readOnly = false;
+                noteTitleField.focus();
             });
-            noteTitle.addEventListener('blur', () => {
-                noteTitle.readOnly = true;
+            noteTitleField.addEventListener('blur', () => {
+                noteTitleField.readOnly = true;
             });
 
-            noteContent.addEventListener('dblclick', () => {
-                noteContent.readOnly = false;
-                noteContent.focus();
+            noteContentField.addEventListener('dblclick', () => {
+                noteContentField.readOnly = false;
+                noteContentField.focus();
             });
-            noteContent.addEventListener('blur', () => {
-                noteContent.readOnly = true;
+            noteContentField.addEventListener('blur', () => {
+                noteContentField.readOnly = true;
             });
 
         } catch (err) {
@@ -108,8 +136,15 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch(`/notes-api/search?search=${encodeURIComponent(query)}`);
             const notes = await res.json();
-            selectedNoteId = null; // Clear selection on search results
+            // selectedNoteId = null; // Clear selection on search results
             renderNoteList(notes);
+
+            if (notes.length > 0) {
+                selectedNoteId = notes[0].id || notes[0].noteId // Auto-select first note in search results
+                loadNoteById(selectedNoteId);
+            }
+
+            console.log(selectedNoteId);
         } catch (err) {
             console.error('Search failed:', err);
             noteListContainer.innerHTML = '<p class="text-danger">Couldn\'t find any notes.</p>';

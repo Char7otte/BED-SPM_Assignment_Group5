@@ -120,7 +120,7 @@ h3 {
 }
 
 #noteList {
-    height: calc(100vh - 108px);
+    height: calc(100vh - 116px);
     overflow-y: auto;
     scrollbar-width: none;
 }
@@ -146,30 +146,6 @@ h3 {
     overflow-y: auto;
 }
 
-#noteTitle {
-    font-size: 1.8rem;
-    font-weight: bold;
-    border: none;
-    background: var(--transparent-bg);
-    width: 100%;
-}
-
-#noteContent {
-    font-size: 1rem;
-    border: none;
-    background: var(--transparent-bg);
-    resize: none;
-    width: 100%;
-    min-height: 400px;
-}
-
-#noteTitle:focus,
-#noteContent:focus {
-    outline: none;
-    box-shadow: none;
-    color: var(--background-color);
-}
-
 .navbar {
     font-size: 0.95rem;
 }
@@ -186,6 +162,7 @@ h3 {
 }
 
 /* note text area */
+
 #NoteTitle {
     font-size: 1.8rem;
     font-weight: bold;
@@ -203,16 +180,17 @@ h3 {
     align-items: center;
 }
 
-textarea {
+#NoteContent {
     display: flex;
     resize: none;
     width: 100%;
-    height: auto;
-    min-height: 100px;
+    height: calc(100vh - 160px);
     padding: 12px 16px;
     align-items: flex-start;
     justify-content: flex-start;
-    flex-flow: row wrap;
+    flex-direction: column;
+    margin-bottom: 16px;
+    flex: 1;
 
     font-size: medium;
     border-radius: 16px;
@@ -223,7 +201,7 @@ textarea {
     overflow-y: auto;
 }
 
-textarea:focus {
+#NoteContent:focus {
     border-color: var(--primary-color);
     box-shadow: none;
     box-shadow: none;

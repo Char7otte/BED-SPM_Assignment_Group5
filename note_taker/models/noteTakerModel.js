@@ -7,7 +7,7 @@ async function getAllNotes() {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
-        const result = await connection.request().query("SELECT * FROM Notes;");
+        const result = await connection.request().query("SELECT * FROM Notes ORDER BY LastEditedDate DESC;");
         return result.recordset;
     } catch (error) {
         console.error("Database error in getAllNotes:", error); // More specific error logging
@@ -34,6 +34,7 @@ async function getNotesById(noteId) {
     SELECT *
     FROM Notes
     WHERE NoteID = @noteId
+    ORDER BY LastEditedDate DESC
     `;
 
         const request = connection.request();
@@ -67,6 +68,7 @@ async function searchNotes(searchTerm) {
     FROM Notes
     WHERE NoteTitle LIKE @searchTerm
         OR NoteContent LIKE @searchTerm
+    ORDER BY LastEditedDate DESC
     `;
 
         const request = connection.request();
