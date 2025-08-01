@@ -50,8 +50,6 @@ function getDisplayFeatureName(featureValue) {
         'Note Taker': 'Note Taker',
         'Alert': 'Alert',
         'Weather': 'Weather',
-        'Lottery': 'Lottery',
-        'Bus Arrival': 'Bus Arrival',
         'Feedback': 'Feedback',
         'Reputation System': 'Reputation System',
         'Previous Asked Questions Log': 'Previous Asked Questions Log',
@@ -116,6 +114,18 @@ function getStatusBadgeClass(status) {
     return normalizedStatus === 'Reviewed' ? 'success' : 'warning';
 }
 
+function formatDateFancy(dateString) {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayName = days[dateObj.getDay()];
+    const day = dateObj.getDate();
+    const month = months[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    return `${dayName}, ${day} ${month} ${year}`;
+}
+
 // Function to display feedback items
 function displayFeedbackItems(feedbackList) {
     // Clear previous content
@@ -177,11 +187,7 @@ function displayFeedbackItems(feedbackList) {
                     }
                     
                     if (!isNaN(date.getTime())) {
-                        formattedDate = date.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        });
+                        formattedDate = formatDateFancy(date);
                     } else {
                         formattedDate = 'Invalid date';
                     }
@@ -315,8 +321,6 @@ function editFeedback(feedbackId) {
             'Note Taker': 'Note Taker',
             'Alert': 'Alert',
             'Weather': 'Weather',
-            'Lottery': 'Lottery',
-            'Bus Arrival': 'Bus Arrival',
             'Feedback': 'Feedback',
             'Reputation System': 'Reputation System',
             'Previous Asked Questions Log': 'Previous Asked Questions Log'

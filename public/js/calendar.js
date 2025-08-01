@@ -116,7 +116,7 @@ function initializeCalendar() {
 function openDate(dateKey) {
     viewMode = "day";
     selectedDate = dateKey;
-    selectedDateEl.innerText = dateKey;
+    selectedDateEl.innerText = formatDateFancy(selectedDate);
 
     monthlyList.style.display = "none"; // Hide monthly list when viewing daily appointments
     appointmentList.style.display = "block"; // Show appointment list
@@ -182,19 +182,19 @@ function displayDailyAppointments(dateKey) {
     dailyAppointments.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     document.querySelector(".modal-content h3").innerText = 
-    editingIndex !== null ? "Edit Appointment" : `New Appointment for ${selectedDate}`;
+    editingIndex !== null ? "Edit Appointment" : `New Appointment`;
 
     dailyAppointments.forEach((appt, index) => {
         updateAppointmentStatus(appt, dateKey);
         const li = document.createElement("li");
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
-            ${appt.date} <br>
+            ${formatDateFancy(appt.date)} <br>
             <strong>${appt.title}</strong> <br>
             Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
             Doctor: ${appt.doctor} <br>
             Location: ${appt.location} <br>
-            Notes: ${appt.notes} <br>
+            Notes: ${appt.notes ? appt.notes : ''} <br>
             <button onclick="editAppointment(${index})">Edit</button> 
             <button onclick="deleteAppointment(${index})">Delete</button> <br><br>`; 
         appointmentList.appendChild(li);
@@ -247,12 +247,11 @@ function displayAllAppointments() {
         dateHeader.className = "date-header";
         const dateObj = new Date(dateKey);
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-        const formattedDate = dateObj.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-        dateHeader.innerHTML = `<h4>${dayName}, ${formattedDate}</h4>`;
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleDateString('en-US', { month: 'long' });
+        const year = dateObj.getFullYear();
+        const formattedDate = `${dayName}, ${day} ${month} ${year}`;
+        dateHeader.innerHTML = `<h4>${formattedDate}</h4>`;
         monthlyList.appendChild(dateHeader);
         
         // Add appointments for this date
@@ -305,7 +304,7 @@ function editAppointmentById(appointmentId, dateKey) {
     
     // Set the selected date and edit the appointment
     selectedDate = dateKey;
-    selectedDateEl.innerText = selectedDate;
+    selectedDateEl.innerText = formatDateFancy(selectedDate);
     editAppointment(index);
 }
 
@@ -325,7 +324,7 @@ function deleteAppointmentById(appointmentId, dateKey) {
         
     // Set the selected date and delete the appointment
     selectedDate = dateKey;
-    selectedDateEl.innerText = selectedDate;
+    selectedDateEl.innerText = formatDateFancy(selectedDate);
     deleteAppointment(index);
 }
 
@@ -340,7 +339,7 @@ function openNewAppointment() {
         // Default to today's date if no date is selected
         const today = new Date();
         selectedDate = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-        selectedDateEl.innerText = selectedDate;
+        selectedDateEl.innerText = formatDateFancy(selectedDate);
     }
 
     // Validate that selected date is not in the past
@@ -361,11 +360,16 @@ function openNewAppointment() {
     document.getElementById("end-time").value = "";
     document.getElementById("location").value = "";
     document.getElementById("notes").value = "";
-    document.getElementById("status").value = "Scheduled";
+
+    // Hide status select for new appointments
+    const statusSelect = document.getElementById("status");
+    if (statusSelect) {
+        statusSelect.style.display = "none";
+    }
     editingIndex = null;
 
     // Update modal title
-    document.querySelector(".modal-content h3").innerText = `New Appointment for ${selectedDate}`;
+    document.querySelector(".modal-content h3").innerText = `New Appointment`;
 
     modal.style.display = "flex";
 }
@@ -642,7 +646,7 @@ function saveAppointment() {
             }
             
             selectedDate = date;
-            selectedDateEl.innerText = selectedDate;
+            selectedDateEl.innerText = formatDateFancy(selectedDate);
             
             const [year, month] = date.split("-").map(Number);
             currentYear = year;
@@ -693,7 +697,7 @@ function saveAppointment() {
             appointments[date].push(newAppt);
             
             selectedDate = date;
-            selectedDateEl.innerText = selectedDate;
+            selectedDateEl.innerText = formatDateFancy(selectedDate);
             
             const [year, month] = date.split("-").map(Number);
             currentYear = year;
@@ -756,30 +760,43 @@ function renderCalendar() {
     calendar.innerHTML = "";
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Sunday
+
     const monthName = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" });
     document.getElementById("current-month").innerText = `${monthName} ${currentYear}`;
 
-    for (let i = 1; i <= daysInMonth; i++) {
+    // Calculate total boxes (6 weeks × 7 days = 42)
+    const totalBoxes = 42;
+    let dayCounter = 1;
+
+    for (let i = 0; i < totalBoxes; i++) {
         const dayBox = document.createElement("div");
         dayBox.className = "day";
-        dayBox.innerText = i;
 
-        const dateKey = `${currentYear}-${(currentMonth+1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
-        dayBox.onclick = () => {
-            selectedDate = dateKey; // where dateKey = "YYYY-MM-DD"
-            selectedDateEl.innerText = selectedDate;
-            openDate(selectedDate); // show appointments for that day
-        };
+        // Fill leading empty boxes before the first day
+        if (i < firstDayOfWeek || dayCounter > daysInMonth) {
+            dayBox.classList.add("empty-day");
+            dayBox.innerText = "";
+        } else {
+            dayBox.innerText = dayCounter;
 
-        // Check if there is at least 1 appointment for this date before adding a dot
-        if (appointments[dateKey] && appointments[dateKey].length > 0) {
-            const dot = document.createElement("div");
-            dot.className = "appointment-dot";
-            dayBox.appendChild(dot);
+            const dateKey = `${currentYear}-${(currentMonth+1).toString().padStart(2, '0')}-${dayCounter.toString().padStart(2, '0')}`;
+            dayBox.onclick = () => {
+                selectedDate = dateKey;
+                selectedDateEl.innerText = formatDateFancy(selectedDate);
+                openDate(selectedDate);
+            };
+
+            if (appointments[dateKey] && appointments[dateKey].length > 0) {
+                const dot = document.createElement("div");
+                dot.className = "appointment-dot";
+                dayBox.appendChild(dot);
+            }
+            dayBox.dataset.date = dateKey;
+            dayCounter++;
         }
 
         calendar.appendChild(dayBox);
-        dayBox.dataset.date = dateKey;
     }
 }
 
@@ -794,25 +811,6 @@ function changeMonth(offset) {
         currentYear++;
     }
     renderCalendar();
-    renderMonthlyAppointments();
-}
-
-function renderMonthlyAppointments() {
-    const label = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long", year: "numeric" });
-    document.getElementById("month-summary-label").innerText = label;
-
-    monthlyList.innerHTML = "";
-
-    Object.keys(appointments).forEach(dateKey => {
-        const [year, month] = dateKey.split("-");
-        if (parseInt(year) === currentYear && parseInt(month) === currentMonth + 1) {
-            appointments[dateKey].forEach(appt => {
-                const li = document.createElement("li");
-                li.innerText = `${dateKey}: ${formatTimeForDisplay(appt.startTime)}-${formatTimeForDisplay(appt.endTime)} ${appt.title} (${appt.doctor})`;
-                monthlyList.appendChild(li);
-            });
-        }
-    });
 }
 
 function renderAllAppointments() {
@@ -951,12 +949,12 @@ function searchAppointments() {
         const li = document.createElement("li");
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
-            ${appt.date} <br>
+            ${formatDateFancy(appt.date)} <br>
             <strong>${appt.title}</strong> <br>
             Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
             Doctor: ${appt.doctor} <br>
             Location: ${appt.location} <br>
-            Notes: ${appt.notes} <br>
+            Notes: ${appt.notes ? appt.notes : ''} <br>
             <button onclick="editAppointmentById('${appt.id}', '${appt.date}')">Edit</button> 
             <button onclick="deleteAppointmentById('${appt.id}', '${appt.date}')">Delete</button> <br><br>`;
         monthlyList.appendChild(li);
@@ -1046,7 +1044,11 @@ function viewAppointmentsByMonth() {
         dateHeader.className = "date-header";
         const dateObj = new Date(dateKey);
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-        dateHeader.innerHTML = `<h4>${dayName}, ${dateKey}</h4>`;
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleDateString('en-US', { month: 'long' });
+        const year = dateObj.getFullYear();
+        const formattedDate = `${dayName}, ${day} ${month} ${year}`;
+        dateHeader.innerHTML = `<h4>${formattedDate}</h4>`;
         monthlyList.appendChild(dateHeader);
         
         // Add appointments for this date
@@ -1253,6 +1255,18 @@ function formatTimeForDisplay(timeString) {
     }
     
     return 'Invalid time';
+}
+
+function formatDateFancy(dateString) {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayName = days[dateObj.getDay()];
+    const day = dateObj.getDate();
+    const month = months[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    return `${dayName}, ${day} ${month} ${year}`;
 }
 
 function validateAppointmentTimes(startTime, endTime) {
