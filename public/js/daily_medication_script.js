@@ -1,6 +1,6 @@
+const TEST_USER_ID = 8; // Global constant for consistent user ID
 document.addEventListener('DOMContentLoaded', function() {
   // Skip authentication for testing - use hardcoded user ID
-  const TEST_USER_ID = 8; // Change this to match a user ID in your database
   
   try {
     // Initialize current date display
@@ -156,6 +156,8 @@ function createMedicationCard(med) {
   const statusIcon = med.is_taken ? 'check-circle' : 'clock';
   const statusText = med.is_taken ? 'Taken' : 'Pending';
   
+  const TEST_USER_ID = 8;
+  
   return `
     <div class="medication-card ${statusClass}">
       <div class="med-info">
@@ -170,16 +172,19 @@ function createMedicationCard(med) {
         </span>
         <div class="action-buttons">
           ${!med.is_taken ? `
-            <button class="btn btn-success btn-sm" onclick="takeMedication(${med.medication_id}, ${med.user_id || 1})">
+            <button class="btn btn-success btn-sm" onclick="takeMedication(${med.medication_id}, ${TEST_USER_ID})">
               <i class="fa fa-check"></i> Take
             </button>
           ` : `
-            <button class="btn btn-warning btn-sm" onclick="markAsMissed(${med.medication_id}, ${med.user_id || 1})">
-              <i class="fa fa-undo"></i> Mark Missed
+            <button class="btn btn-warning btn-sm" onclick="markAsMissed(${med.medication_id}, ${TEST_USER_ID})">
+              <i class="fa fa-undo"></i> Mark Not Taken
             </button>
           `}
           <button class="btn btn-info btn-sm" onclick="editMedication(${med.medication_id})">
             <i class="fa fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMedication(${med.medication_id})">
+            <i class="fa fa-trash"></i> Delete
           </button>
         </div>
       </div>
@@ -203,7 +208,26 @@ function formatTimeForDisplay(timeString) {
 
 async function takeMedication(medicationId, userId) {
   try {
-    // Remove authorization header for testing
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+    
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
+        return;
+    }
+    
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
+        return;
+    }
+
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
       headers: {
@@ -220,8 +244,9 @@ async function takeMedication(medicationId, userId) {
     showAlert('Medication marked as taken successfully!', 'success');
     
     // Reload medications to update display
-    loadDailyMedications(userId);
-    
+    await loadDailyMedications(userId);
+    await loadLowQuantityMedications(userId);
+
     // Show low quantity warning if applicable
     if (result.isLowQuantity) {
       showAlert(result.message, 'warning');
@@ -233,10 +258,12 @@ async function takeMedication(medicationId, userId) {
 }
 
 async function markAsMissed(medicationId, userId) {
-  if (!confirm('Mark this medication as missed?')) return;
+  if (!confirm('Mark this medication as missed? This will reset it to not taken.')) return;
   
   try {
-    // Remove authorization header for testing
+    console.log(`Marking medication ${medicationId} as missed for user ${userId}`);
+    
+    // Use the markMedicationAsMissed endpoint
     const response = await fetch(`/medications/${userId}/${medicationId}/missed`, {
       method: 'PUT',
       headers: {
@@ -246,14 +273,17 @@ async function markAsMissed(medicationId, userId) {
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Error response:', errorText);
       throw new Error(`Failed to mark medication as missed: ${errorText}`);
     }
     
+    const result = await response.json();
     showAlert('Medication marked as missed', 'warning');
-    loadDailyMedications(userId);
+    await loadDailyMedications(userId);
+    
   } catch (error) {
     console.error('Error marking medication as missed:', error);
-    showAlert(error.message, 'danger');
+    showAlert(`Error marking medication as missed: ${error.message}`, 'danger');
   }
 }
 
@@ -307,10 +337,12 @@ function displayReminders(reminders) {
   const container = document.getElementById('reminders-container');
   if (!container) return;
   
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   const reminderHTML = reminders.map(reminder => `
     <div class="alert alert-warning reminder-alert">
       <strong>Reminder:</strong> It's time to take ${reminder.medication_name} (${reminder.medication_dosage})
-      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, 1)">
+      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, ${TEST_USER_ID})">
         Take Now
       </button>
     </div>
@@ -340,7 +372,50 @@ function setupEventListeners(userId) {
   }
 }
 
+async function deleteMedication(medicationId) {
+    // Validate inputs
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
+
+    const userId = TEST_USER_ID;
+    
+    if (!userId || userId === 'undefined') {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        // Refresh the daily view after successful deletion
+        await loadDailyMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
+}
+
 // Make functions available globally
 window.takeMedication = takeMedication;
 window.markAsMissed = markAsMissed;
 window.editMedication = editMedication;
+window.deleteMedication = deleteMedication;

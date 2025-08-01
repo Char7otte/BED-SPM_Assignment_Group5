@@ -151,6 +151,8 @@ function displayWeeklyMedications(medications) {
     return;
   }
   
+  const TEST_USER_ID = 8;
+  
   // Group medications by day
   const medicationsByDay = groupMedicationsByDay(medications);
   
@@ -194,18 +196,18 @@ function displayWeeklyMedications(medications) {
                 <br><br>
                 <div class="btn-group-vertical" role="group">
                   ${!med.is_taken ? `
-                    <button class="btn btn-sm btn-success" onclick="takeMedication(${med.medication_id}, ${med.user_id})">
+                    <button class="btn btn-sm btn-success" onclick="takeMedication(${med.medication_id}, ${TEST_USER_ID})">
                       <i class="fa fa-check"></i> Take
                     </button>
                   ` : `
-                    <button class="btn btn-sm btn-warning" onclick="markAsMissed(${med.medication_id}, ${med.user_id})">
-                      <i class="fa fa-undo"></i> Mark Missed
+                    <button class="btn btn-sm btn-warning" onclick="markAsMissed(${med.medication_id}, ${TEST_USER_ID})">
+                      <i class="fa fa-undo"></i> Mark Not Taken
                     </button>
                   `}
                   <button class="btn btn-sm btn-info" onclick="editMedication(${med.medication_id})">
                     <i class="fa fa-edit"></i> Edit
                   </button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteMedication(${med.medication_id}, ${med.user_id})">
+                  <button class="btn btn-sm btn-danger" onclick="deleteMedication(${med.medication_id}, ${TEST_USER_ID})">
                     <i class="fa fa-trash"></i> Delete
                   </button>
                 </div>
@@ -320,7 +322,7 @@ async function takeMedication(medicationId, userId) {
 }
 
 async function markAsMissed(medicationId, userId) {
-  if (!confirm('Mark this medication as missed?')) return;
+  if (!confirm('Mark this medication as not taken?')) return;
   
   try {
     // Remove authorization header for testing
@@ -333,39 +335,62 @@ async function markAsMissed(medicationId, userId) {
     
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to mark medication as missed: ${errorText}`);
+      throw new Error(`Failed to mark medication as not taken: ${errorText}`);
     }
     
     const result = await response.json();
-    showAlert('Medication marked as missed', 'warning');
+    showAlert('Medication marked as not taken', 'warning');
     
     // Reload medications
     loadWeeklyMedications(userId);
   } catch (error) {
-    console.error('Error marking medication as missed:', error);
+    console.error('Error marking medication as not taken:', error);
     showAlert(error.message, 'danger');
   }
 }
 
-async function deleteMedication(medicationId, userId) {
-  if (!confirm('Are you sure you want to delete this medication?')) return;
-  
-  try {
-    // Remove authorization header for testing
-    const response = await fetch(`/medications/${userId}/${medicationId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) throw new Error('Failed to delete medication');
-    
-    showAlert('Medication deleted successfully', 'success');
-    loadWeeklyMedications(userId);
-  } catch (error) {
-    showAlert(error.message, 'danger');
-  }
+async function deleteMedication(medicationId) {
+    // Validate inputs
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
+
+    // Use the same TEST_USER_ID as the rest of the file
+    const TEST_USER_ID = 8;
+
+    const userId = window.currentUserId || TEST_USER_ID; // Fallback to test user ID
+    if (!userId || userId === 'undefined') {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        // Refresh the weekly view after successful deletion
+        await loadWeeklyMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
 }
 
 function editMedication(medicationId) {

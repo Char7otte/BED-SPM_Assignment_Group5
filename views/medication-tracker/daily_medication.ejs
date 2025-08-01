@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="/css/all-medications.css">
   <link rel="stylesheet" href="/css/daily-medications.css">
   <%- include('../partials/head') %>
+  <script>
+    window.currentUserId = 8;
+    app.put("/medications/:userId/:medicationId/missed", verifyJWT, validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
+  </script>
 </head>
 <%- include('../partials/navbar') %>
 <body>

@@ -1,3 +1,4 @@
+const TEST_USER_ID = 8; // Change this to match a user ID in your database
 document.addEventListener('DOMContentLoaded', function() { 
   try {
     // Load medications
@@ -185,6 +186,8 @@ function displayLowQuantityMedications(medications) {
     return;
   }
   
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   medications.forEach(med => {
     const medItem = document.createElement('div');
     medItem.className = 'medication-item low-quantity';
@@ -196,7 +199,7 @@ function displayLowQuantityMedications(medications) {
         </div>
       </div>
       <div class="medication-actions">
-        <button class="btn btn-primary" onclick="refillMedication(${med.medication_id}, ${med.user_id})">Refill</button>
+        <button class="btn btn-primary" onclick="refillMedication(${med.medication_id}, ${TEST_USER_ID})">Refill</button>
       </div>
     `;
     container.appendChild(medItem);
@@ -212,6 +215,8 @@ function displayExpiredMedications(medications) {
     return;
   }
   
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   medications.forEach(med => {
     const medItem = document.createElement('div');
     medItem.className = 'medication-item expired';
@@ -223,7 +228,7 @@ function displayExpiredMedications(medications) {
         </div>
       </div>
       <div class="medication-actions">
-        <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id}, ${med.user_id})">Delete</button>
+        <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id})">Delete</button>
       </div>
     `;
     container.appendChild(medItem);
@@ -231,6 +236,8 @@ function displayExpiredMedications(medications) {
 }
 
 function createMedicationElement(med) {
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   const medItem = document.createElement('div');
   medItem.className = `medication-item ${med.is_taken ? 'taken' : ''}`;
   medItem.innerHTML = `
@@ -244,9 +251,9 @@ function createMedicationElement(med) {
       </div>
     </div>
     <div class="medication-actions">
-      ${!med.is_taken ? `<button class="btn btn-primary" onclick="tickOffMedication(${med.medication_id}, ${med.user_id})">Mark Taken</button>` : ''}
+      ${!med.is_taken ? `<button class="btn btn-primary" onclick="tickOffMedication(${med.medication_id}, ${TEST_USER_ID})">Mark Taken</button>` : ''}
       <button class="btn btn-outline" onclick="editMedication(${med.medication_id})">Edit</button>
-      <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id}, ${med.user_id})">Delete</button>
+      <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id})">Delete</button>
     </div>
   `;
   return medItem;
@@ -358,6 +365,16 @@ async function createMedication(userId) {
 async function tickOffMedication(medicationId, userId) {
   try {
     // Remove authorization header for testing
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
+        return;
+    }
+    
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
       headers: {
@@ -369,8 +386,10 @@ async function tickOffMedication(medicationId, userId) {
     
     const result = await response.json();
     showAlert(result.message || 'Medication marked as taken');
-    loadAllMedications(userId);
-    loadLowQuantityMedications(userId);
+
+    await loadAllMedications(userId);
+    await loadLowQuantityMedications(userId);
+
   } catch (error) {
     console.error('Error marking medication as taken:', error);
     showAlert(error.message, 'danger');
@@ -408,27 +427,45 @@ async function refillMedication(medicationId, userId) {
   }
 }
 
-async function deleteMedication(medicationId, userId) {
-  if (!confirm('Are you sure you want to delete this medication?')) return;
-  
-  try {
-    // Remove authorization header for testing
-    const response = await fetch(`/medications/${userId}/${medicationId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+async function deleteMedication(medicationId) {
+    // Validate inputs
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
     
-    if (!response.ok) throw new Error('Failed to delete medication');
-    
-    showAlert('Medication deleted successfully');
-    loadAllMedications(userId);
-    loadExpiredMedications(userId);
-  } catch (error) {
-    console.error('Error deleting medication:', error);
-    showAlert(error.message, 'danger');
-  }
+    const userId = window.currentUserId || 8; // Fallback to test user ID
+    if (!userId || userId === 'undefined') {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        // Refresh the medications list after successful deletion
+        await loadAllMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
 }
 
 function editMedication(medicationId) {
