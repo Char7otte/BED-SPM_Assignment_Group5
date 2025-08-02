@@ -78,6 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectedNoteId = note.id;
                     document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
                     noteDiv.classList.add('selected');
+                    // Update Delete button enabled state
+                    updateDeleteButtonState();
                 });
                 // Highlight if selected (safe check)
                 // apparently this prevents all notes from being selected?
@@ -105,8 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const noteTitleField = document.getElementById('NoteTitle');
             const noteContentField = document.getElementById('NoteContent');
 
-            noteTitleField.value = note.NoteTitle;
-            noteContentField.value = note.NoteContent;
+            console.log(`Loading note with ID ${id}:`, note);
+            // noteTitleField.value = note.NoteTitle;
+            // noteContentField.value = note.NoteContent;
+            noteTitleField.value = note.NoteTitle || 'what';
+            noteContentField.value = note.NoteContent || 'smth went wrong';
 
         } catch (err) {
             console.error(`Failed to load note ${id}:`, err);
@@ -201,4 +206,31 @@ editBtn.addEventListener('click', () => {
         deleteBtn.disabled = true;
         deleteBtn.classList.add('disabled');
     }
+});
+// Utility function to update Delete button state based on selectedNoteId
+function updateDeleteButtonState() {
+    const deleteBtn = document.getElementById('toolbarDeleteBtn');
+    if (!deleteBtn) return;
+
+    if (selectedNoteId === null) {
+        deleteBtn.disabled = true;
+        deleteBtn.classList.add('disabled');
+    } else {
+        deleteBtn.disabled = false;
+        deleteBtn.classList.remove('disabled');
+    }
+}
+
+// Example: inside your note click listener
+noteDiv.addEventListener('click', () => {
+    selectedNoteId = note.id;
+
+    // Update selection UI (remove and add 'selected' class)
+    document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
+    noteDiv.classList.add('selected');
+
+    // Update Delete button enabled state
+    updateDeleteButtonState();
+
+    // Load or render note details, etc.
 });
