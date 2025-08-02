@@ -18,8 +18,21 @@ async function getAllMessagesInAChat(req, res) {
         const messages = await chatMessageModel.getAllMessagesInAChat(chatID);
         messages.forEach((message) => {
             message.sent_date_time = format(message.sent_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+
+            //This is kind of a scuffed solution but having to update everyone's code this late into development  is too much trouble
+            switch (message.sender_role) {
+                case "A":
+                    message.sender_role = "Admin";
+                    break;
+                case "V":
+                    message.sender_role = "Volunteer";
+                    break;
+                case "U":
+                    message.sender_role = "User";
+                    break;
+            }
         });
-        return res.render("chat/oneChat", { chatID, messageData: messages, title, userID: id });
+        return res.render("chat/oneChat", { chatID, messageData: messages, title, userID: id, userRole: role });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error getting chat messages");

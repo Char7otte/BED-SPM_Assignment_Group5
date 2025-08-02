@@ -21,3 +21,10 @@
     align-items: flex-end;
     shape-outside: inset(calc(100% - 100px) 0 0);
 }
+
+.chat-role-identifier {
+    width: 30px;
+    height: 30px;
+    color: grey;
+    border-radius: 10px;
+}

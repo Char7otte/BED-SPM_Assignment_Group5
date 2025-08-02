@@ -2,9 +2,14 @@
     <div class="card-content">
         <div class="fixed-grid">
             <div class="grid">
-                <div class="cell"><p class="title"><%= username %></p></div>
                 <div class="cell">
-                    <% if (senderID == userID) { %>
+                    <p class="title">
+                        <%= username %>
+                        <span class="chat-role-identifier is-size-6"><%= senderRole %></span>
+                    </p>
+                </div>
+                <div class="cell">
+                    <% if (senderID == userID || userRole =="A") { %>
                     <div class="columns">
                         <div class="column"></div>
                         <div class="column is-flex is-justify-content-flex-end">
@@ -18,6 +23,7 @@
                                 </div>
                                 <div class="dropdown-menu" id="dropdown-menu" role="menu">
                                     <div class="dropdown-content">
+                                        <% if (senderID == userID) { %>
                                         <div class="dropdown-item">
                                             <form
                                                 action="/chats/<%= chatID %>?_method=PATCH"
@@ -32,6 +38,7 @@
                                                 </button>
                                             </form>
                                         </div>
+                                        <% } %>
                                         <div class="dropdown-item">
                                             <form
                                                 action="/chats/<%= chatID %>?_method=DELETE"
@@ -41,7 +48,9 @@
                                                 <input type="hidden" name="messageID" value="<%= messageID %>" />
                                                 <button class="has-text-danger card-button" type="submit">
                                                     <span class="icon"> <i class="fa-solid fa-trash"></i> </span>
-                                                    Delete
+                                                    Delete <% if (senderID != userID) { %>
+                                                    <span class="icon"> <i class="fa-solid fa-triangle-exclamation has-text-warning"></i> </span>
+                                                    <% } %>
                                                 </button>
                                             </form>
                                         </div>
