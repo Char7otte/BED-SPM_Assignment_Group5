@@ -33,17 +33,20 @@ const { validateMedAppointment, validateMedAppointmentId } = require("./medical-
 // Import functions from medication tracker
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
 const {
-    validateMedicationCreate,
-    validateMedicationUpdate,
-    validateRefillRequest,
-    validateMedicationIdParam,
-    validateDateRangeQuery,
-    validateSearchQuery,
+  validateMedicationCreate,
+  validateMedicationUpdate,
+  validateRefillRequest,
+  validateMedicationIdParam,
+  validateDateRangeQuery,
+  validateSearchQuery,
 } = require("./medication_tracker/middleware/medTrackerValidation");
 
 
 // Import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
+const { validateNoteInput, validateNoteID, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
+
+
 const jwt = require("jsonwebtoken");
 
 
@@ -71,29 +74,29 @@ app.set("views", path.join(__dirname, "views"));
 
 // JWT middleware
 app.use((req, res, next) => {
-    const token = req.cookies?.token || null;
-    let tokenExpired = false;
-    let user = null;
+  const token = req.cookies?.token || null;
+  let tokenExpired = false;
+  let user = null;
 
-    if (token) {
-        try {
-            user = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (err) {
-            tokenExpired = true;
-        }
-    } else {
-        tokenExpired = true;
+  if (token) {
+    try {
+      user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      tokenExpired = true;
     }
+  } else {
+    tokenExpired = true;
+  }
 
-    res.locals.user = user;
-    res.locals.tokenExpired = tokenExpired;
+  res.locals.user = user;
+  res.locals.tokenExpired = tokenExpired;
 
-    next();
+  next();
 });
 
 ///// Frontend routes /////
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
 });
 
 app.get('/homepage', (req, res) => {
@@ -102,25 +105,28 @@ app.get('/homepage', (req, res) => {
 
 // Alert routes
 app.get("/alert", (req, res) => {
-    res.render("alert/alert", { message: "This is an alert message" });
+  res.render("alert/alert", { message: "This is an alert message" });
 });
 app.get("/alertdetail", (req, res) => {
-    res.render("alert/alertdetail", { message: "This is an alert detail message" });
+  res.render("alert/alertdetail", { message: "This is an alert detail message" });
 });
 app.get("/alertadmin", (req, res) => {
-    res.render("alert/alertadmin", { message: "This is an alert admin message" });
+  res.render("alert/alertadmin", { message: "This is an alert admin message" });
 });
 
 // User routes
 app.get("/user", (req, res) => {
-    res.render("user/user", { user: res.locals.user });
+  res.render("user/user", { user: res.locals.user });
 });
 app.get("/users/updatedetail/:id", (req, res) => {
-    const userId = req.params.id;
-    res.render("user/updatedetail", { userId: userId, user: res.locals.user });
+  const userId = req.params.id;
+  res.render("user/updatedetail", { userId: userId, user: res.locals.user });
 });
 app.get('/users/profile', (req, res) => {
   res.render('user/profile', { user: res.locals.user });
+});
+app.get('/notes', (req, res) => {
+  res.render('note-taker/notes');
 });
 
 // Medical appointment calendar route
@@ -142,6 +148,11 @@ app.get("/medications/create", (req, res) => {
     res.render("medication-tracker/create-medication");
 });
   
+// Route to serve the notes page
+app.get('/notes', (req, res) => {
+  res.render('note-taker/notes');
+});
+
 // Feedback routes
 app.get("/feedback-form", (req, res) => {
   res.render("feedback/feedback-form");
@@ -153,9 +164,13 @@ app.get("/feedback-admin", (req, res) => {
   res.render("feedback/feedback-admin");
 });
 
+app.get("/loginauth.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+});
+
 // Weather
 app.get("/weather", async (req, res) => {
-  res.render("weather/weather", { user: res.locals.user }); 
+  res.render("weather/weather", { user: res.locals.user });
 });
 
 ///// API routes /////
@@ -215,6 +230,7 @@ app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerContr
 app.get("/medications/user/:userId/low-quantity", medTrackerController.getLowQuantityMedication);
 app.get("/medications/user/:userId/expired", medTrackerController.getExpiredMedications);
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
+app.get("/medications/user/:userId/:medicationId", validateMedicationIdParam, medTrackerController.getMedicationById);
 
 app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
 app.post("/medications", validateMedicationCreate, medTrackerController.createMedication);
@@ -225,14 +241,14 @@ app.put("/medications/:userId/:id/missed", validateMedicationIdParam, medTracker
 app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
 
 // routes for note taker
-app.get("/notes", noteTakerController.getAllNotes);
-app.delete("/notes/bulk", noteTakerController.bulkDeleteNotes);
-app.get("/notes/search", noteTakerController.searchNotes);
-app.get("/notes/:id", noteTakerController.getNotesById);
-app.post("/notes", noteTakerController.createNote);
-app.delete("/notes/:id", noteTakerController.deleteNote);
-app.put("/notes/:id", noteTakerController.updateNote);
-app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+app.get("/notes-api", noteTakerController.getAllNotes);
+app.delete("/notes-api/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
+app.get("/notes-api/search", noteTakerController.searchNotes);
+app.get("/notes-api/:id", validateNoteID, noteTakerController.getNotesById);
+app.post("/notes-api", noteTakerController.createNote);
+app.delete("/notes-api/:id", validateNoteID, noteTakerController.deleteNote);
+app.put("/notes-api/:id", validateNoteInput, noteTakerController.updateNote);
+app.get("/notes-api/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
 //routes for feedback - user
 app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
@@ -247,6 +263,10 @@ app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksA
 app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
 app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
 
+// Serve the calendar HTML file
+app.get("/calendar", (req, res) => {
+  res.render("medical-appointment/calendar");
+});
 //Weather API 3rd Party
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
@@ -256,12 +276,12 @@ app.get('/forecast', weatherController.sendForecastData); // Fetch and send fore
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 process.on("SIGINT", async () => {
-    console.log("Server is gracefully shutting down");
-    await sql.close();
-    console.log("Database connections closed");
-    process.exit(0);
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
 });

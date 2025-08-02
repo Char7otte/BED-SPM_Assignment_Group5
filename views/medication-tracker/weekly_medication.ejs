@@ -6,10 +6,144 @@
   <title>Weekly Medication View</title>
   <link rel="stylesheet" href="/css/all-medications.css">
   <link rel="stylesheet" href="/css/weekly-medications.css">
-  <%- include('../partials/head') %>
+  <link rel="stylesheet" href="/css/daily-medications.css">
+  <!-- Load Bootstrap and FontAwesome -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <%- include('../partials/head') %>
+  <script>
+    window.currentUserId = 8; // Test user ID
+  </script>
+  
+  <!-- Load utilities first, before any other scripts -->
+  <script>
+    // Inline utility functions to ensure they're available immediately
+    window.showLoading = window.showLoading || function(message = 'Loading...') {
+      console.log('Loading:', message);
+      createUtilityAlert(message, 'info');
+    };
+
+    window.showError = window.showError || function(message) {
+      console.error('Error:', message);
+      createUtilityAlert(message, 'danger');
+    };
+
+    window.showAlert = window.showAlert || function(message, type = 'success') {
+      console.log(`${type.toUpperCase()}: ${message}`);
+      createUtilityAlert(message, type);
+    };
+
+    function createUtilityAlert(message, type) {
+      let alertContainer = document.getElementById('alert-container');
+      if (!alertContainer) {
+        alertContainer = document.createElement('div');
+        alertContainer.id = 'alert-container';
+        alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 400px;';
+        document.body.appendChild(alertContainer);
+      }
+      
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.style.cssText = 'margin-bottom: 10px; padding: 10px; border-radius: 4px; position: relative; border: 1px solid transparent;';
+      
+      const styles = {
+        success: { bg: '#d4edda', border: '#c3e6cb', color: '#155724' },
+        warning: { bg: '#fff3cd', border: '#ffeaa7', color: '#856404' },
+        danger: { bg: '#f8d7da', border: '#f5c6cb', color: '#721c24' },
+        info: { bg: '#d1ecf1', border: '#bee5eb', color: '#0c5460' }
+      };
+      
+      const style = styles[type] || styles.info;
+      alert.style.backgroundColor = style.bg;
+      alert.style.borderColor = style.border;
+      alert.style.color = style.color;
+      
+      alert.innerHTML = `
+        <button type="button" class="close" onclick="this.parentElement.remove()" style="position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; cursor: pointer; color: ${style.color};">
+          <span>&times;</span>
+        </button>
+        <div style="margin-right: 30px;">
+          ${type === 'info' ? '<i class="fa fa-info-circle"></i>' : ''}
+          ${type === 'success' ? '<i class="fa fa-check-circle"></i>' : ''}
+          ${type === 'warning' ? '<i class="fa fa-exclamation-triangle"></i>' : ''}
+          ${type === 'danger' ? '<i class="fa fa-times-circle"></i>' : ''}
+          ${message}
+        </div>
+      `;
+      
+      alertContainer.appendChild(alert);
+      
+      setTimeout(() => {
+        if (alert.parentElement) {
+          alert.remove();
+        }
+      }, 5000);
+    }
+
+    // Safe DateUtils declaration
+    if (!window.DateUtils) {
+      window.DateUtils = {
+        formatDate: function(dateString) {
+          if (!dateString) return 'Not specified';
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid date';
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+          } catch (error) {
+            return 'Invalid date';
+          }
+        },
+        formatTime: function(timeString) {
+          if (!timeString) return 'Not specified';
+          try {
+            const timeParts = timeString.split(':');
+            if (timeParts.length >= 2) {
+              const hours = parseInt(timeParts[0]);
+              const minutes = timeParts[1];
+              const ampm = hours >= 12 ? 'PM' : 'AM';
+              const displayHours = hours % 12 || 12;
+              return `${displayHours}:${minutes} ${ampm}`;
+            }
+            return timeString;
+          } catch (error) {
+            return timeString;
+          }
+        },
+        getRelativeTime: function(date, time) {
+          try {
+            const now = new Date();
+            let medDateTime;
+            if (time) {
+              medDateTime = new Date(`${date}T${time}`);
+            } else {
+              medDateTime = new Date(date);
+            }
+            if (isNaN(medDateTime.getTime())) return 'Invalid date';
+            const diffMinutes = Math.round((medDateTime - now) / (1000 * 60));
+            if (diffMinutes <= 0) {
+              return 'Now';
+            } else if (diffMinutes < 60) {
+              return `in ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`;
+            } else if (diffMinutes < 1440) {
+              const hours = Math.floor(diffMinutes / 60);
+              return `in ${hours} hour${hours !== 1 ? 's' : ''}`;
+            } else {
+              const days = Math.floor(diffMinutes / 1440);
+              return `in ${days} day${days !== 1 ? 's' : ''}`;
+            }
+          } catch (error) {
+            return 'Unknown';
+          }
+        }
+      };
+    }
+  </script>
 </head>
+
 <%- include('../partials/navbar') %>
 <body>
+  <!-- Navigation -->
   <header>
     <div class="container">
       <nav class="navbar">
@@ -39,6 +173,7 @@
         <button id="prev-week" class="btn btn-outline">Previous</button>
         <div class="week-range">
           <span id="current-week"></span>
+          <div class="week-date-readable" id="current-week-readable" style="font-size: 0.9em; color: #666; margin-top: 5px;"></div>
         </div>
         <button id="next-week" class="btn btn-outline">Next</button>
       </div>
@@ -91,6 +226,14 @@
     </div>
   </main>
 
+  <!-- Load jQuery and Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  
+  <!-- Load notification system after utilities are ready -->
+  <script src="/js/notification-system.js"></script>
+  
+  <!-- Load page-specific script last -->
   <script src="/js/weekly_medication_script.js"></script>
 </body>
 <%- include('../partials/footer') %>

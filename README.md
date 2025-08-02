@@ -51,14 +51,14 @@
 
 | Request                          | URL                      | Path Parameters                        | Body Parameters |
 | -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
-| `GET` Get all notes              | `/notes`                 |                                        | 
-| `POST` Create a new note         | `/notes`                 |                                        | `user_id`, `NoteTitle`, `NoteContent`
-| `DELETE` Delete a note           | `/notes/:id`             | `id` (Note ID)                         | `noteId` 
-| `GET` Get notes by note id       | `/notes/:id`             | `id` (Note ID)                         | `id` (Note ID)
-| `GET` Get notes by search term   | `/notes/search`          | `search`                               | `search`
-| `PUT` Edit a note                | `/notes/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
-| `DELETE` Bulk delete notes       | `/notes/bulk`            | `bulk`                                 | `noteIds`        |
-| `GET` Export note as markdown    | `/notes/export-md/:id`   | `bulk`                                 |                  |
+| `GET` Get all notes              | `/notes-api`                 |                                        | 
+| `POST` Create a new note         | `/notes-api`                 |                                        | `NoteTitle`, `NoteContent`
+| `DELETE` Delete a note           | `/notes-api/:id`             | `id` (Note ID)                         | `noteId` 
+| `GET` Get notes by note id       | `/notes-api/:id`             | `id` (Note ID)                         | `id` (Note ID)
+| `GET` Get notes by search term   | `/notes-api/search`          | `search`                               | `search`
+| `PUT` Edit a note                | `/notes-api/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
+| `DELETE` Bulk delete notes       | `/notes-api/bulk`            | `bulk`                                 | `noteIds`        |
+| `GET` Export note as markdown    | `/notes-api/export-md/:id`   | `bulk`                                 |                  |
 
 ### Medical Appointment API
 

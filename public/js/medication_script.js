@@ -1,6 +1,58 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // Skip authentication for testing - use hardcoded user ID
-  const TEST_USER_ID = 8; // Change this to match a user ID in your database
+const TEST_USER_ID = 8; // Change this to match a user ID in your database
+
+function decodeJwtPayload(token) {
+    try {
+        const jwt = token.split(" ")[1] || token;
+        const payloadBase64 = jwt.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+function checkAuth() {
+    // Skip authentication for testing with TEST_USER_ID
+    if (TEST_USER_ID === 8) {
+        console.log('Test mode - skipping authentication');
+        return true;
+    }
+    
+    const token = localStorage.getItem('token');
+    console.log("Token from localStorage:", token);
+    
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        
+        // Check for token in cookies if not found in localStorage
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        if (match) {
+            const cookieToken = decodeURIComponent(match[1]);
+            if (!isTokenExpired(cookieToken)) {
+                localStorage.setItem('token', cookieToken);
+                return true;
+            }
+        }
+        
+        window.location.href = '/login';
+        return false;
+    }
+    
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() { 
+  // Check authentication first
+  if (!checkAuth()) {
+    return; // Stop execution if not authenticated
+  }
   
   try {
     // Load medications
@@ -24,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
           filterMedications(TEST_USER_ID, this.value);
         });
       }
+    }
+    
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
     }
     
     // Logout button
@@ -188,6 +245,8 @@ function displayLowQuantityMedications(medications) {
     return;
   }
   
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   medications.forEach(med => {
     const medItem = document.createElement('div');
     medItem.className = 'medication-item low-quantity';
@@ -199,7 +258,7 @@ function displayLowQuantityMedications(medications) {
         </div>
       </div>
       <div class="medication-actions">
-        <button class="btn btn-primary" onclick="refillMedication(${med.medication_id}, ${med.user_id})">Refill</button>
+        <button class="btn btn-primary" onclick="refillMedication(${med.medication_id}, ${TEST_USER_ID})">Refill</button>
       </div>
     `;
     container.appendChild(medItem);
@@ -215,18 +274,25 @@ function displayExpiredMedications(medications) {
     return;
   }
   
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   medications.forEach(med => {
+    // Format expiry date using DateUtils
+    const formattedExpiryDate = window.DateUtils && med.prescription_enddate ? 
+      DateUtils.formatDate(med.prescription_enddate) : 
+      new Date(med.prescription_enddate).toLocaleDateString();
+    
     const medItem = document.createElement('div');
     medItem.className = 'medication-item expired';
     medItem.innerHTML = `
       <div class="medication-info">
         <div class="medication-name">${med.medication_name}</div>
         <div class="medication-details">
-          <span>Expired: ${new Date(med.prescription_enddate).toLocaleDateString()}</span>
+          <span>Expired: ${formattedExpiryDate}</span>
         </div>
       </div>
       <div class="medication-actions">
-        <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id}, ${med.user_id})">Delete</button>
+        <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id})">Delete</button>
       </div>
     `;
     container.appendChild(medItem);
@@ -234,22 +300,52 @@ function displayExpiredMedications(medications) {
 }
 
 function createMedicationElement(med) {
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
+  // Format date and time using DateUtils
+  const formattedDate = window.DateUtils && med.medication_date ? 
+    DateUtils.formatDate(med.medication_date) : 
+    (med.medication_date ? new Date(med.medication_date).toLocaleDateString() : 'No date');
+    
+  const formattedTime = window.DateUtils && med.medication_time ? 
+    DateUtils.formatTime(med.medication_time) : 
+    (med.medication_time || 'No time specified');
+  
+  // Calculate relative time if DateUtils is available
+  const relativeTime = window.DateUtils && med.medication_date && med.medication_time ? 
+    DateUtils.getRelativeTime(med.medication_date, med.medication_time) : '';
+  
+  // Format prescription dates
+  const formattedStartDate = window.DateUtils && med.prescription_startdate ?
+    DateUtils.formatDate(med.prescription_startdate) :
+    (med.prescription_startdate ? new Date(med.prescription_startdate).toLocaleDateString() : '');
+    
+  const formattedEndDate = window.DateUtils && med.prescription_enddate ?
+    DateUtils.formatDate(med.prescription_enddate) :
+    (med.prescription_enddate ? new Date(med.prescription_enddate).toLocaleDateString() : '');
+  
   const medItem = document.createElement('div');
   medItem.className = `medication-item ${med.is_taken ? 'taken' : ''}`;
+  medItem.setAttribute('data-medication-id', med.medication_id);
   medItem.innerHTML = `
     <div class="medication-info">
       <div class="medication-name">${med.medication_name}</div>
       <div class="medication-details">
         <span>Dosage: ${med.medication_dosage}</span>
-        <span>Time: ${med.medication_time}</span>
+        <span>Date: ${formattedDate}</span>
+        <span>Time: ${formattedTime}</span>
+        ${relativeTime ? `<span class="relative-time" style="font-style: italic; color: #666;">${relativeTime}</span>` : ''}
         <span>Quantity: ${med.medication_quantity}</span>
-        <span>${med.is_taken ? 'Taken' : 'Not Taken'}</span>
+        ${formattedStartDate ? `<span>Start: ${formattedStartDate}</span>` : ''}
+        ${formattedEndDate ? `<span>End: ${formattedEndDate}</span>` : ''}
+        ${med.medication_notes ? `<span>Notes: ${med.medication_notes}</span>` : ''}
+        <span class="status ${med.is_taken ? 'taken' : 'pending'}">${med.is_taken ? '✓ Taken' : '⏰ Pending'}</span>
       </div>
     </div>
     <div class="medication-actions">
-      ${!med.is_taken ? `<button class="btn btn-primary" onclick="tickOffMedication(${med.medication_id}, ${med.user_id})">Mark Taken</button>` : ''}
+      ${!med.is_taken ? `<button class="btn btn-primary" onclick="tickOffMedication(${med.medication_id}, ${TEST_USER_ID})">Mark Taken</button>` : ''}
       <button class="btn btn-outline" onclick="editMedication(${med.medication_id})">Edit</button>
-      <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id}, ${med.user_id})">Delete</button>
+      <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id})">Delete</button>
     </div>
   `;
   return medItem;
@@ -361,6 +457,16 @@ async function createMedication(userId) {
 async function tickOffMedication(medicationId, userId) {
   try {
     // Remove authorization header for testing
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
+        return;
+    }
+    
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
       headers: {
@@ -372,8 +478,10 @@ async function tickOffMedication(medicationId, userId) {
     
     const result = await response.json();
     showAlert(result.message || 'Medication marked as taken');
-    loadAllMedications(userId);
-    loadLowQuantityMedications(userId);
+
+    await loadAllMedications(userId);
+    await loadLowQuantityMedications(userId);
+
   } catch (error) {
     console.error('Error marking medication as taken:', error);
     showAlert(error.message, 'danger');
@@ -411,27 +519,45 @@ async function refillMedication(medicationId, userId) {
   }
 }
 
-async function deleteMedication(medicationId, userId) {
-  if (!confirm('Are you sure you want to delete this medication?')) return;
-  
-  try {
-    // Remove authorization header for testing
-    const response = await fetch(`/medications/${userId}/${medicationId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+async function deleteMedication(medicationId) {
+    // Validate inputs
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
     
-    if (!response.ok) throw new Error('Failed to delete medication');
-    
-    showAlert('Medication deleted successfully');
-    loadAllMedications(userId);
-    loadExpiredMedications(userId);
-  } catch (error) {
-    console.error('Error deleting medication:', error);
-    showAlert(error.message, 'danger');
-  }
+    const userId = window.currentUserId || 8; // Fallback to test user ID
+    if (!userId || userId === 'undefined') {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        // Refresh the medications list after successful deletion
+        await loadAllMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
 }
 
 function editMedication(medicationId) {
