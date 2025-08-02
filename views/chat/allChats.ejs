@@ -24,7 +24,7 @@
                                 <% } else { %> <%for (const c of chatData) {%>
                                 <div class="cell">
                                     <%- include("./partials/chatCard", {chatID: c.chat_id, helpeeID: c.helpee_id, username, status: c.chat_status,
-                                    createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time }) %>
+                                    createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time, title: c.title }) %>
                                 </div>
                                 <%}%> <% } %>
                             </div>
