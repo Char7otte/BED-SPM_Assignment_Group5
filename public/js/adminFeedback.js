@@ -45,19 +45,19 @@ let allFeedbackData = [];
 function filterFeedback() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     const statusFilter = document.getElementById('statusFilter').value;
-    
+
     let filteredData = allFeedbackData.filter(feedback => {
         // Search in title only
-        const matchesSearch = !searchTerm || 
+        const matchesSearch = !searchTerm ||
             feedback.title.toLowerCase().includes(searchTerm);
-        
+
         // Filter by status (using normalized status)
         const normalizedStatus = getNormalizedStatus(feedback.status);
         const matchesStatus = !statusFilter || normalizedStatus === statusFilter;
-        
+
         return matchesSearch && matchesStatus;
     });
-    
+
     // Update search results count
     const searchResults = document.getElementById('searchResults');
     if (searchTerm || statusFilter) {
@@ -65,7 +65,7 @@ function filterFeedback() {
     } else {
         searchResults.textContent = '';
     }
-    
+
     // Display filtered results
     displayFeedbackItems(filteredData);
 }
@@ -74,12 +74,12 @@ function filterFeedback() {
 function getNormalizedStatus(status) {
     // Convert status to proper case and ensure only valid statuses
     if (!status) return 'Pending';
-    
+
     const normalizedStatus = status.trim();
     if (normalizedStatus === 'Reviewed' || normalizedStatus === 'reviewed') {
         return 'Reviewed';
     }
-    
+
     // Default to Pending for any other status
     return 'Pending';
 }
@@ -97,9 +97,9 @@ function displayFeedbackItems(feedbackList) {
 
     if (!feedbackList || feedbackList.length === 0) {
         const noFeedbackDiv = document.createElement("div");
-        const hasFilters = document.getElementById('searchInput').value || 
-                          document.getElementById('statusFilter').value;
-        
+        const hasFilters = document.getElementById('searchInput').value ||
+            document.getElementById('statusFilter').value;
+
         if (hasFilters) {
             noFeedbackDiv.innerHTML = `
                 <div class="alert alert-info">
@@ -125,7 +125,7 @@ function displayFeedbackItems(feedbackList) {
             if (formattedDate) {
                 try {
                     let date;
-                    
+
                     // Handle different date formats
                     if (typeof formattedDate === 'string') {
                         date = new Date(formattedDate);
@@ -138,7 +138,7 @@ function displayFeedbackItems(feedbackList) {
                     } else {
                         date = new Date(formattedDate);
                     }
-                    
+
                     if (!isNaN(date.getTime())) {
                         formattedDate = date.toLocaleDateString('en-US', {
                             year: 'numeric',
@@ -153,16 +153,16 @@ function displayFeedbackItems(feedbackList) {
                     formattedDate = 'Date error';
                 }
             }
-            
+
             // Highlight search terms in title
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
             let highlightedTitle = feedback.title;
-            
+
             if (searchTerm) {
                 const regex = new RegExp(`(${searchTerm})`, 'gi');
                 highlightedTitle = feedback.title.replace(regex, '<mark>$1</mark>');
             }
-            
+
             // Create the feedback item HTML
             feedbackElement.innerHTML = `
                 <div class="card-body">
@@ -241,7 +241,7 @@ async function updateFeedbackStatus(feedbackId, newStatus) {
         console.error("Error updating feedback status:", error);
         messageDiv.textContent = `Failed to update status: ${error.message}`;
         messageDiv.style.color = "red";
-        
+
         // Reset the dropdown to previous value
         fetchAllFeedback();
     }
@@ -313,80 +313,80 @@ function handleDeleteClick(event) {
             "Content-Type": "application/json",
         },
     })
-    .then(async (response) => {
-        let responseBody = {};
-        
-        // Try to parse response body if it exists
-        try {
-            if (response.headers.get("content-type")?.includes("application/json")) {
-                responseBody = await response.json();
+        .then(async (response) => {
+            let responseBody = {};
+
+            // Try to parse response body if it exists
+            try {
+                if (response.headers.get("content-type")?.includes("application/json")) {
+                    responseBody = await response.json();
+                }
+            } catch (e) {
+                // Response might be empty for successful deletes
+                responseBody = { message: response.statusText };
             }
-        } catch (e) {
-            // Response might be empty for successful deletes
-            responseBody = { message: response.statusText };
-        }
 
-        if (response.ok) {
-            // Handle success (204 No Content or 200 OK)
-            messageDiv.textContent = `Feedback with ID ${feedbackId} deleted successfully.`;
-            messageDiv.style.color = "green";
-            
-            // Remove from global data array
-            allFeedbackData = allFeedbackData.filter(feedback => feedback.id != feedbackId);
-            
-            // Re-apply current filters
-            filterFeedback();
+            if (response.ok) {
+                // Handle success (204 No Content or 200 OK)
+                messageDiv.textContent = `Feedback with ID ${feedbackId} deleted successfully.`;
+                messageDiv.style.color = "green";
 
-            // Hide the success message after 3 seconds
-            setTimeout(() => {
-                messageDiv.textContent = "";
-            }, 3000);
+                // Remove from global data array
+                allFeedbackData = allFeedbackData.filter(feedback => feedback.id != feedbackId);
 
-        } else if (response.status === 404) {
-            // Handle 404 Not Found
-            messageDiv.textContent = `Feedback with ID ${feedbackId} not found.`;
+                // Re-apply current filters
+                filterFeedback();
+
+                // Hide the success message after 3 seconds
+                setTimeout(() => {
+                    messageDiv.textContent = "";
+                }, 3000);
+
+            } else if (response.status === 404) {
+                // Handle 404 Not Found
+                messageDiv.textContent = `Feedback with ID ${feedbackId} not found.`;
+                messageDiv.style.color = "red";
+                console.error("Not Found Error:", responseBody);
+
+            } else {
+                // Handle 500 Internal Server Error or other errors
+                throw new Error(
+                    `API error! status: ${response.status}, message: ${responseBody.message || 'Unknown error'}`
+                );
+            }
+        })
+        .catch((error) => {
+            console.error("Error deleting feedback:", error);
+            messageDiv.textContent = `Failed to delete feedback: ${error.message}`;
             messageDiv.style.color = "red";
-            console.error("Not Found Error:", responseBody);
-        
-        } else {
-            // Handle 500 Internal Server Error or other errors
-            throw new Error(
-                `API error! status: ${response.status}, message: ${responseBody.message || 'Unknown error'}`
-            );
-        }
-    })
-    .catch((error) => {
-        console.error("Error deleting feedback:", error);
-        messageDiv.textContent = `Failed to delete feedback: ${error.message}`;
-        messageDiv.style.color = "red";
-    })
-    .finally(() => {
-        // Reset button state
-        deleteButton.innerHTML = originalText;
-        deleteButton.disabled = false;
-    });
+        })
+        .finally(() => {
+            // Reset button state
+            deleteButton.innerHTML = originalText;
+            deleteButton.disabled = false;
+        });
 }
 
 // Initialize page when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("Page loaded, fetching all feedback...");
     fetchAllFeedback();
-    
+
     // Add event listeners for search and filter functionality
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
     const clearFiltersBtn = document.getElementById('clearFilters');
-    
+
     // Real-time search with debouncing
     let searchTimeout;
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(filterFeedback, 300); // 300ms delay
     });
-    
+
     // Filter on dropdown changes
     statusFilter.addEventListener('change', filterFeedback);
-    
+
     // Clear filters button
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', clearAllFilters);

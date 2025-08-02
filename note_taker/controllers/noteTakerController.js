@@ -73,8 +73,8 @@ async function createNote(req, res) {
         console.log("Creating note with data:", noteData);
 
         //basic validation
-        if (!noteData.user_id || !noteData.NoteTitle || !noteData.NoteContent) {
-            return res.status(400).json({ error: "missing required fields" });
+        if (!userId || !noteData.NoteTitle || !noteData.NoteContent) {
+            return res.status(400).json({ error: "Missing required fields" });
         }
 
         const newNote = await noteTakerModel.createNote(noteData, userId);

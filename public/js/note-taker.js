@@ -28,6 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedNoteId) {
                 loadNoteById(selectedNoteId);
             }
+            setTimeout(() => {
+                const firstNoteElement = document.querySelector(`.note-item[data-id="${selectedNoteId}"]`);
+                if (firstNoteElement) {
+                    firstNoteElement.classList.add('selected');
+                }
+            }, 0);
         } catch (err) {
             console.error('Error fetching notes:', err.message);
             noteListContainer.innerHTML = '<p class="text-danger">Failed to load notes.</p>';
@@ -102,25 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
             noteTitleField.value = note.NoteTitle;
             noteContentField.value = note.NoteContent;
 
-            noteTitleField.readOnly = true;
-            noteContentField.readOnly = true;
-
-            noteTitleField.addEventListener('dblclick', () => {
-                noteTitleField.readOnly = false;
-                noteTitleField.focus();
-            });
-            noteTitleField.addEventListener('blur', () => {
-                noteTitleField.readOnly = true;
-            });
-
-            noteContentField.addEventListener('dblclick', () => {
-                noteContentField.readOnly = false;
-                noteContentField.focus();
-            });
-            noteContentField.addEventListener('blur', () => {
-                noteContentField.readOnly = true;
-            });
-
         } catch (err) {
             console.error(`Failed to load note ${id}:`, err);
         }
@@ -152,8 +139,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Create a new note
+    const saveBtn = document.querySelector('#noteArea button[type="submit"]');
+
+    saveBtn.addEventListener('click', async () => {
+        const noteTitle = noteTitleField.value.trim();
+        const noteContent = noteContentField.value.trim();
+
+        if (!noteTitle || !noteContent) {
+            alert('Note title and content cannot be empty.');
+            return;
+        }
+
+        const newNote = {
+            NoteTitle: noteTitle,
+            NoteContent: noteContent
+        };
+
+        try {
+            const res = await fetch('/notes-api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newNote)
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                throw new Error(result.error || 'Failed to create note');
+            }
+
+            alert('Note created successfully!');
+            fetchNotes(); // refresh note list
+        } catch (err) {
+            console.error('Error creating note:', err);
+            alert('Error creating note.');
+        }
+    });
 
     // Delete selected note
 
     fetchNotes();
+});
+
+// Edit button: Clear fields and set to editable, and disable delete button if no note selected
+const editBtn = document.getElementById('toolbarCreateBtn');
+editBtn.addEventListener('click', () => {
+    const noteTitleField = document.getElementById('NoteTitle');
+    const noteContentField = document.getElementById('NoteContent');
+    if (noteTitleField) noteTitleField.value = '';
+    if (noteContentField) noteContentField.value = '';
+    if (noteTitleField) noteTitleField.readOnly = false;
+    if (noteContentField) noteContentField.readOnly = false;
+    if (noteTitleField) noteTitleField.focus();
+    selectedNoteId = null;
+    document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
+    // Disable the delete button and add Bootstrap disabled style
+    const deleteBtn = document.getElementById('toolbarDeleteBtn');
+    if (deleteBtn) {
+        deleteBtn.disabled = true;
+        deleteBtn.classList.add('disabled');
+    }
 });
