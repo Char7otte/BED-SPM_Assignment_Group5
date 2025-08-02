@@ -6,6 +6,7 @@ const methodOverride = require("method-override");
 const cookieParser = require('cookie-parser');
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
+const router = express.Router();
 
 dotenv.config();
 
@@ -46,6 +47,9 @@ const jwt = require("jsonwebtoken");
 // import feedback functions
 const feedbackController = require("./feedback/controllers/feedbackController");
 const { validateFeedback, validateFeedbackId } = require("./feedback/middlewares/feedbackValidation");
+
+// Import trivia quiz model and controller
+const triviaController = require("./trivia-quiz/controller/triviaQuizController");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -144,7 +148,7 @@ app.get("/users/logout",userController.logoutUser); // Get user roles by ID #oka
 
 //Charlotte's Chat routes
 app.get("/chats", chatController.getAllChats);
-app.post("/chats/create/:userID", validateUserID, chatController.createChat);
+//app.post("/chats/create/:userID", validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 
 app.get("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
@@ -200,6 +204,11 @@ app.post("/notes", noteTakerController.createNote);
 app.delete("/notes/:id", noteTakerController.deleteNote);
 app.put("/notes/:id", noteTakerController.updateNote);
 app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+
+// Trivia Quiz routes
+app.get('/trivia', (req, res) => {
+  res.render('trivia-quiz/trivia');
+});
 
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
