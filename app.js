@@ -6,6 +6,7 @@ const methodOverride = require("method-override");
 const cookieParser = require("cookie-parser");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
+const router = express.Router();
 
 dotenv.config();
 
