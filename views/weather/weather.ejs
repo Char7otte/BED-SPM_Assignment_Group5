@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        a {
+  color: white;
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+a:hover, a:active, a:focus{
+  color: white;
+  text-decoration: none;
+  opacity: 1;
+}
+
+.active {
+  color: white;
+  text-decoration: none;
+  opacity: 1;
+}
+
+body{
+  background-color: #F4F6F7;
+}
+
+#wrapper {
+  background-color: #28688C;
+  box-shadow: 1px 5px 25px 3px #444;
+  border-radius: 10px;
+  margin: 00px auto;
+  max-width: 620px;
+  padding: 0px;
+  color: white;  
+  
+}
+
+#current-weather{
+  padding: 15px;
+}
+
+#mainTemperature{
+  font-size: 5.5em; 
+  line-height: 0.7;
+}
+
+#tempDescription {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.day-weather-box {
+  border: 1px solid #28688C;
+  background-color: #2E7FA1;
+  border-radius: 5px;
+  height: 5em;
+}
+
+.day-weather-box p{
+  margin-bottom: 0;
+}
+
+.side-weather-info {
+  padding: 0px 10px;
+}
+
+.day-weather-inner-box {
+  display: inline-flex;
+  margin: 14px auto;
+  padding: 0px 5px;
+}
+
+.forecast-main {
+  padding: 0px 0px 0px 30px;
+}
+
+.forecast-icon {
+  font-size: 25px;
+  margin-left: 5px;
+}
+
+.modal-body p{
+  color: #333;
+}
+.day-weather-box {
+    margin-bottom: 15px;
+  }
+  .forecast-icon {
+    font-size: 30px;
+  }
+  .high-temperature {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ff5722;
+  }
+
+    </style>
+</head>
+
+<body>
+    <div class="container" id="wrapper">
+  <div class="container-fluid" id="current-weather">
+    <div class="row">
+      
+      <!-- Right panel -->
+      <div class="col-md-4 col-sm-5">
+        <h5><span id="cityName"></span>Singapore,Singapore <span id="cityCode"></span></h5>
+
+        <h6 id="localDate"></h6>
+        <h5 id="localTime"></h5>
+        <a id="refreshButton" href="#"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i> Refresh</a>
+      </div>
+      
+      <!-- Center panel -->
+      <div class="col-md-5 col-sm-7" style="margin: 10px auto;padding:0;">
+        <div class="row">
+          <i class="wi" id ="main-icon" style="font-size: 85px;"></i>
+          <div>
+            <spam id="mainTemperature"></spam>
+            <p id="tempDescription"></p>
+          </div>
+          <p style="font-size: 1.5rem;"><a class="active" id="celcius">°C</a></p>
+      </div>
+      
+      <!-- Left panel -->
+      <div class="col-xs-12 col-sm-12 col-md-3 row" style="text-align: right;">
+        
+        <div class="col-md-12 col-sm-3 col-xs-3 side-weather-info">
+          <h6>High: <spam id="mainTempHot"></spam>°</h6>
+        </div>
+        <div class="col-md-12 col-sm-3 col-xs-3 side-weather-info">
+          <h6>Low: <spam id="mainTempLow"></spam>°</h6>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="protocol-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <p>Due to weather api restrictions, data can only be shown via HTTP request.</p>
+          <p>Sorry for the inconvenience.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 4 days forecast -->
+  <!-- 4 days forecast -->
+<div class="container-fluid">
+  <div class="row g-3 text-center">
+
+    <!-- Forecast Box Template -->
+    <div class="col-md-3 col-sm-6 day-weather-box">
+      <div class="day-weather-inner-box p-3 border rounded shadow-sm">
+        <p id="forecast-day-1-name" class="fw-bold"></p>
+        <i class="wi forecast-icon mb-2" id="forecast-day-1-icon" style="font-size: 32px;"></i>
+        <h5 id="forecast-day-1-main">North</h5>
+        <p><span class="high-temperature" id="north-weather"></span></p>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 day-weather-box">
+      <div class="day-weather-inner-box p-3 border rounded shadow-sm">
+        <p id="forecast-day-2-name" class="fw-bold"></p>
+        <i class="wi forecast-icon mb-2" id="forecast-day-2-icon" style="font-size: 32px;"></i>
+        <h5 id="forecast-day-2-main">South</h5>
+        <p><span class="high-temperature" id="south-weather"></span></p>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 day-weather-box">
+      <div class="day-weather-inner-box p-3 border rounded shadow-sm">
+        <p id="forecast-day-3-name" class="fw-bold"></p>
+        <i class="wi forecast-icon mb-2" id="forecast-day-3-icon" style="font-size: 32px;"></i>
+        <h5 id="forecast-day-3-main">East</h5>
+        <p><span class="high-temperature" id="east-weather"></span></p>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 day-weather-box">
+      <div class="day-weather-inner-box p-3 border rounded shadow-sm">
+        <p id="forecast-day-4-name" class="fw-bold"></p>
+        <i class="wi forecast-icon mb-2" id="forecast-day-4-icon" style="font-size: 32px;"></i>
+        <h5 id="forecast-day-4-main">West</h5>
+        <p><span class="high-temperature" id="west-weather"></span></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+    const apiurl = "http://localhost:3000/forecast";
+   
+
+    getWeatherData();
+    var unitIsCelcius = true;
+var globalForecast = [];
+
+// Maps the API's icons to the ones from https://erikflowers.github.io/weather-icons/
+var weatherIconsMap = {
+  "01d": "wi-day-sunny",
+  "01n": "wi-night-clear",
+  "02d": "wi-day-cloudy",
+  "02n": "wi-night-cloudy",
+  "03d": "wi-cloud",
+  "03n": "wi-cloud",
+  "04d": "wi-cloudy",
+  "04n": "wi-cloudy",
+  "09d": "wi-showers",
+  "09n": "wi-showers",
+  "10d": "wi-day-hail",
+  "10n": "wi-night-hail",
+  "11d": "wi-thunderstorm",
+  "11n": "wi-thunderstorm",
+  "13d": "wi-snow",
+  "13n": "wi-snow",
+  "50d": "wi-fog",
+  "50n": "wi-fog"
+};
+
+
+// $(function(){
+//   getClientPosition();
+//   startClock();  
+// });
+
+
+function startClock(){
+  setInterval(function(){
+    $("#localTime").text(new Date().toLocaleTimeString());
+  }, 1000);
+}
+
+async function getWeatherData() {
+  // try {
+    const response = await fetch(apiurl);
+    const json = await response.json();
+    console.log("Raw API response:", json);
+    const data = json
+
+    // if (!Array.isArray(data) || data.length === 0) {
+    //   throw new Error("No records found.");
+    // }
+
+    console.log("Weather data fetched successfully:", data);
+    updateForecast(data);
+  // } 
+  // catch (error) {
+  //   console.error('Error fetching weather data:', error);
+  // }
+}
+
+
+// Update view values from passed forecast
+function updateForecast(forecast) {
+  if (!forecast || !forecast.temperature || !forecast.area) {
+    console.error("Invalid forecast data:", forecast);
+    return;
+  }
+
+  // Date and temperature range
+  document.getElementById("localDate").textContent = forecast.date;
+  document.getElementById("mainTemperature").textContent = `30° `;
+  document.getElementById("mainTempHot").textContent = forecast.temperature.high;
+  document.getElementById("mainTempLow").textContent = forecast.temperature.low;
+
+  // Region-based forecast
+  document.getElementById("east-weather").textContent = `${forecast.area.east}`;
+  document.getElementById("west-weather").textContent = `${forecast.area.west}`;
+  document.getElementById("north-weather").textContent = `${forecast.area.north.replace(/\s*\((Day|Night)\)/gi, "")}`;
+  document.getElementById("south-weather").textContent = `${forecast.area.south.replace(/\s*\((Day|Night)\)/gi, "")}`;
+  document.getElementById("east-weather").textContent = `${forecast.area.east.replace(/\s*\((Day|Night)\)/gi, "")}`;
+  document.getElementById("west-weather").textContent = `${forecast.area.west.replace(/\s*\((Day|Night)\)/gi, "")}`;
+  document.getElementById("forecast-day-1-icon").className = "wi forecast-icon " + weatherIconsMap[getIconCode(forecast.area.north)];
+  document.getElementById("forecast-day-2-icon").className = "wi forecast-icon " + weatherIconsMap[getIconCode(forecast.area.south)];
+  document.getElementById("forecast-day-3-icon").className = "wi forecast-icon " + weatherIconsMap[getIconCode(forecast.area.east)];
+  document.getElementById("forecast-day-4-icon").className = "wi forecast-icon " + weatherIconsMap[getIconCode(forecast.area.west)];
+
+  function getIconCode(description) {
+    // Simple mapping based on description keywords
+    description = description.toLowerCase();
+    if (description.includes("sunny")) return "01d";
+    if (description.includes("clear")) return "01d";
+    if (description.includes("cloudy")) return description.includes("partly") ? "02d" : "03d";
+    if (description.includes("showers")) return "09d";
+    if (description.includes("rain")) return "10d";
+    if (description.includes("thunderstorm")) return "11d";
+    if (description.includes("snow")) return "13d";
+    if (description.includes("fog")) return "50d";
+    return "02d"; // default partly cloudy
+  }
+}
+
+
+
+// Refresh button handler
+// $("#refreshButton").on("click", function(){
+//   // Starts Refresh button's spinning animation
+//   $("#refreshButton").html("<i class='fa fa-refresh fa-spin fa-fw'></i>");
+//   getWeatherData();
+// });
+
+
+
+
+
+// Applies the following format to date: WeekDay, Month Day, Year
+function getFormattedDate(date){
+  var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(date * 1000).toLocaleDateString("en-US",options);
+}
+
+
+// Formats the text to CamelCase
+function toCamelCase(str) {
+  var arr = str.split(" ").map(
+    function(sentence){
+      return sentence.charAt(0).toUpperCase() + sentence.substring(1);
+    }
+  );
+  return arr.join(" ");
+}
+
+
+</script>
+</body>
+</html>
+
+<!-- const forecast = {
+      date: record.date,
+      temperature: {
+        low: record.general.temperature.low,
+        high: record.general.temperature.high,
+        unit: record.general.temperature.unit
+      },
+      area: {
+        east: record.periods[0].regions.east.text,
+        west: record.periods[0].regions.west.text,
+        north: record.periods[0].regions.north.text,
+        south: record.periods[0].regions.south.text
+      }
+    }; -->
+
+    <!-- {
+    "date": "2025-07-27",
+    "temperature": {
+        "low": 25,
+        "high": 34,
+        "unit": "Degrees Celsius"
+    },
+    "area": {
+        "east": "Partly Cloudy (Day)",
+        "west": "Partly Cloudy (Day)",
+        "north": "Partly Cloudy (Day)",
+        "south": "Partly Cloudy (Day)"
+    }
+} -->

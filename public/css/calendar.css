@@ -316,3 +316,22 @@ body.modal-open #calendar {
     font-size: 12px;
     border-radius: 3px;
 }
+
+.status-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    color: #856404;
+}
+
+.past-appointment-notice {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    color: #721c24;
+    font-size: 0.9em;
+}

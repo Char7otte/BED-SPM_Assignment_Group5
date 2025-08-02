@@ -27,7 +27,7 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 
@@ -414,3 +414,5 @@ function handleDisplaySearchResults(users) {
         </div>
     `;
 }
+
+

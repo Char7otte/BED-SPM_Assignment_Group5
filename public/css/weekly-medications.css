@@ -1,0 +1,73 @@
+.weekly-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.week-range {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.day-card {
+  margin-bottom: 20px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.day-title {
+  font-weight: 600;
+}
+
+.day-date {
+  font-size: 14px;
+}
+
+.day-content {
+  padding: 15px;
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #eee;
+  border-top: none;
+}
+
+.no-medications {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}
+
+.calendar-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.date-picker {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.date-picker input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}

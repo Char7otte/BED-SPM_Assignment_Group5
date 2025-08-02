@@ -2,6 +2,14 @@ const Joi = require('joi');
 
 // Joi schemas for medication tracking validation
 const medicationCreateSchema = Joi.object({
+    user_id: Joi.number().integer().positive().required()
+        .messages({
+            'number.base': 'User ID must be a number',
+            'number.integer': 'User ID must be an integer',  
+            'number.positive': 'User ID must be positive',
+            'any.required': 'User ID is required'
+        }),
+        
     medication_name: Joi.string().trim().min(1).max(100).required()
         .messages({
             'string.base': 'Medication name must be a string',
@@ -147,17 +155,32 @@ const medicationUpdateSchema = Joi.object({
 });
 
 const refillSchema = Joi.object({
-    newQuantity: Joi.number().integer().min(1).max(10000).required()
+    refillQuantity: Joi.number().integer().min(1).max(1000).required()
         .messages({
-            'number.base': 'New quantity must be a number',
-            'number.integer': 'New quantity must be an integer',
-            'number.min': 'New quantity must be at least 1',
-            'number.max': 'New quantity cannot exceed 10,000',
-            'any.required': 'New quantity is required'
+            'number.base': 'Refill quantity must be a number',
+            'number.integer': 'Refill quantity must be an integer',
+            'number.min': 'Refill quantity must be at least 1',
+            'number.max': 'Refill quantity cannot exceed 1000',
+            'any.required': 'Refill quantity is required'
+        }),
+    
+    refillDate: Joi.date().iso().required()
+        .messages({
+            'date.base': 'Refill date must be a valid date',
+            'date.iso': 'Refill date must be in ISO format (YYYY-MM-DD)',
+            'any.required': 'Refill date is required'
         })
 });
 
 const medicationIdParamSchema = Joi.object({
+    userId: Joi.number().integer().positive().required()
+        .messages({
+            'number.base': 'User ID must be a number',
+            'number.integer': 'User ID must be an integer',
+            'number.positive': 'User ID must be positive',
+            'any.required': 'User ID is required'
+        }),
+        
     id: Joi.number().integer().positive().required()
         .messages({
             'number.base': 'Medication ID must be a number',
@@ -165,6 +188,7 @@ const medicationIdParamSchema = Joi.object({
             'number.positive': 'Medication ID must be positive',
             'any.required': 'Medication ID is required'
         }),
+        
     medicationId: Joi.number().integer().positive().optional()
         .messages({
             'number.base': 'Medication ID must be a number',
@@ -196,6 +220,11 @@ const dateRangeQuerySchema = Joi.object({
 
 // Validation middleware functions
 const validateMedicationCreate = (req, res, next) => {
+    // Skip validation for GET requests to /medications (HTML page)
+    if (req.method === 'GET') {
+        return next();
+    }
+    
     const { error, value } = medicationCreateSchema.validate(req.body, { 
         abortEarly: false,
         stripUnknown: true 
@@ -255,6 +284,9 @@ const validateRefillRequest = (req, res, next) => {
             details: errorMessages 
         });
     }
+    
+    req.body = bodyValue;
+    next();
 };
 
 const validateMedicationIdParam = (req, res, next) => {
@@ -291,7 +323,7 @@ const validateDateRangeQuery = (req, res, next) => {
 
 const validateSearchQuery = (req, res, next) => {
     const searchSchema = Joi.object({
-        medicationName: Joi.string().trim().min(1).max(100).required()
+        name: Joi.string().trim().min(1).max(100).required()
             .messages({
                 'string.base': 'Medication name must be a string',
                 'string.empty': 'Medication name cannot be empty',

@@ -1,25 +1,25 @@
-# the-old-people-app
+# BED & SPM Assignment Group 5
 
-## Remember to install node dependencies!
+## Install node dependencies
 
 > npm i
 
 ## Node apps used
 
--   [Express](https://www.npmjs.com/package/express)
+-   [Express](https://www.npmjs.com/package/express) - Web framework
 -   [mssql](https://www.npmjs.com/package/mssql) - Connecting to SQL databases
--   [ejs](https://www.npmjs.com/package/ejs) - Embedded JS to aid with frontend
--   [method-override](https://www.npmjs.com/package/method-override) - Use unsupported HTTP verbs with html forms (forms only support GET and POST by default)
--   [dotenv](https://www.npmjs.com/package/dotenv) - I don't really know tbh
+-   [ejs](https://www.npmjs.com/package/ejs) - Embedded JS templates to aid with frontend
+-   [method-override](https://www.npmjs.com/package/method-override) - Enables HTTP verbs like PUT and DELETE in forms
+-   [dotenv](https://www.npmjs.com/package/dotenv) - Loads environment variables
 
 ## Other tools used
 
--   [Bulma](https://bulma.io/) - CSS Framework so it looks half decent
+-   [Bulma](https://bulma.io/) - CSS Framework for styling
 
 ## Folder structure
 
-CSS, js, img & other assets go into the public folder. <br>
-HTML files go in views.
+- **public** - CSS, JS, images, and other assets
+- **views** - HTML & ejs files
 
 ## Features
 
@@ -51,33 +51,38 @@ HTML files go in views.
 
 | Request                          | URL                      | Path Parameters                        | Body Parameters |
 | -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
-| `GET` Get all notes              | `/notes`                 |                                        | 
-| `POST` Create a new note         | `/notes`                 |                                        | `user_id`, `NoteTitle`, `NoteContent`
-| `DELETE` Delete a note           | `/notes/:id`             | `id` (Note ID)                         | `noteId` 
-| `GET` Get notes by note id       | `/notes/:id`             | `id` (Note ID)                         | `id` (Note ID)
-| `GET` Get notes by search term   | `/notes/search`          | `search`                               | `search`
-| `PUT` Edit a note                | `/notes/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
-| `DELETE` Bulk delete notes       | `/notes/bulk`            | `bulk`                                 | `noteIds`        |
-| `GET` Export note as markdown    | `/notes/export-md/:id`   | `bulk`                                 |                  |
+| `GET` Get all notes              | `/notes-api`                 |                                        | 
+| `POST` Create a new note         | `/notes-api`                 |                                        | `NoteTitle`, `NoteContent`
+| `DELETE` Delete a note           | `/notes-api/:id`             | `id` (Note ID)                         | `noteId` 
+| `GET` Get notes by note id       | `/notes-api/:id`             | `id` (Note ID)                         | `id` (Note ID)
+| `GET` Get notes by search term   | `/notes-api/search`          | `search`                               | `search`
+| `PUT` Edit a note                | `/notes-api/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
+| `DELETE` Bulk delete notes       | `/notes-api/bulk`            | `bulk`                                 | `noteIds`        |
+| `GET` Export note as markdown    | `/notes-api/export-md/:id`   | `bulk`                                 |                  |
 
 ### Medical Appointment API
 
-| Request                          | URL                      | Path Parameters    | Query Parameters  | Body Parameters |
-| -------------------------------- | ------------------------ | ------------------ |------------------ | --------------- |
-| `GET` Get all appointments       | `/med-appointments`      |                    |                   | 
-| `GET` Get appointments by search term   | `/med-appointments/search`    |        | `searchTerm`      | 
-| `GET` Get appointments by date   | `/med-appointments/:date`| `date`             |                   | 
-| `GET` Get appointments by month and year   | `/med-appointments/:month/:year`| `month`, `year`       |                   | 
-| `POST` Create a new appointment  | `/med-appointments`      |                    |                   | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes`
-| `PUT` Edit an appointment        | `/med-appointments/:appointment_id`  | `appointment_id` |                | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes`
-| `DELETE` Delete an appointment   | `/med-appointments/:appointment_id`  | `appointment_id` |                | 
+| Request                       | URL                      | User Type   | Path Parameters   | Query Parameters  | Body Parameters   |
+| ------------------------------| ------------------------ | ----------- |------------------ |----------- | ----------------- |
+| `GET` Get all appointments        | `/med-appointments`           | User  |        
+| `GET` Search appointments         | `/med-appointments/search`    | User  |       | `searchTerm`    | 
+| `GET` Get appointments by date    | `/med-appointments/:date`     | User  | `date` | 
+| `GET` Get appointments by month and year| `/med-appointments/:month/:year`| User  | `month`, `year` |
+| `POST` Create a new appointment   | `/med-appointments`           | User  |       |       | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes` |
+| `PUT` Edit an appointment         | `/med-appointments/:appointment_id`   | User  |`appointment_id` |  | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes` |
+| `DELETE` Delete an appointment    | `/med-appointments/:appointment_id`   | User  | `appointment_id` |
 
 ### Feedback API
 
-| Request                          | URL                      | Path Parameters    | Query Parameters  | Body Parameters |
-| -------------------------------- | ------------------------ | ------------------ |------------------ | --------------- |
-| `GET` Get all feedbacks       | `/feedback`      |                    |                   | 
-| `GET` Get feedbacks by search term   | `/feedback/search`    |        | `searchTerm`      | 
-| `POST` Create a new feedback  | `/feedback`      |                    |                   | `title`, `feature`, `description`
-| `PUT` Edit a feedback        | `/feedback/:feedback_id`  | `feedback_id` |                | `title`, `feature`, `description`
-| `DELETE` Delete a feedback   | `/feedback/:feedback_id`  | `feedback_id` |                | 
+| Request                       | URL                      | User Type   | Path Parameters   | Query Parameters  | Body Parameters   |
+| ------------------------------| ------------------------ | ----------- |------------------ |----------- | ----------------- |
+| `GET` Get all feedbacks from user | `/feedback`               | User  |              
+| `GET` Get all feedbacks from all users    | `/feedback/admin` | Admin |               
+| `GET` Search feedbacks        | `/feedback/search`            | User  |               | `searchTerm` | 
+| `GET` Search feedbacks by title or status | `/feedback/admin/search`  | Admin |       | `searchTerm` | 
+| `POST` Create a new feedback  | `/feedback`                   | User  |               |              | `title`, `feature`, `description` |
+| `PUT` Edit a feedback         | `/feedback/:feedback_id`      | User  | `feedback_id` |              | `title`, `feature`, `description`
+| `PUT` Edit feedback status    | `/feedback/admin/:feedback_id`| Admin | `feedback_id` |              | `status` |
+| `DELETE` Delete a feedback    | `/feedback/:feedback_id`      | User  | `feedback_id` | 
+| `DELETE` Delete user feedback | `/feedback/admin/:feedback_id`| Admin | `feedback_id` |
+

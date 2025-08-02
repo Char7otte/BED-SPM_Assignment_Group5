@@ -38,7 +38,7 @@ function login() {
         // ✅ Login successful
         alert(data.message);  // or "Login successful"
         localStorage.setItem("token","Bearer " + data.token);  // optional
-        window.location.href = "/dashboard";
+        window.location.href = "/homepage";
     } else {
         console.log(data);
         // ❌ Login failed - bad credentials or other issue
@@ -80,15 +80,22 @@ async function register() {
 
     const data = await response.json();
     if (data.success || data.message === 'User created successfully') {
-        document.getElementById("status").value = "Registration successful!";
-        window.location.href = "/dashboard"; // Redirect to dashboard or home page
+        console.log("Registration successful:", data);
+        if (data.token) {
+            localStorage.setItem("token", "Bearer " + data.token); // Store token if available
+        }else {
+            alert("no token found");
+        }
+        
+        window.location.href = "/homepage"; // Redirect to dashboard or home page
     } else {
         if (data.message == 'Username already exists') {
             document.getElementById("status").innerText = "Registration failed: " + "Username already exists";
         } else {
             document.getElementById("status").innerText = "Registration failed: " + data.message;
         }
-        document.getElementById("status").style.color = "red";
+        
+        document.getElementById("status").style.color = "#d67272ff"; // Set text color to red
         console.error("Registration failed:", data.message);
         
     }

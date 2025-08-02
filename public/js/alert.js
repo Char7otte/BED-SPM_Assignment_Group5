@@ -1,6 +1,7 @@
 
 const apiurl = "http://localhost:3000";
 console.log("alert.js loaded");
+console.log();
 
 function decodeJwtPayload(token) {
     const jwt = token.split(" ")[1]; // remove 'Bearer'
@@ -27,7 +28,7 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 
