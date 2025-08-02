@@ -20,7 +20,7 @@
                                     <%for (const m of messageData) {%>
                                     <div class="cell">
                                         <%- include("./partials/chatMessageCard",{chatID, messageID:m.message_id, senderID: m.sender_id, message:
-                                        m.message, sentDateTime: m.sent_date_time, username: m.username}) %>
+                                        m.message, sentDateTime: m.sent_date_time, username: m.username, userID}) %>
                                     </div>
                                     <%}%>
                                 </div>
@@ -57,5 +57,6 @@
         ></script>
         <script type="module" src="/js/chat/editMessage.js"></script>
         <script src="https://kit.fontawesome.com/fe51342540.js" crossorigin="anonymous"></script>
+        <script src="/js/chat/dropdownToggle.js"></script>
     </body>
 </html>
