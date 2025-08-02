@@ -1,7 +1,60 @@
+const TEST_USER_ID = 8; // Global constant for consistent user ID
+
+function decodeJwtPayload(token) {
+    try {
+        const jwt = token.split(" ")[1] || token;
+        const payloadBase64 = jwt.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+function checkAuth() {
+    // Skip authentication for testing with TEST_USER_ID
+    if (TEST_USER_ID === 8) {
+        console.log('Test mode - skipping authentication');
+        return true;
+    }
+    
+    const token = localStorage.getItem('token');
+    console.log("Token from localStorage:", token);
+    
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        
+        // Check for token in cookies if not found in localStorage
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        if (match) {
+            const cookieToken = decodeURIComponent(match[1]);
+            if (!isTokenExpired(cookieToken)) {
+                localStorage.setItem('token', cookieToken);
+                return true;
+            }
+        }
+        
+        window.location.href = '/login';
+        return false;
+    }
+    
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Skip authentication for testing - use hardcoded user ID
-  const TEST_USER_ID = 8; // Change this to match a user ID in your database
+  // Check authentication first
+  if (!checkAuth()) {
+    return; // Stop execution if not authenticated
+  }
   
+  // Skip authentication for testing - use hardcoded user ID
   try {
     // Initialize current date display
     updateCurrentDate();
@@ -12,8 +65,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     setupEventListeners(TEST_USER_ID);
     
-    // Check for reminders every minute
-    setInterval(() => checkReminders(TEST_USER_ID), 60000);
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+    }
     
   } catch (error) {
     console.error('Initialization error:', error);
@@ -61,6 +116,14 @@ function updateCurrentDate() {
     day: 'numeric' 
   };
   document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+  
+  // Add readable relative date using DateUtils
+  const readableElement = document.getElementById('current-date-readable');
+  if (readableElement && window.DateUtils) {
+    const todayString = now.toISOString().split('T')[0];
+    const relativeTime = DateUtils.getRelativeTime(todayString);
+    readableElement.textContent = `Today is ${DateUtils.formatDate(todayString)} (${relativeTime === 'now' ? 'Today' : relativeTime})`;
+  }
 }
 
 async function loadDailyMedications(userId) {
@@ -156,12 +219,24 @@ function createMedicationCard(med) {
   const statusIcon = med.is_taken ? 'check-circle' : 'clock';
   const statusText = med.is_taken ? 'Taken' : 'Pending';
   
+  const TEST_USER_ID = 8;
+  
+  // Use DateUtils for time formatting
+  const formattedTime = window.DateUtils ? 
+    DateUtils.formatTime(med.medication_time) : 
+    formatTimeForDisplay(med.medication_time);
+  
+  // Calculate relative time for next dose
+  const relativeTime = window.DateUtils ? 
+    DateUtils.getRelativeTime(med.medication_date, med.medication_time) : '';
+  
   return `
-    <div class="medication-card ${statusClass}">
+    <div class="medication-card ${statusClass}" data-medication-id="${med.medication_id}">
       <div class="med-info">
         <h4>${med.medication_name}</h4>
         <p class="dosage">${med.medication_dosage}</p>
-        <p class="time">${formatTimeForDisplay(med.medication_time)}</p>
+        <p class="time">${formattedTime}</p>
+        ${relativeTime ? `<p class="relative-time" style="font-size: 0.8em; color: #666;">${relativeTime}</p>` : ''}
         ${med.medication_notes ? `<p class="notes">${med.medication_notes}</p>` : ''}
       </div>
       <div class="med-actions">
@@ -170,16 +245,19 @@ function createMedicationCard(med) {
         </span>
         <div class="action-buttons">
           ${!med.is_taken ? `
-            <button class="btn btn-success btn-sm" onclick="takeMedication(${med.medication_id}, ${med.user_id || 1})">
+            <button class="btn btn-success btn-sm" onclick="takeMedication(${med.medication_id}, ${TEST_USER_ID})">
               <i class="fa fa-check"></i> Take
             </button>
           ` : `
-            <button class="btn btn-warning btn-sm" onclick="markAsMissed(${med.medication_id}, ${med.user_id || 1})">
-              <i class="fa fa-undo"></i> Mark Missed
+            <button class="btn btn-warning btn-sm" onclick="markAsMissed(${med.medication_id}, ${TEST_USER_ID})">
+              <i class="fa fa-undo"></i> Mark Not Taken
             </button>
           `}
           <button class="btn btn-info btn-sm" onclick="editMedication(${med.medication_id})">
             <i class="fa fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMedication(${med.medication_id})">
+            <i class="fa fa-trash"></i> Delete
           </button>
         </div>
       </div>
@@ -190,6 +268,12 @@ function createMedicationCard(med) {
 function formatTimeForDisplay(timeString) {
   if (!timeString) return 'Not specified';
   
+  // Use DateUtils if available
+  if (window.DateUtils) {
+    return DateUtils.formatTime(timeString);
+  }
+  
+  // Fallback logic
   const timeParts = timeString.split(':');
   if (timeParts.length >= 2) {
     const hours = parseInt(timeParts[0]);
@@ -203,7 +287,26 @@ function formatTimeForDisplay(timeString) {
 
 async function takeMedication(medicationId, userId) {
   try {
-    // Remove authorization header for testing
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+    
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
+        return;
+    }
+    
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
+        return;
+    }
+
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
       headers: {
@@ -220,8 +323,9 @@ async function takeMedication(medicationId, userId) {
     showAlert('Medication marked as taken successfully!', 'success');
     
     // Reload medications to update display
-    loadDailyMedications(userId);
-    
+    await loadDailyMedications(userId);
+    await loadLowQuantityMedications(userId);
+
     // Show low quantity warning if applicable
     if (result.isLowQuantity) {
       showAlert(result.message, 'warning');
@@ -233,10 +337,12 @@ async function takeMedication(medicationId, userId) {
 }
 
 async function markAsMissed(medicationId, userId) {
-  if (!confirm('Mark this medication as missed?')) return;
+  if (!confirm('Mark this medication as missed? This will reset it to not taken.')) return;
   
   try {
-    // Remove authorization header for testing
+    console.log(`Marking medication ${medicationId} as missed for user ${userId}`);
+    
+    // Use the markMedicationAsMissed endpoint
     const response = await fetch(`/medications/${userId}/${medicationId}/missed`, {
       method: 'PUT',
       headers: {
@@ -246,14 +352,17 @@ async function markAsMissed(medicationId, userId) {
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Error response:', errorText);
       throw new Error(`Failed to mark medication as missed: ${errorText}`);
     }
     
+    const result = await response.json();
     showAlert('Medication marked as missed', 'warning');
-    loadDailyMedications(userId);
+    await loadDailyMedications(userId);
+    
   } catch (error) {
     console.error('Error marking medication as missed:', error);
-    showAlert(error.message, 'danger');
+    showAlert(`Error marking medication as missed: ${error.message}`, 'danger');
   }
 }
 
@@ -307,10 +416,12 @@ function displayReminders(reminders) {
   const container = document.getElementById('reminders-container');
   if (!container) return;
   
+  const TEST_USER_ID = 8; // Use consistent test user ID
+  
   const reminderHTML = reminders.map(reminder => `
     <div class="alert alert-warning reminder-alert">
       <strong>Reminder:</strong> It's time to take ${reminder.medication_name} (${reminder.medication_dosage})
-      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, 1)">
+      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, ${TEST_USER_ID})">
         Take Now
       </button>
     </div>
@@ -340,7 +451,51 @@ function setupEventListeners(userId) {
   }
 }
 
+async function deleteMedication(medicationId) {
+    // Validate inputs
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
+
+    const userId = TEST_USER_ID;
+    
+    if (!userId || userId === 'undefined') {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        // Refresh the daily view after successful deletion
+        await loadDailyMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
+}
+
 // Make functions available globally
 window.takeMedication = takeMedication;
 window.markAsMissed = markAsMissed;
+window.editMedication = editMedication;
+window.deleteMedication = deleteMedication;
 window.editMedication = editMedication;
