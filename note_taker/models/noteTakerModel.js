@@ -3,11 +3,14 @@ const path = require("path");
 const dbConfig = require(path.join(__dirname, "..", "..", "dbConfig.js"));
 
 // get all notes
-async function getAllNotes() {
+async function getAllNotes(userId) {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
-        const result = await connection.request().query("SELECT * FROM Notes ORDER BY LastEditedDate DESC;");
+        const query = "SELECT * FROM Notes WHERE user_id = @userId ORDER BY CreatedDate DESC;";
+        const request = connection.request();
+        request.input("userId", sql.Int, userId); // Add userId to filter notes by user
+        const result = await request.query(query);
         return result.recordset;
     } catch (error) {
         console.error("Database error in getAllNotes:", error); // More specific error logging
@@ -24,7 +27,7 @@ async function getAllNotes() {
 }
 
 // get note by id
-async function getNotesById(noteId) {
+async function getNotesById(noteId, userId) {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
@@ -33,12 +36,12 @@ async function getNotesById(noteId) {
         const query = `
     SELECT *
     FROM Notes
-    WHERE NoteID = @noteId
-    ORDER BY LastEditedDate DESC
+    WHERE NoteID = @noteId AND user_id = @userId;
     `;
 
         const request = connection.request();
         request.input("noteId", sql.Int, noteId);
+        request.input("userId", sql.Int, userId); // Add userId to filter notes by user
         const result = await request.query(query);
         return result.recordset[0]; // Return the first note found (there should only be one)
         // logic if no notes with id is found
@@ -57,7 +60,7 @@ async function getNotesById(noteId) {
 }
 
 // get note by search term
-async function searchNotes(searchTerm) {
+async function searchNotes(searchTerm, userId) {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
@@ -66,13 +69,14 @@ async function searchNotes(searchTerm) {
         const query = `
     SELECT *
     FROM Notes
-    WHERE NoteTitle LIKE @searchTerm
-        OR NoteContent LIKE @searchTerm
-    ORDER BY LastEditedDate DESC
+    WHERE (NoteTitle LIKE @searchTerm
+        OR NoteContent LIKE @searchTerm) AND user_id = @userId
+    ORDER BY CreatedDate DESC;
     `;
 
         const request = connection.request();
         request.input("searchTerm", sql.NVarChar, `%${searchTerm}%`); // Explicitly define type
+        request.input("userId", sql.Int, userId); // Add userId to filter notes by user
         const result = await request.query(query);
         return result.recordset;
         // logic if no notes have searchTerm
@@ -91,17 +95,17 @@ async function searchNotes(searchTerm) {
 }
 
 // create note
-async function createNote(noteData) {
+async function createNote(noteData, userId) {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
         const query = `
             INSERT INTO Notes (user_id, NoteTitle, NoteContent, CreatedDate, LastEditedDate)
-            VALUES (@user_id, @NoteTitle, @NoteContent, GETDATE(), GETDATE());
+            VALUES (@userId, @NoteTitle, @NoteContent, GETDATE(), GETDATE());
             SELECT SCOPE_IDENTITY() AS NoteID; -- Get the ID of the newly inserted note
         `;
         const request = connection.request();
-        request.input("user_id", sql.Int, noteData.user_id);
+        request.input("userId", sql.Int, userId);
         request.input("NoteTitle", sql.NVarChar, noteData.NoteTitle);
         request.input("NoteContent", sql.NVarChar, noteData.NoteContent);
         const result = await request.query(query);

@@ -3,7 +3,10 @@ const noteTakerModel = require("../models/noteTakerModel.js");
 // Get all notes
 async function getAllNotes(req, res) {
     try {
-        const notes = await noteTakerModel.getAllNotes();
+        // get userId
+        const userId = res.locals.user?.id;
+        console.log("Fetching all notes for user ID:", userId);
+        const notes = await noteTakerModel.getAllNotes(userId);
         res.json(notes);
     } catch (error) {
         console.error("Controller error in getAllNotes:", error.message, error.stack);
@@ -14,6 +17,8 @@ async function getAllNotes(req, res) {
 // get note by id
 async function getNotesById(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
         const noteId = parseInt(req.params.id);
         console.log("Search term:", `"${noteId}"`);
         // check if searchTerm is empty
@@ -21,7 +26,7 @@ async function getNotesById(req, res) {
         //     return res.status(400).json({ error: "Search term cannot be empty" });
         // }
         console.log("Searching for notes with term:", noteId);
-        const note = await noteTakerModel.getNotesById(noteId);
+        const note = await noteTakerModel.getNotesById(noteId, userId);
         // check if there are notes with the searchTerm
         if (!note) {
             return res.status(404).json({ error: `There are no notes with ${noteId}` });
@@ -37,6 +42,8 @@ async function getNotesById(req, res) {
 // search Notes by searchTerm
 async function searchNotes(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
         const searchTerm = req.query.search?.trim();
         console.log("Search term:", `"${searchTerm}"`);
         // check if searchTerm is empty
@@ -44,7 +51,7 @@ async function searchNotes(req, res) {
         //     return res.status(400).json({ error: "Search term cannot be empty" });
         // }
         console.log("Searching for notes with term:", searchTerm);
-        const note = await noteTakerModel.searchNotes(searchTerm);
+        const note = await noteTakerModel.searchNotes(searchTerm, userId);
         // check if there are notes with the searchTerm
         if (!note) {
             return res.status(404).json({ error: `There are no notes with ${searchTerm}` });
@@ -60,6 +67,8 @@ async function searchNotes(req, res) {
 // Create a new note
 async function createNote(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
         const noteData = req.body;
         console.log("Creating note with data:", noteData);
 
@@ -68,7 +77,7 @@ async function createNote(req, res) {
             return res.status(400).json({ error: "missing required fields" });
         }
 
-        const newNote = await noteTakerModel.createNote(noteData);
+        const newNote = await noteTakerModel.createNote(noteData, userId);
         res.status(201).json({ message: 'Note created successfully', note: newNote });
     } catch (error) {
         console.error("Controller error in createNote:", error.message, error.stack);
