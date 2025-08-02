@@ -172,6 +172,7 @@ app.get("/feedback-admin", (req, res) => {
 
 app.get("/loginauth.html", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+});
 
 // Weather
 app.get("/weather", async (req, res) => {
