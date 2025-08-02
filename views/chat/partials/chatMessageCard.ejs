@@ -10,11 +10,17 @@
         <form action="/chats/<%= chatID %>?_method=PATCH" method="POST" class="edit-message-form card-footer-item">
             <input type="hidden" name="messageID" value="<%= messageID %>" />
             <input type="hidden" name="message" value="<%= message %>" />
-            <button class="has-text-info" type="submit">Edit</button>
+            <button class="has-text-info card-button" type="submit">
+                <span class="icon"> <i class="fa-solid fa-pen-to-square"></i> </span>
+                Edit
+            </button>
         </form>
         <form action="/chats/<%= chatID %>?_method=DELETE" method="POST" class="delete-message-form card-footer-item">
             <input type="hidden" name="messageID" value="<%= messageID %>" />
-            <button class="has-text-danger" type="submit">Delete</button>
+            <button class="has-text-danger card-button" type="submit">
+                <span class="icon"> <i class="fa-solid fa-trash"></i> </span>
+                Delete
+            </button>
         </form>
     </footer>
 </div>
