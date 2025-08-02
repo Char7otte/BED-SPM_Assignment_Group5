@@ -128,6 +128,11 @@ app.get("/users/updatedetail/:id", (req, res) => {
 app.get('/users/profile', (req, res) => {
   res.render('user/profile', { user: res.locals.user });
 });
+app.get('/notes', (req, res) => {
+  res.render('note-taker/notes');
+});
+
+
 
 // Medical appointment calendar page
 app.get("/calendar", (req, res) => {
@@ -164,6 +169,9 @@ app.get("/feedbacks", (req, res) => {
 app.get("/feedback-admin", (req, res) => {
   res.render("feedback/feedback-admin");
 });
+
+app.get("/loginauth.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 
 // Weather
 app.get("/weather", async (req, res) => {
@@ -273,7 +281,6 @@ app.delete("/notes-api/:id", validateNoteID, noteTakerController.deleteNote);
 app.put("/notes-api/:id", validateNoteInput, noteTakerController.updateNote);
 app.get("/notes-api/export-md/:id", noteTakerController.exportNoteAsMarkdown);
 
-
 //routes for feedback - user
 app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
 app.get("/feedback/search", verifyJWT, feedbackController.searchFeedbacks);
@@ -287,6 +294,14 @@ app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksA
 app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
 app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
 
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+// Serve the calendar HTML file
+app.get("/calendar", (req, res) => {
+  res.render("medical-appointment/calendar");
+});
 //Weather API 3rd Party
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
