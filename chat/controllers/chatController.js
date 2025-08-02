@@ -17,7 +17,7 @@ async function getAllChats(req, res) {
             chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
         });
 
-        return res.render("chat/allChats", { chatData: chats, userID: id, username });
+        return res.render("chat/allChats", { chatData: chats, userID: id });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error retrieving chats");
