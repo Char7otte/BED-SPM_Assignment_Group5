@@ -44,7 +44,7 @@ const feedbackForm = document.getElementById("feedback-form");
 const messageDiv = document.getElementById("message");
 const apiBaseUrl = "http://localhost:3000";
 
-// Check if we're in edit mode based on URL parameters
+// Check if user is in edit mode based on URL parameters
 function checkEditMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const feedbackId = urlParams.get('id');
@@ -92,25 +92,23 @@ async function loadFeedbackForEdit(feedbackId) {
         
         // Redirect back to all feedback page after 3 seconds
         setTimeout(() => {
-            window.location.href = '/feedback';
+            window.location.href = '/feedbacks';
         }, 3000);
     }
 }
 
-// Update the populateForm function to work with display names:
 function populateForm(feedback) {
     try {
-        // Use the correct form field IDs from your HTML
         const titleInput = document.getElementById('title');
         const descriptionInput = document.getElementById('description');
         const featureSelect = document.getElementById('feature');
         const otherFeatureInput = document.getElementById('other-feature');
 
-        // Populate form fields with null checks
+        // Null checks
         if (titleInput) titleInput.value = feedback.title || '';
         if (descriptionInput) descriptionInput.value = feedback.description || '';
         
-        // Handle feature selection - now using display names directly
+        // Handle feature selection 
         if (featureSelect && feedback.feature) {
             const predefinedFeatures = ['Chat', 'Medication Tracker', 'Medical Appointments Calendar', 'Note Taker', 'Alert', 'Weather', 'Lottery', 'Bus Arrival', 'Feedback', 'Reputation System', 'Previous Asked Questions Log'];
 
@@ -136,6 +134,7 @@ function populateForm(feedback) {
         messageDiv.style.color = 'red';
     }
 }
+
 // Function to create new feedback
 async function createFeedback(feedbackData) {
     const response = await fetch(`${apiBaseUrl}/feedback`, {
@@ -166,7 +165,6 @@ feedbackForm.addEventListener("submit", async (event) => {
 
     messageDiv.textContent = ""; // Clear previous messages
 
-    // Collect data from the form inputs using correct IDs
     const feedbackIdInput = document.getElementById("feedback-id");
     const titleInput = document.getElementById("title");
     const featureSelect = document.getElementById("feature");
@@ -196,6 +194,12 @@ feedbackForm.addEventListener("submit", async (event) => {
 
     if (!feedbackData.description) {
         messageDiv.textContent = "Please enter a description";
+        messageDiv.style.color = "red";
+        return;
+    }
+
+    if (descriptionInput && descriptionInput.value.length > 500) {
+        messageDiv.textContent = `Description cannot exceed 500 characters. Current: ${descriptionInput.value.length}`;
         messageDiv.style.color = "red";
         return;
     }
@@ -273,7 +277,7 @@ feedbackForm.addEventListener("submit", async (event) => {
 
 // Add event listener for real-time validation
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're in edit mode
+    // Check if user is in edit mode
     checkEditMode();
     
     const titleInput = document.getElementById("title");
@@ -299,5 +303,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.style.borderColor = '#ced4da';
             }
         });
+    }
+
+    const messageDiv = document.getElementById("message");
+
+    // Create and insert a character counter element for real-time counting
+    let charCounter = document.createElement('div');
+    charCounter.id = 'description-char-counter';
+    charCounter.style.fontSize = '0.9em';
+    charCounter.style.color = '#666';
+    if (descriptionInput && descriptionInput.parentNode) {
+        descriptionInput.parentNode.insertBefore(charCounter, descriptionInput.nextSibling);
+    }
+
+    function updateCharCounter() {
+        const len = descriptionInput.value.length;
+        charCounter.textContent = `${len}/500 characters`;
+        if (len > 500) {
+            charCounter.style.color = 'red';
+            messageDiv.textContent = `Description cannot exceed 500 characters. Current: ${len}`;
+            messageDiv.style.color = 'red';
+        } else {
+            charCounter.style.color = '#666';
+            messageDiv.textContent = '';
+        }
+    }
+
+    if (descriptionInput) {
+        descriptionInput.addEventListener('input', updateCharCounter);
+        updateCharCounter();
     }
 });

@@ -261,7 +261,6 @@ async function fetchAllFeedback() {
         feedbackDiv.innerHTML = "Loading all feedback..."; // Show loading state
         messageDiv.textContent = ""; // Clear any previous messages
 
-        // Make a GET request to your API endpoint for all feedback
         const response = await fetch(`${apiBaseUrl}/feedback/admin`);
 
         if (!response.ok) {

@@ -51,8 +51,8 @@ function getDisplayFeatureName(featureValue) {
         'Alert': 'Alert',
         'Weather': 'Weather',
         'Feedback': 'Feedback',
-        'Reputation System': 'Reputation System',
-        'Previous Asked Questions Log': 'Previous Asked Questions Log',
+        'Quiz': 'Quiz',
+        'News': 'News',
         'Other': 'Other'
     };
     
@@ -322,8 +322,8 @@ function editFeedback(feedbackId) {
             'Alert': 'Alert',
             'Weather': 'Weather',
             'Feedback': 'Feedback',
-            'Reputation System': 'Reputation System',
-            'Previous Asked Questions Log': 'Previous Asked Questions Log'
+            'Quiz': 'Quiz',
+            'News': 'News'
         };
         
         // Keep the display name for new records, or convert if needed

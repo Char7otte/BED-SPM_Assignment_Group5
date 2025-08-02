@@ -33,13 +33,14 @@ if (!localStorage.getItem('token')) {
 }
 
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize any JavaScript functionality here
-            console.log("Index page loaded successfully.");
-            weather();
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any JavaScript functionality here
+    console.log("Index page loaded successfully.");
+    weather();
+    showUpcomingAppointments();
+});
 
-        async function fetchWeather() {
+async function fetchWeather() {
     try {
         const response = await fetch(`${apiUrl}/forecast`);
         if (!response.ok) {
@@ -213,7 +214,85 @@ async function alerts() {
 
 alerts();
 
+function formatDateFancy(dateString) {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayName = days[dateObj.getDay()];
+    const day = dateObj.getDate();
+    const month = months[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    return `${dayName}, ${day} ${month} ${year}`;
+}
 
+async function fetchAllAppointments() {
+    try {
+        const response = await fetch(`${apiUrl}/med-appointments`, {
+            headers: { Authorization: localStorage.getItem('token') }
+        });
+        if (!response.ok) throw new Error('Failed to fetch appointments');
+        return await response.json();
+    } catch (err) {
+        console.error('Error fetching appointments:', err);
+        return [];
+    }
+}
 
-
-
+async function showUpcomingAppointments() {
+    const listEl = document.getElementById('upcoming-appointments-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<li>Loading...</li>';
+    const appointments = await fetchAllAppointments();
+    listEl.innerHTML = '';
+    if (!appointments.length) {
+        listEl.innerHTML = '<li>No upcoming appointments.</li>';
+        return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let upcoming = [];
+    // If appointments is an array
+    if (Array.isArray(appointments)) {
+        appointments.forEach(appt => {
+            const apptDateObj = new Date(appt.date);
+            apptDateObj.setHours(0, 0, 0, 0);
+            if (apptDateObj >= today) upcoming.push(appt);
+        });
+    } else {
+        // If appointments is an object
+        Object.keys(appointments).forEach(dateKey => {
+            appointments[dateKey].forEach(appt => {
+                const apptDateObj = new Date(appt.date);
+                apptDateObj.setHours(0, 0, 0, 0);
+                if (apptDateObj >= today) upcoming.push(appt);
+            });
+        });
+    }
+    upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (!upcoming.length) {
+        listEl.innerHTML = '<li>No upcoming appointments.</li>';
+        return;
+    }
+    upcoming.slice(0, 2).forEach(appt => {
+        const li = document.createElement('li');
+        li.className = 'upcoming-appointment-card'; // Add a class for styling
+        li.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1; text-align: left;">
+                    <strong>${formatDateFancy(appt.date)}</strong><br>    
+                    <strong>${appt.title || 'No title'}</strong><br>               
+                    ${appt.doctor ? `<span>Doctor: ${appt.doctor}</span><br>` : ''}
+                    ${appt.location ? `<span>Location: ${appt.location}</span><br>` : ''}
+                </div>
+                <div style="flex: 0 0 120px; text-align: right;">
+                    <span>
+                        ${appt.startTime ? appt.startTime.substring(0,5) : 'N/A'}
+                        ${appt.endTime ? ' - ' + appt.endTime.substring(0,5) : ''}
+                    </span>
+                </div>
+            </div>
+        `;
+        listEl.appendChild(li);
+    });
+}
