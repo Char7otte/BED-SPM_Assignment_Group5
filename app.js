@@ -44,6 +44,9 @@ const {
 
 // Import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
+const { validateNoteInput, validateNoteID, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
+
+
 const jwt = require("jsonwebtoken");
 
 
