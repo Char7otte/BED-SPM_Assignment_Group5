@@ -33,12 +33,12 @@ const { validateMedAppointment, validateMedAppointmentId } = require("./medical-
 // Import functions from medication tracker
 const medTrackerController = require("./medication_tracker/controller/medTrackerController");
 const {
-    validateMedicationCreate,
-    validateMedicationUpdate,
-    validateRefillRequest,
-    validateMedicationIdParam,
-    validateDateRangeQuery,
-    validateSearchQuery,
+  validateMedicationCreate,
+  validateMedicationUpdate,
+  validateRefillRequest,
+  validateMedicationIdParam,
+  validateDateRangeQuery,
+  validateSearchQuery,
 } = require("./medication_tracker/middleware/medTrackerValidation");
 
 
@@ -71,32 +71,32 @@ app.set("views", path.join(__dirname, "views"));
 
 // JWT middleware
 app.use((req, res, next) => {
-    const token = req.cookies?.token || null;
-    let tokenExpired = false;
-    let user = null;
+  const token = req.cookies?.token || null;
+  let tokenExpired = false;
+  let user = null;
 
-    if (token) {
-        try {
-            user = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (err) {
-            tokenExpired = true;
-        }
-    } else {
-        tokenExpired = true;
+  if (token) {
+    try {
+      user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      tokenExpired = true;
     }
+  } else {
+    tokenExpired = true;
+  }
 
-    res.locals.user = user;
-    res.locals.tokenExpired = tokenExpired;
+  res.locals.user = user;
+  res.locals.tokenExpired = tokenExpired;
 
-    next();
+  next();
 });
 
 ///// Frontend routes /////
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
+  res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
 });
 app.get("/loginauth.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
+  res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
 app.get('/homepage', (req, res) => {
@@ -105,22 +105,22 @@ app.get('/homepage', (req, res) => {
 
 // Alert routes
 app.get("/alert", (req, res) => {
-    res.render("alert/alert", { message: "This is an alert message" });
+  res.render("alert/alert", { message: "This is an alert message" });
 });
 app.get("/alertdetail", (req, res) => {
-    res.render("alert/alertdetail", { message: "This is an alert detail message" });
+  res.render("alert/alertdetail", { message: "This is an alert detail message" });
 });
 app.get("/alertadmin", (req, res) => {
-    res.render("alert/alertadmin", { message: "This is an alert admin message" });
+  res.render("alert/alertadmin", { message: "This is an alert admin message" });
 });
 
 // User routes
 app.get("/user", (req, res) => {
-    res.render("user/user", { user: res.locals.user });
+  res.render("user/user", { user: res.locals.user });
 });
 app.get("/users/updatedetail/:id", (req, res) => {
-    const userId = req.params.id;
-    res.render("user/updatedetail", { userId: userId, user: res.locals.user });
+  const userId = req.params.id;
+  res.render("user/updatedetail", { userId: userId, user: res.locals.user });
 });
 app.get('/users/profile', (req, res) => {
   res.render('user/profile', { user: res.locals.user });
@@ -133,19 +133,19 @@ app.get("/calendar", (req, res) => {
 
 // Route to serve the medication tracker HTML page
 app.get("/medications", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "medication_index.html"));
+  res.sendFile(path.join(__dirname, "views", "medication_index.html"));
 });
 
 // Route to serve the daily medication HTML page
 app.get("/medications/daily", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
+  res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
 });
 
 // Route to serve the weekly medication HTML page
 app.get("/medications/weekly", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
+  res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
 });
-  
+
 // Feedback pages
 app.get("/feedback-form", (req, res) => {
   res.render("feedback/feedback-form");
@@ -159,7 +159,7 @@ app.get("/feedback-admin", (req, res) => {
 
 // Weather
 app.get("/weather", async (req, res) => {
-  res.render("weather/weather", { user: res.locals.user }); 
+  res.render("weather/weather", { user: res.locals.user });
 });
 
 ///// API routes /////
@@ -230,19 +230,19 @@ app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medT
 
 // Route to serve the medication tracker HTML files
 app.get("/medications", (req, res) => {
-    res.render("medication-tracker/all-medications");
+  res.render("medication-tracker/all-medications");
 });
 
 app.get("/medications/daily", (req, res) => {
-    res.render("medication-tracker/daily_medication");
+  res.render("medication-tracker/daily_medication");
 });
 
 app.get("/medications/weekly", (req, res) => {
-    res.render("medication-tracker/weekly_medication");
+  res.render("medication-tracker/weekly_medication");
 });
 
 app.get("/medications/create", (req, res) => {
-    res.render("medication-tracker/create-medication");
+  res.render("medication-tracker/create-medication");
 });
 
 // Route to serve the calendar HTML file
@@ -287,12 +287,12 @@ app.get('/forecast', weatherController.sendForecastData); // Fetch and send fore
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 process.on("SIGINT", async () => {
-    console.log("Server is gracefully shutting down");
-    await sql.close();
-    console.log("Database connections closed");
-    process.exit(0);
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
 });
