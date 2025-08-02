@@ -1,4 +1,58 @@
+function decodeJwtPayload(token) {
+    try {
+        const jwt = token.split(" ")[1] || token;
+        const payloadBase64 = jwt.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+function checkAuth() {
+    // Skip authentication for testing with TEST_USER_ID
+    const TEST_USER_ID = 8;
+    if (TEST_USER_ID === 8) {
+        console.log('Test mode - skipping authentication');
+        return true;
+    }
+    
+    const token = localStorage.getItem('token');
+    console.log("Token from localStorage:", token);
+    
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        
+        // Check for token in cookies if not found in localStorage
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        if (match) {
+            const cookieToken = decodeURIComponent(match[1]);
+            if (!isTokenExpired(cookieToken)) {
+                localStorage.setItem('token', cookieToken);
+                return true;
+            }
+        }
+        
+        window.location.href = '/login';
+        return false;
+    }
+    
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Check authentication first
+  if (!checkAuth()) {
+    return; // Stop execution if not authenticated
+  }
+  
   // Skip authentication for testing - use hardcoded user ID
   const TEST_USER_ID = 8; // Change this to match a user ID in your database
   
