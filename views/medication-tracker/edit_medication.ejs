@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weekly Medication View</title>
-  <link rel="stylesheet" href="/css/all-medications.css">
-  <link rel="stylesheet" href="/css/weekly-medications.css">
-  <link rel="stylesheet" href="/css/daily-medications.css">
+  <title>Edit Medication</title>
+  <link rel="stylesheet" href="/css/edit-medication.css">
   <!-- Load Bootstrap and FontAwesome -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -18,9 +16,26 @@
   <!-- Load utilities first, before any other scripts -->
   <script>
     // Inline utility functions to ensure they're available immediately
-    window.showLoading = window.showLoading || function(message = 'Loading...') {
-      console.log('Loading:', message);
-      createUtilityAlert(message, 'info');
+    // Enhanced showLoading function that can handle both boolean and string parameters
+    window.showLoading = window.showLoading || function(messageOrState = 'Loading...') {
+      if (typeof messageOrState === 'boolean') {
+        // Legacy support for boolean parameters
+        if (messageOrState) {
+          createUtilityAlert('Loading...', 'info');
+        } else {
+          // Remove loading alerts
+          const alerts = document.querySelectorAll('#alert-container .alert-info');
+          alerts.forEach(alert => {
+            if (alert.textContent.includes('Loading') || alert.textContent.includes('loading')) {
+              alert.remove();
+            }
+          });
+        }
+      } else {
+        // String message
+        console.log('Loading:', messageOrState);
+        createUtilityAlert(messageOrState, 'info');
+      }
     };
 
     window.showError = window.showError || function(message) {
@@ -108,6 +123,17 @@
             return timeString;
           } catch (error) {
             return timeString;
+          }
+        },
+        // Add this missing method
+        formatDateTime: function(dateString, timeString) {
+          if (!dateString || !timeString) return 'Not specified';
+          try {
+            const formattedDate = this.formatDate(dateString);
+            const formattedTime = this.formatTime(timeString);
+            return `${formattedDate} at ${formattedTime}`;
+          } catch (error) {
+            return 'Invalid date/time';
           }
         },
         getRelativeTime: function(date, time) {
@@ -223,6 +249,52 @@
         </div>
       </div>
     </div>
+
+    <!-- Add your form here -->
+    <div id="edit-form-container" style="display: block;">
+      <!-- Add readable date displays -->
+      <div class="form-group">
+        <label for="medication_date">Date *</label>
+        <input type="date" class="form-control" id="medication_date" required>
+        <small class="text-muted">Readable: <span id="readable-date">Not set</span></small>
+      </div>
+
+      <div class="form-group">
+        <label for="medication_time">Time *</label>
+        <input type="time" class="form-control" id="medication_time" required>
+        <small class="text-muted">Readable: <span id="readable-time">Not set</span></small>
+      </div>
+
+      <!-- Add is_taken field -->
+      <div class="form-group">
+        <label for="is_taken">Status</label>
+        <select class="form-control" id="is_taken">
+          <option value="false">Not Taken</option>
+          <option value="true">Taken</option>
+        </select>
+      </div>
+
+      <!-- Add prescription date displays -->
+      <div class="form-group">
+        <label for="prescription_startdate">Prescription Start Date</label>
+        <input type="date" class="form-control" id="prescription_startdate">
+        <small class="text-muted">Readable: <span id="readable-start-date">Not set</span></small>
+      </div>
+
+      <div class="form-group">
+        <label for="prescription_enddate">Prescription End Date</label>
+        <input type="date" class="form-control" id="prescription_enddate">
+        <small class="text-muted">Readable: <span id="readable-end-date">Not set</span></small>
+      </div>
+
+      <!-- Add medication summary -->
+      <div id="medication-summary" style="display: none;">
+        <p id="next-dose-info"></p>
+      </div>
+
+      <!-- Add delete button -->
+      <button type="button" id="delete-btn" class="btn btn-danger">Delete Medication</button>
+    </div>
   </main>
 
   <!-- Load jQuery and Bootstrap JS -->
@@ -233,6 +305,6 @@
   <script src="/js/notification-system.js"></script>
   
   <!-- Load page-specific script last -->
-  <script src="/js/weekly_medication_script.js"></script>
+  <script src="/js/edit-medication.js"></script>
 </body>
 </html>

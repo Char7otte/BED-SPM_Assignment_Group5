@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+    }
+    
     // Logout button
     document.getElementById('logout')?.addEventListener('click', function(e) {
       e.preventDefault();
@@ -218,13 +223,18 @@ function displayExpiredMedications(medications) {
   const TEST_USER_ID = 8; // Use consistent test user ID
   
   medications.forEach(med => {
+    // Format expiry date using DateUtils
+    const formattedExpiryDate = window.DateUtils && med.prescription_enddate ? 
+      DateUtils.formatDate(med.prescription_enddate) : 
+      new Date(med.prescription_enddate).toLocaleDateString();
+    
     const medItem = document.createElement('div');
     medItem.className = 'medication-item expired';
     medItem.innerHTML = `
       <div class="medication-info">
         <div class="medication-name">${med.medication_name}</div>
         <div class="medication-details">
-          <span>Expired: ${new Date(med.prescription_enddate).toLocaleDateString()}</span>
+          <span>Expired: ${formattedExpiryDate}</span>
         </div>
       </div>
       <div class="medication-actions">
@@ -238,16 +248,44 @@ function displayExpiredMedications(medications) {
 function createMedicationElement(med) {
   const TEST_USER_ID = 8; // Use consistent test user ID
   
+  // Format date and time using DateUtils
+  const formattedDate = window.DateUtils && med.medication_date ? 
+    DateUtils.formatDate(med.medication_date) : 
+    (med.medication_date ? new Date(med.medication_date).toLocaleDateString() : 'No date');
+    
+  const formattedTime = window.DateUtils && med.medication_time ? 
+    DateUtils.formatTime(med.medication_time) : 
+    (med.medication_time || 'No time specified');
+  
+  // Calculate relative time if DateUtils is available
+  const relativeTime = window.DateUtils && med.medication_date && med.medication_time ? 
+    DateUtils.getRelativeTime(med.medication_date, med.medication_time) : '';
+  
+  // Format prescription dates
+  const formattedStartDate = window.DateUtils && med.prescription_startdate ?
+    DateUtils.formatDate(med.prescription_startdate) :
+    (med.prescription_startdate ? new Date(med.prescription_startdate).toLocaleDateString() : '');
+    
+  const formattedEndDate = window.DateUtils && med.prescription_enddate ?
+    DateUtils.formatDate(med.prescription_enddate) :
+    (med.prescription_enddate ? new Date(med.prescription_enddate).toLocaleDateString() : '');
+  
   const medItem = document.createElement('div');
   medItem.className = `medication-item ${med.is_taken ? 'taken' : ''}`;
+  medItem.setAttribute('data-medication-id', med.medication_id);
   medItem.innerHTML = `
     <div class="medication-info">
       <div class="medication-name">${med.medication_name}</div>
       <div class="medication-details">
         <span>Dosage: ${med.medication_dosage}</span>
-        <span>Time: ${med.medication_time}</span>
+        <span>Date: ${formattedDate}</span>
+        <span>Time: ${formattedTime}</span>
+        ${relativeTime ? `<span class="relative-time" style="font-style: italic; color: #666;">${relativeTime}</span>` : ''}
         <span>Quantity: ${med.medication_quantity}</span>
-        <span>${med.is_taken ? 'Taken' : 'Not Taken'}</span>
+        ${formattedStartDate ? `<span>Start: ${formattedStartDate}</span>` : ''}
+        ${formattedEndDate ? `<span>End: ${formattedEndDate}</span>` : ''}
+        ${med.medication_notes ? `<span>Notes: ${med.medication_notes}</span>` : ''}
+        <span class="status ${med.is_taken ? 'taken' : 'pending'}">${med.is_taken ? '✓ Taken' : '⏰ Pending'}</span>
       </div>
     </div>
     <div class="medication-actions">

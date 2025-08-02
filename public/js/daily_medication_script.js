@@ -12,8 +12,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     setupEventListeners(TEST_USER_ID);
     
-    // Check for reminders every minute
-    setInterval(() => checkReminders(TEST_USER_ID), 60000);
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+    }
     
   } catch (error) {
     console.error('Initialization error:', error);
@@ -61,6 +63,14 @@ function updateCurrentDate() {
     day: 'numeric' 
   };
   document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+  
+  // Add readable relative date using DateUtils
+  const readableElement = document.getElementById('current-date-readable');
+  if (readableElement && window.DateUtils) {
+    const todayString = now.toISOString().split('T')[0];
+    const relativeTime = DateUtils.getRelativeTime(todayString);
+    readableElement.textContent = `Today is ${DateUtils.formatDate(todayString)} (${relativeTime === 'now' ? 'Today' : relativeTime})`;
+  }
 }
 
 async function loadDailyMedications(userId) {
@@ -158,12 +168,22 @@ function createMedicationCard(med) {
   
   const TEST_USER_ID = 8;
   
+  // Use DateUtils for time formatting
+  const formattedTime = window.DateUtils ? 
+    DateUtils.formatTime(med.medication_time) : 
+    formatTimeForDisplay(med.medication_time);
+  
+  // Calculate relative time for next dose
+  const relativeTime = window.DateUtils ? 
+    DateUtils.getRelativeTime(med.medication_date, med.medication_time) : '';
+  
   return `
-    <div class="medication-card ${statusClass}">
+    <div class="medication-card ${statusClass}" data-medication-id="${med.medication_id}">
       <div class="med-info">
         <h4>${med.medication_name}</h4>
         <p class="dosage">${med.medication_dosage}</p>
-        <p class="time">${formatTimeForDisplay(med.medication_time)}</p>
+        <p class="time">${formattedTime}</p>
+        ${relativeTime ? `<p class="relative-time" style="font-size: 0.8em; color: #666;">${relativeTime}</p>` : ''}
         ${med.medication_notes ? `<p class="notes">${med.medication_notes}</p>` : ''}
       </div>
       <div class="med-actions">
@@ -195,6 +215,12 @@ function createMedicationCard(med) {
 function formatTimeForDisplay(timeString) {
   if (!timeString) return 'Not specified';
   
+  // Use DateUtils if available
+  if (window.DateUtils) {
+    return DateUtils.formatTime(timeString);
+  }
+  
+  // Fallback logic
   const timeParts = timeString.split(':');
   if (timeParts.length >= 2) {
     const hours = parseInt(timeParts[0]);
@@ -414,8 +440,13 @@ async function deleteMedication(medicationId) {
     }
 }
 
+function editMedication(medicationId) {
+  window.location.href = `/medications/edit/${medicationId}`;
+}
+
 // Make functions available globally
 window.takeMedication = takeMedication;
 window.markAsMissed = markAsMissed;
 window.editMedication = editMedication;
 window.deleteMedication = deleteMedication;
+window.editMedication = editMedication;

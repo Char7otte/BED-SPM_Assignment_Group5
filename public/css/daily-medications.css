@@ -57,3 +57,54 @@
   font-weight: 600;
   color: var(--warning);
 }
+
+/* Medication reminder styles */
+.medication-reminder-active {
+    animation: reminderPulse 2s infinite;
+    border: 2px solid #f0ad4e !important;
+}
+
+@keyframes reminderPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(240, 173, 78, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(240, 173, 78, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(240, 173, 78, 0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.reminder-badge {
+    animation: pulse 2s infinite;
+}
+
+.medication-card.medication-reminder-active,
+.medication-item.medication-reminder-active {
+    border-left: 4px solid #f0ad4e;
+    background-color: rgba(240, 173, 78, 0.1);
+}
+
+/* Modal styles for better visibility */
+#medication-reminder-modal .modal-content {
+    border: 2px solid #f0ad4e;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+#medication-reminder-modal .modal-header {
+    background-color: #f0ad4e;
+    color: white;
+}

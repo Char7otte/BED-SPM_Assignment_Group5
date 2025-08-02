@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     setupEventListeners(TEST_USER_ID);
     
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+    }
+    
   } catch (error) {
     console.error('Initialization error:', error);
     showAlert('Failed to initialize application. Please refresh the page.', 'danger');
@@ -68,9 +73,17 @@ function updateCurrentWeek() {
   currentWeekStart = monday;
   currentWeekEnd = sunday;
   
+  // Use DateUtils for formatting
   const options = { month: 'short', day: 'numeric' };
   const weekText = `${monday.toLocaleDateString('en-US', options)} - ${sunday.toLocaleDateString('en-US', options)}`;
   document.getElementById('current-week').textContent = weekText;
+  
+  // Add readable format
+  const readableElement = document.getElementById('current-week-readable');
+  if (readableElement && window.DateUtils) {
+    const readableText = `${DateUtils.formatDate(monday.toISOString().split('T')[0])} to ${DateUtils.formatDate(sunday.toISOString().split('T')[0])}`;
+    readableElement.textContent = readableText;
+  }
 }
 
 async function loadWeeklyMedications(userId, startDate = null, endDate = null) {
@@ -182,7 +195,7 @@ function displayWeeklyMedications(medications) {
         const statusText = med.is_taken ? 'Taken' : 'Pending';
         
         calendarHTML += `
-          <div class="alert alert-${statusClass}" style="margin-bottom: 10px;">
+          <div class="alert alert-${statusClass}" style="margin-bottom: 10px;" data-medication-id="${med.medication_id}">
             <div class="row">
               <div class="col-md-8">
                 <h5><strong>${med.medication_name}</strong> - ${med.medication_dosage}</h5>
@@ -278,7 +291,12 @@ function updateWeeklySummary(medications) {
 function formatTimeForDisplay(timeString) {
   if (!timeString) return 'Not specified';
   
-  // Handle both HH:MM and HH:MM:SS formats
+  // Use DateUtils if available
+  if (window.DateUtils) {
+    return DateUtils.formatTime(timeString);
+  }
+  
+  // Fallback to existing logic
   const timeParts = timeString.split(':');
   if (timeParts.length >= 2) {
     const hours = parseInt(timeParts[0]);
@@ -598,3 +616,4 @@ window.deleteMedication = deleteMedication;
 window.editMedication = editMedication;
 window.navigateWeek = navigateWeek;
 window.searchMedications = searchMedications;
+window.createMedication = createMedication;

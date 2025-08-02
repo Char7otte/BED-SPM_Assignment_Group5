@@ -404,6 +404,25 @@ async function markMedicationAsMissed(req, res) {
     }
 }
 
+async function getUpcomingReminders(req, res) {
+    try {
+        const userId = parseInt(req.params.userId);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "Invalid user ID" });
+        }
+
+        const upcomingReminders = await medTrackerModel.getUpcomingReminders(userId);
+        
+        // Return empty array when no reminders found
+        res.json(upcomingReminders || []);
+        
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving upcoming reminders" });
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -420,5 +439,6 @@ module.exports = {
     decrementMedicationQuantity,
     refillMedication,
     getExpiredMedications,
-    markMedicationAsMissed
+    markMedicationAsMissed,
+    getUpcomingReminders
 };

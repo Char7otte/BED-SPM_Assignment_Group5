@@ -169,6 +169,7 @@ app.get("/medications/user/:userId/search", validateSearchQuery, medTrackerContr
 app.get("/medications/user/:userId/low-quantity", medTrackerController.getLowQuantityMedication);
 app.get("/medications/user/:userId/expired", medTrackerController.getExpiredMedications);
 app.get("/medications/user/:userId", medTrackerController.getAllMedicationByUser);
+app.get("/medications/user/:userId/:medicationId", validateMedicationIdParam, medTrackerController.getMedicationById);
 
 app.put("/medications/:userId/tick-all", medTrackerController.tickAllMedications);
 app.post("/medications", validateMedicationCreate, medTrackerController.createMedication);
@@ -193,6 +194,10 @@ app.get("/medications/weekly", (req, res) => {
 
 app.get("/medications/create", (req, res) => {
     res.render("medication-tracker/create-medication");
+});
+
+app.get("/medications/edit/:id", (req, res) => {
+  res.render("medication-tracker/edit-medication");
 });
 
 // Route to serve the calendar HTML file
