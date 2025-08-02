@@ -12,8 +12,10 @@ async function getAllChats(req, res) {
             chats = await chatModel.getAllChats();
         }
 
-        chats[0].created_date_time = format(chats[0].created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
-        chats[0].last_activity_date_time = format(chats[0].last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+        chats.forEach((chat) => {
+            chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+        });
 
         return res.render("chat/allChats", { chatData: chats, userID: id, username });
     } catch (error) {
