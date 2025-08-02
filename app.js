@@ -139,22 +139,7 @@ app.get("/calendar", (req, res) => {
   res.render("medical-appointment/calendar");
 });
 
-// Route to serve the medication tracker HTML page
-app.get("/medications", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "medication_index.html"));
-});
-
-// Route to serve the daily medication HTML page
-app.get("/medications/daily", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "daily_medication.html"));
-});
-
-// Route to serve the weekly medication HTML page
-app.get("/medications/weekly", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
-});
-
-// Route to serve teh notes page
+// Route to serve the notes page
 app.get('/notes', (req, res) => {
   res.render('note-taker/notes');
 });
@@ -299,10 +284,6 @@ app.get("/feedback/admin", verifyJWT, feedbackController.getAllFeedbacks);
 app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksAdmin);
 app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
 app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
-
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
 
 // Serve the calendar HTML file
 app.get("/calendar", (req, res) => {
