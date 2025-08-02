@@ -146,6 +146,11 @@ app.get("/medications/weekly", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "weekly_medication.html"));
 });
 
+// Route to serve teh notes page
+app.get('/notes', (req, res) => {
+  res.render('note-taker/notes');
+});
+
 // Feedback pages
 app.get("/feedback-form", (req, res) => {
   res.render("feedback/feedback-form");
