@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New Medication</title>
+  <link rel="stylesheet" href="/css/all-medications.css">
+  <link rel="stylesheet" href="/css/create-medication.css">
+  <%- include('../partials/head') %>
+</head>
+<%- include('../partials/navbar') %>
+<body>
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">MedTrack</div>
+        <div class="nav-links">
+          <a href="/medications">All Medications</a>
+          <a href="/medications/daily">Daily View</a>
+          <a href="/medications/weekly">Weekly View</a>
+          <a href="/medications/create" class="active">Add Medication</a>
+          <a href="#" id="logout">Logout</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="alert-container"></div>
+    
+    <!-- Add testing notice -->
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      <strong>Testing Mode:</strong> Authentication disabled. Using test user ID: 1
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Add New Medication</h2>
+        <a href="/medications" class="btn btn-outline">Back to List</a>
+      </div>
+      
+      <form id="create-medication-form">
+        <div class="form-group">
+          <label for="medication_name">Medication Name *</label>
+          <input type="text" id="medication_name" class="form-control" required placeholder="Enter medication name">
+        </div>
+        
+        <div class="form-group">
+          <label for="medication_dosage">Dosage *</label>
+          <input type="text" id="medication_dosage" class="form-control" required placeholder="e.g., 10mg, 2 tablets">
+        </div>
+        
+        <div class="form-group">
+          <label for="medication_date">Start Date *</label>
+          <input type="date" id="medication_date" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="medication_time">Time *</label>
+          <input type="time" id="medication_time" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="medication_quantity">Quantity</label>
+          <input type="number" id="medication_quantity" class="form-control" min="0" value="0" placeholder="Number of pills/doses">
+        </div>
+        
+        <div class="form-group">
+          <label for="prescription_startdate">Prescription Start Date</label>
+          <input type="date" id="prescription_startdate" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label for="prescription_enddate">Prescription End Date</label>
+          <input type="date" id="prescription_enddate" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label for="medication_notes">Notes</label>
+          <textarea id="medication_notes" class="form-control" rows="3" placeholder="Additional notes or instructions"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="medication_reminders"> Enable Reminders
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary">Save Medication</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/create-medication.js"></script>
+</body>
+<%- include('../partials/footer') %>
+</html>

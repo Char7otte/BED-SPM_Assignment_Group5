@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Medication View</title>
+  <link rel="stylesheet" href="/css/all-medications.css">
+  <link rel="stylesheet" href="/css/daily-medications.css">
+  <%- include('../partials/head') %>
+</head>
+<%- include('../partials/navbar') %>
+<body>
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">MedTrack</div>
+        <div class="nav-links">
+          <a href="/medications">All Medications</a>
+          <a href="/medications/daily" class="active">Daily View</a>
+          <a href="/medications/weekly">Weekly View</a>
+          <a href="/medications/create">Add Medication</a>
+          <a href="#" id="logout">Logout</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="alert-container"></div>
+    
+    <!-- Add testing notice -->
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      <strong>Testing Mode:</strong> Authentication disabled. Using test user ID: 1
+    </div>
+    
+    <div class="daily-header">
+      <h1>Today's Medications</h1>
+      <div class="date-display" id="current-date"></div>
+    </div>
+    
+    <div id="reminders-container"></div>
+    
+    <div class="card">
+      <div id="morning-medications">
+        <div class="time-group">
+          <div class="time-header">
+            <span class="time-title">Morning</span>
+            <div class="time-line"></div>
+          </div>
+          <div id="morning-meds-container"></div>
+        </div>
+      </div>
+      
+      <div id="afternoon-medications">
+        <div class="time-group">
+          <div class="time-header">
+            <span class="time-title">Afternoon</span>
+            <div class="time-line"></div>
+          </div>
+          <div id="afternoon-meds-container"></div>
+        </div>
+      </div>
+      
+      <div id="evening-medications">
+        <div class="time-group">
+          <div class="time-header">
+            <span class="time-title">Evening</span>
+            <div class="time-line"></div>
+          </div>
+          <div id="evening-meds-container"></div>
+        </div>
+      </div>
+      
+      <div id="night-medications">
+        <div class="time-group">
+          <div class="time-header">
+            <span class="time-title">Night</span>
+            <div class="time-line"></div>
+          </div>
+          <div id="night-meds-container"></div>
+        </div>
+      </div>
+      
+      <div class="tick-all-btn">
+        <button id="tick-all-btn" class="btn btn-primary">Mark All as Taken</button>
+      </div>
+    </div>
+  </main>
+  <script src="/js/daily_medication_script.js"></script>
+</body>
+<%- include('../partials/footer') %>
+</html>
