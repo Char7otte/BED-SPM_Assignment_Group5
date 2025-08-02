@@ -85,6 +85,9 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
 
 });
+app.get('/admin', (req, res) => {
+    res.render('indexadmin', { user: res.locals.user });
+});
 
 app.get("/alert", (req, res) => {
     res.render("alert/alert", { message: "This is an alert message" });
@@ -124,6 +127,7 @@ app.set("views", path.join(__dirname, "views"));
 app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
 app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
 app.post("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
+app.post("/alerts/checkhasnoties/:id", alertController.checkHasNotiesAdded); // Check if alert has notes added
 
 // CREATE ALERT (Admin only)
 app.post("/alerts", validateAlert, alertController.createAlert); //  Create a new alert
@@ -133,6 +137,7 @@ app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAle
 app.put("/alerts/delete/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
 
 // BASIC ALERT FETCHING
+
 app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admin)
 app.get("/alerts/:id", validateAlertId, alertController.getAlertById); // View alert by ID (last!)
 
@@ -148,6 +153,7 @@ app.patch("/users/updatedetail/:id", verifyJWT, validateUserInputForUpdate, user
 app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
 app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
 app.get("/users/logout", userController.logoutUser); // Get user roles by ID #okay
+
 
 //Charlotte's Chat routes
 

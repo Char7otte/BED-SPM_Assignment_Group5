@@ -27,7 +27,7 @@ async function getAllAlerts() {
 }
 
 async function getAlertById(id) {
-  let conn; // ✅ declare conn outside the try block
+  let conn;
   try {
     conn = await sql.connect(dbConfig);
 
@@ -303,6 +303,42 @@ async function searchAlerts(title, category) {
   }
 }
 
+async function checkifAlertAddedToNotes(alertId, userId) {
+  let conn;
+  try {
+    conn = await sql.connect(dbConfig);
+    const query = `
+      SELECT * FROM Notes 
+      WHERE NoteTitle = (SELECT Title FROM Alert WHERE AlertID = @alertId)
+      AND user_id = @userId
+    `;
+    const request = conn.request()
+      .input("alertId", sql.Int, alertId)
+      .input("userId", sql.Int, userId);
+    const result = await request.query(query);
+    console.log("Checking if alert is added to notes:", result.recordset);
+    if (result.recordset.length === 0) {
+      return false; // No note with the given title exists
+    }else {
+      return true; // Note with the given title exists
+    }
+    
+  } catch (error) {
+    console.error("Error checking if alert is added to notes:", error);
+    throw error;
+  } finally {
+    if (conn) {
+      try {
+        await conn.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+
+
 module.exports = {
   getAllAlerts,
   getAlertById,
@@ -313,6 +349,7 @@ module.exports = {
   getreadAlerts,
   searchAlerts,
   deleteReadStatusByid,
+  checkifAlertAddedToNotes
 };
 
 

@@ -31,7 +31,9 @@ if (!localStorage.getItem('token')) {
         window.location.href = "/login";
     }
 }
-
+if(decodeJwtPayload(token).role === 'A') {
+    window.location.href = "/admin"; 
+}
 
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize any JavaScript functionality here
@@ -120,6 +122,25 @@ async function weather() {
 
         document.getElementsByClassName('weather-up')[0].innerText = `${data.date}  High: ${data.temperature.high}°C  Low: ${data.temperature.low}°C`;
 
+        // If rainy, update .xtra-info and remind to bring umbrella
+        const isRainy = ["showers", "rain", "thunderstorm"].some(rain =>
+            [data.area.north, data.area.south, data.area.east, data.area.west].join(' ').toLowerCase().includes(rain)
+        );
+        const isSunny = ["sunny", "clear"].some(sun =>
+            [data.area.north, data.area.south, data.area.east, data.area.west].join(' ').toLowerCase().includes(sun)
+        );
+        if (isRainy) {
+            const xtraInfo = document.getElementsByClassName('xtra-info')[0];
+            if (xtraInfo) {
+            xtraInfo.innerText = "Remember to bring an umbrella! ☔️";
+            }
+        } else if (isSunny) {
+            const xtraInfo = document.getElementsByClassName('xtra-info')[0];
+            if (xtraInfo) {
+                xtraInfo.innerText = "It's a sunny day! Enjoy the weather! ☀️";
+            }
+        }
+
     }
 
     async function fetchAlerts() {
@@ -177,28 +198,35 @@ async function alerts() {
             alertDiv.className = 'alert-item';
             // Set alert class based on severity
             let severityClass = 'alert-info';
+            let borderColor = 'blue';
             if (alert.Severity) {
                 switch (alert.Severity.toLowerCase()) {
                     case 'high':
                         severityClass = '🚨';
+                        borderColor = 'pink';
                         break;
                     case 'medium':
                         severityClass = '🟡';
+                        borderColor = 'yellow';
                         break;
                     case 'low':
                         severityClass = '🟢';
+                        borderColor = 'green';
                         break;
                     case 'info':
                         severityClass = 'ℹ️';
+                        borderColor = 'blue';
                         break;
                     default:
                         severityClass = 'alert-secondary'; // Default class if severity is unknown
+                        borderColor = 'gray';
+                        
                 }
             }
             alertDiv.classList.add();
             alertDiv.setAttribute('role', 'alert');
             alertDiv.innerHTML = `
-                <div class="alert" id="hover" role="alert" style="cursor:pointer; text-align:left; height: 100%;" onclick="window.location.href='/alertdetail?id=${alert.AlertID}'">
+                <div class="alert alert-info" id="hover" role="alert" style="cursor:pointer; text-align:left; height: 100%; " onclick="window.location.href='/alertdetail?id=${alert.AlertID}'">
                     ${severityClass} <strong>${alert.Title || 'No title available'}</strong><br>
                     ${alert.Message || 'No message available'}
                 </div>
@@ -212,6 +240,16 @@ async function alerts() {
 }
 
 alerts();
+
+ function updateTime() {
+            const now = new Date();
+            console.log("here");
+            const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', options);
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
 
 
 

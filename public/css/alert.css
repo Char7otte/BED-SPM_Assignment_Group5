@@ -1,5 +1,5 @@
 body {
-    background-color: #2d2c2c; /* dark grey */
+    background-image: linear-gradient(135deg, #f5f7fa 0%, #8ea2c2 100%);
     color: #2c2929;
     height: 100%;
 }
@@ -8,18 +8,30 @@ body {
     max-width: 90%;
     margin: 0 auto;
     padding: 20px;
-    background-color: #565454; 
+    background-color: transparent; 
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding-bottom: 20px;
 }
 
 .sub-container {
     margin-top: 20px;
-    width: 90%;
+    width: 100%;
     margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+    
    
 }
+.alert-box {
+    width: 70%;
+}
+.alert-box-right {
+    width: 30%;
+    margin-left: 40px;
+    position: sticky;
+    top: 20px;
+}
+
 
 .card {
     padding : 10px;
@@ -54,3 +66,41 @@ body {
     margin: 0 auto;
     padding: 20px;
 }
+
+.line-down {
+    width: 1px;
+    height: 70vw;
+    background-color: #cac6c6;
+   
+}
+@media screen and (max-width: 768px) {
+    .alert-box {
+        width: 100%;
+    }
+    .alert-box-right {
+        display: none;
+    }
+    .alerD {
+        width: 90%;
+    }
+    .alert-item {
+        flex-direction: column;
+    }
+    .top1-btn, .bottom1-btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .main-container {
+        padding: 10px;
+    }
+    .sub-container {
+        flex-direction: column;
+    }
+    .card {
+        padding: 5px;
+    }
+    .alert-item {
+        padding: 10px;
+    }
+}
+

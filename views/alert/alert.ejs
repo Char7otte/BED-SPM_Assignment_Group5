@@ -19,9 +19,21 @@
       <div class="alert-box" id="alert-box">
         <!-- Alert content -->
       </div>
-    </div>
-  </div>
+      <div class = "line-down" ></div>
 
+      <div class="alert-box-right" id="alert-box-right">
+        <form id="quick-note-form" class="mb-3">
+          <div class="mb-2">
+            <label for="quickNote" class="form-label">Quick Note</label>
+            <input type="text" class="form-control mb-2" id="noteTitle" name="noteTitle" placeholder="Title">
+            <textarea class="form-control" id="quickNote" name="quickNote" rows="3" placeholder="Type your note here..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary submit-quick-note">Add Note</button>
+        </form>
+        <div id="quick-notes-list"></div>
+      </div>
+  </div>
+</div>
   <!-- Correct place for JS -->
   <script src="/js/alert.js" defer></script>
   <%- include('../partials/footer') %>

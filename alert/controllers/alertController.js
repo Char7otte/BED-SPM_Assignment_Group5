@@ -1,5 +1,6 @@
 const alertModel = require("../models/alertModel.js");
 
+
 // Get all alerts
 async function getAllAlerts(req, res) {
     try {
@@ -157,6 +158,34 @@ async function searchAlerts(req, res) {
     }
 }
 
+async function checkHasNotiesAdded(req, res) {
+    
+
+    try {
+        const alertTitle = req.params.id;
+        const userId = req.body.userId;
+
+        console.log("Checking if notes are added for alert title controller:", alertTitle);
+        if (!alertTitle) {
+            return res.status(400).json({ error: "Alert title is required" });
+        }
+        const hasNoties = await alertModel.checkifAlertAddedToNotes(alertTitle, userId);
+        if (hasNoties) {
+            console.log("Alert has notes added:", hasNoties);
+            return res.status(200).json({ hasNoties: true });
+        }
+        else {
+            console.log("Alert has no notes added:", hasNoties);
+            return res.status(200).json({ hasNoties: false });
+        }
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error checking notes" });
+    }
+}
+
+
+
 
 
 module.exports = {
@@ -168,6 +197,7 @@ module.exports = {
     updateAlertStatus,
     getreadAlerts,
     searchAlerts,
+    checkHasNotiesAdded,
 };
 
 // -- Alert table

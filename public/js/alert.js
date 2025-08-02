@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const alertId = new URLSearchParams(window.location.search).get("id");
     if (alertId) {
       fetchAlertDetailadmin(alertId);
+
     } else {
       // If no alertId is provided, fetch all alerts
       createAlert();
@@ -51,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchAlertDetailadmin(alertId);
   } else if (path.includes("/alert")) {
     fetchAlerts();
+    handleQuickNotes();
     const user = decodeJwtPayload(localStorage.getItem("token"));
     if (user && user.role === "A") {
         // Create floating add button
@@ -143,8 +145,8 @@ async function displayAlerts(alerts) {
 
    
 
-    alerts.forEach(alert => {
-        
+    alerts.forEach(async alert => {
+
         const alertItem = document.createElement("div");
         alertItem.classList.add("alert-item");
         console.log("Alert item:", alert);
@@ -160,6 +162,14 @@ async function displayAlerts(alerts) {
 
 
      
+
+        // Check if notes have been added for this alert
+        let notesAdded = false;
+        try {
+            notesAdded = await handleCheckHasNotiesAdded(alert.AlertID);
+        } catch (e) {
+            notesAdded = false;
+        }
 
         alertItem.innerHTML = `
             <div class="card position-relative">
@@ -187,10 +197,13 @@ async function displayAlerts(alerts) {
                     user.role === "U"
                     ? `<div style="position: absolute; top: 10px; right: 10px;">
                         <button class="btn btn-danger btn-sm top1-btn acknowledge-btn" onclick="handleAcknowledge(${alert.AlertID})" data-alertid="${alert.AlertID}" 
-                            ${readAlertIds.includes(alert.AlertID) ? "disabled" : ""}>
-                            ${readAlertIds.includes(alert.AlertID) ? "Acknowledged" : "Acknowledge"}
+                            ${(readAlertIds.includes(alert.AlertID)) ? "disabled" : ""}>
+                            ${(readAlertIds.includes(alert.AlertID)) ? "Acknowledged" : "Acknowledge"}
                         </button>
-                        <button class="btn btn-danger btn-sm top1-btn">Add to Notes</button> 
+                        <button class="btn btn-danger btn-sm top1-btn" onclick="handleAddToNotes(${alert.AlertID})"
+                            ${notesAdded ? "disabled" : ""}>
+                            ${notesAdded ? "Added to Notes" : "Add to Notes"}
+                        </button>
                     </div>`
                     : ""
                 }
@@ -223,7 +236,7 @@ async function displayAlerts(alerts) {
 }
 
 
-async function fetchAlertDetails(alertId) {
+async function fetchAlertDetails(alertId,skipDisplay) {
     try {
         const response = await fetch(`${apiurl}/alerts/${alertId}`);
         if (!response.ok) {
@@ -231,6 +244,7 @@ async function fetchAlertDetails(alertId) {
         }
         const alert = await response.json();
         console.log(alert);
+        if (skipDisplay) return alert; // Return alert without displaying
         displayAlertDetails(alert);
     } catch (error) {
         console.error("Error fetching alert details:", error);
@@ -248,7 +262,7 @@ async function displayAlertDetails(alert) {
 
      const readAlerts = await fetchUnreadAlerts(user.id); // Use user's ID from token
      console.log("Read alerts:", readAlerts);
-    readAlerts.forEach(alert => {
+    readAlerts.forEach( async alert => {
         console.log(alert);
         if (alert.ReadStatus == 0) {
              console.log("Unread alert found:", alert.AlertID);
@@ -258,19 +272,29 @@ async function displayAlertDetails(alert) {
     });
 
     const subcon = document.getElementById("subcon");
+    // Check if notes have been added for this alert
+    let notesAdded = false;
+    try {
+        notesAdded = await handleCheckHasNotiesAdded(alert.AlertID);
+    } catch (e) {
+        notesAdded = false;
+    }
+
     subcon.innerHTML = `
         <div class="mb-3"></div>
-        <button type="button" class="btn btn-primary me-2" id="addToNotesBtn">Add to Notes</button>
+        <button type="button" class="btn btn-primary me-2" id="addToNotesBtn" onclick="handleAddToNotes(${alert.AlertID})"
+            ${notesAdded ? "disabled" : ""}>
+            ${notesAdded ? "Added to Notes" : "Add to Notes"}
+        </button>
         <button 
-    type="button" 
-    class="btn btn-success" 
-    id="acknowledgeBtn"
-    onclick="handleAcknowledge(${alert.AlertID})"
-    ${user.role === "U" ? "" : "disabled"}
-    ${readAlertIds.includes(alert.AlertID) ? "disabled" : ""}>
-    ${readAlertIds.includes(alert.AlertID) ? "Acknowledged" : "Acknowledge"}
-  </button>
-        
+            type="button" 
+            class="btn btn-success" 
+            id="acknowledgeBtn"
+            onclick="handleAcknowledge(${alert.AlertID})"
+            ${user.role === "U" ? "" : "disabled"}
+            ${readAlertIds.includes(alert.AlertID) ? "disabled" : ""}>
+            ${readAlertIds.includes(alert.AlertID) ? "Acknowledged" : "Acknowledge"}
+        </button>
     `;
 
     const alertDetail = document.getElementById("alertDetail");
@@ -531,6 +555,104 @@ function handleAcknowledge(alertId) {
         console.error("Error acknowledging alert:", error);
         alert(`Failed to acknowledge alert: ${error.message}`);
     });
+}
+
+async function handleAddToNotes(alertId) {
+    const user = decodeJwtPayload(localStorage.getItem("token"));
+    if (user.role !== "U") {
+        alert("You do not have permission to add alerts to notes.");
+        return;
+    }
+    const alertDetails = await fetchAlertDetails(alertId, true); // Fetch alert details without displaying them
+    let success = await addAlertToNotes(user.id, alertDetails.Title, alertDetails.Message);
+    if (success) {
+        window.location.reload();
+    } else {
+        alert("Failed to add alert to notes");
+    }
+    console.log("Alert details fetched for notes:", alertDetails);
+}
+
+async function addAlertToNotes(userId, noteTitle, noteContent) {
+    try {
+        const response = await fetch(`${apiurl}/notes/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": localStorage.getItem("jwtToken")
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                NoteTitle: noteTitle,
+                NoteContent: noteContent
+            })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        await response.json();
+        if (response.status === 201) {
+            return true;
+        }
+        return false; // If the response is not 201, return false
+    } catch (error) {
+        console.error("Error adding alert to notes:", error);
+        alert(`Failed to add alert to notes: ${error.message}`);
+    }
+}
+
+async function handleQuickNotes() {
+    document.getElementsByClassName('submit-quick-note')[0].addEventListener('click', async function (event) {
+        event.preventDefault();
+        const noteTitle = document.getElementById("noteTitle").value;
+        const quickNote = document.getElementById("quickNote").value;
+        console.log("Adding quick note for alert ID:", noteTitle, quickNote);
+        if (!noteTitle || !quickNote) {
+            alert("Please fill in both title and note content.");
+            return;
+        }
+        const user = decodeJwtPayload(localStorage.getItem("token"));
+        let success = await addAlertToNotes(user.id, noteTitle, quickNote);
+        if (success) {
+            alert("Quick note added successfully");
+            document.getElementById("noteTitle").value = "";
+            document.getElementById("quickNote").value = "";
+        } else {
+            alert("Failed to add quick note");
+        }
+    });
+}
+    
+    
+
+
+
+async function handleCheckHasNotiesAdded(alertId) {
+
+    try {
+        const user = decodeJwtPayload(localStorage.getItem("token"));
+        const response = await fetch(`${apiurl}/alerts/checkhasnoties/${alertId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": localStorage.getItem("jwtToken")
+            },
+            body: JSON.stringify({ userId: user.id })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const hasNoties = await response.json();
+        console.log("Has notes added frontjs:", hasNoties);
+        if (hasNoties.hasNoties === true) {
+            alert("This alert has notes added.");
+            return true;
+        } else {        
+            return false;
+        }
+    } catch (error) {
+        console.error("Error checking notes:", error);
+    }
 }
 
 
