@@ -9,7 +9,8 @@
         <main>
             <div class="container">
                 <div class="columns">
-                    <div class="column is-half is-offset-one-quarter">
+                    <div class="column"></div>
+                    <div class="column is-three-quarters">
                         <h1 class="title">Chats</h1>
                         <form action="/chats/create/<%= userID%>" class="mb-5 create-new-chat-form" method="POST">
                             <input type="hidden" name="question" id="question" />
@@ -29,6 +30,7 @@
                             </div>
                         </div>
                     </div>
+                    <div class="column"></div>
                 </div>
             </div>
         </main>
