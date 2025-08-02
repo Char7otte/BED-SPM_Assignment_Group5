@@ -1,0 +1,36 @@
+.status-indicator {
+    min-width: 70px;
+    padding-left: 3px;
+}
+
+.status-indicator-color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 7px;
+    border-radius: 10px;
+}
+
+.status-open-text {
+    color: #36ff31;
+}
+
+.status-open {
+    background-color: #36ff31;
+}
+
+.status-responded-text {
+    color: #f3c549;
+}
+
+.status-responded {
+    background-color: #f3c549;
+}
+
+.status-closed-text {
+    color: #ff3e3e;
+}
+
+.status-closed {
+    background-color: #ff3e3e;
+}

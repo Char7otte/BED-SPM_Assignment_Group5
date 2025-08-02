@@ -1,8 +1,29 @@
 <div class="card chat-card">
     <a href="/chats/<%= chatID %>">
         <div class="card-content">
-            <p>Username: <%= username %></p>
-            <p>Status: <%= status %></p>
+            <div class="is-flex is-justify-content-space-between">
+                <p class="title mb-1"><%= title %></p>
+                <div class="status-indicator">
+                    <% if (status == "Open") { %>
+                    <p class="status-open-text">
+                        <%= status %>
+                        <span class="status-indicator-color status-open"></span>
+                    </p>
+                    <% } else if (status == "Responded") { %>
+                    <p class="status-responded-text">
+                        <%= status %>
+                        <span class="status-indicator-color status-responded"></span>
+                    </p>
+                    <% } else if (status == "Closed") { %>
+                    <p class="status-closed-text">
+                        <%= status %>
+                        <span class="status-indicator-color status-closed"></span>
+                    </p>
+                    <% } %>
+                </div>
+            </div>
+            <p class="subtitle mb-1"><%= username %></p>
+
             <p>Created Time: <%= createdDateTime %></p>
             <p>Last Activity: <%= lastActivityDateTime %></p>
         </div>
