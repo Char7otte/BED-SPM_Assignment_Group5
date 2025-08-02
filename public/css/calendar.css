@@ -137,10 +137,13 @@ button {
 }
 
 #calendar-header {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    width: 100%;
+    min-width: 420px; /* Set a minimum width for consistency */
+    padding: 10px 0;
 }
 
 #calendar-header button {
@@ -153,8 +156,12 @@ button {
 }
 
 #current-month {
-  font-weight: bold;
-  font-size: 1.2em;
+    display: inline-block;
+    min-width: 160px; /* Enough for longest month name */
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2em;
+    white-space: nowrap;
 }
 
 /* When modal is open, make calendar non-sticky */
@@ -221,7 +228,7 @@ body.modal-open #calendar {
 
 .month-year-controls {
     margin: 15px 0;
-    padding: 15px;
+    padding: 10px;
     background-color: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e9ecef;
@@ -334,4 +341,26 @@ body.modal-open #calendar {
     border-radius: 4px;
     color: #721c24;
     font-size: 0.9em;
+}
+
+.empty-day {
+    background: transparent;
+    border: none;
+    cursor: default;
+}
+
+.calendar-days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #f0f0f0;
+    padding: 8px 20px 0 20px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.calendar-day-name {
+    padding: 6px 0;
+    color: #495057;
+    font-size: 15px;
 }

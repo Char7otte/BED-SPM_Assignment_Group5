@@ -98,9 +98,6 @@ app.use((req, res, next) => {
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'auth', 'loginauth.html'));
 });
-app.get("/loginauth.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
-});
 
 app.get('/homepage', (req, res) => {
   res.render('index', { user: res.locals.user });
@@ -132,19 +129,31 @@ app.get('/notes', (req, res) => {
   res.render('note-taker/notes');
 });
 
-
-
-// Medical appointment calendar page
+// Medical appointment calendar route
 app.get("/calendar", (req, res) => {
   res.render("medical-appointment/calendar");
 });
 
+// Medication tracker routes
+app.get("/medications", (req, res) => {
+    res.render("medication-tracker/all-medications");
+});
+app.get("/medications/daily", (req, res) => {
+    res.render("medication-tracker/daily_medication");
+});
+app.get("/medications/weekly", (req, res) => {
+    res.render("medication-tracker/weekly_medication");
+});
+app.get("/medications/create", (req, res) => {
+    res.render("medication-tracker/create-medication");
+});
+  
 // Route to serve the notes page
 app.get('/notes', (req, res) => {
   res.render('note-taker/notes');
 });
 
-// Feedback pages
+// Feedback routes
 app.get("/feedback-form", (req, res) => {
   res.render("feedback/feedback-form");
 });
@@ -230,37 +239,6 @@ app.put("/medications/:userId/:medicationId/is-taken", validateMedicationIdParam
 app.put("/medications/:userId/:id/refill", validateRefillRequest, medTrackerController.refillMedication);
 app.put("/medications/:userId/:id/missed", validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
 app.delete("/medications/:userId/:medicationId", validateMedicationIdParam, medTrackerController.deleteMedication);
-
-// Route to serve the medication tracker HTML files
-app.get("/medications", (req, res) => {
-  res.render("medication-tracker/all-medications");
-});
-
-app.get("/medications/daily", (req, res) => {
-  res.render("medication-tracker/daily_medication");
-});
-
-app.get("/medications/weekly", (req, res) => {
-  res.render("medication-tracker/weekly_medication");
-});
-
-app.get("/medications/create", (req, res) => {
-  res.render("medication-tracker/create-medication");
-});
-
-app.get("/medications/edit/:id", (req, res) => {
-  res.render("medication-tracker/edit-medication");
-});
-
-// Route to serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-  res.render("medical-appointment/calendar");
-});
-
-// Serve the feedback-form HTML file
-app.get("/feedback-form", (req, res) => {
-  res.render("feedback/feedback-form");
-});
 
 // routes for note taker
 app.get("/notes-api", noteTakerController.getAllNotes);
