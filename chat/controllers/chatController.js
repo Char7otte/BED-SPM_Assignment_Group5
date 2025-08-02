@@ -4,7 +4,7 @@ const { format } = require("date-and-time");
 async function getAllChats(req, res) {
     try {
         let chats;
-        const { id, role, username } = req.user;
+        const { id, role } = req.user;
 
         if (role == "U") {
             chats = await chatModel.getAllChatsByHelpeeID(id);
