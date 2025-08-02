@@ -73,7 +73,9 @@ async function createNote(req, res) {
         console.log("Creating note with data:", noteData);
 
         //basic validation
-        if (!userId || !noteData.NoteTitle || !noteData.NoteContent) {
+        if (!userId) {
+            return res.status(400).json({ error: "Missing userId, need to test in browser" });
+        } else if (!noteData.NoteTitle || !noteData.NoteContent) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
