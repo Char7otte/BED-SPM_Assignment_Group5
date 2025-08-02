@@ -6,7 +6,22 @@
   <title>Daily Medication View</title>
   <link rel="stylesheet" href="/css/all-medications.css">
   <link rel="stylesheet" href="/css/daily-medications.css">
-  <%- include('../partials/head') %>
+  <!-- Load Bootstrap and FontAwesome -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  
+  <script>
+    window.currentUserId = 8; // Test user ID
+  </script>
+  
+  <!-- Load utilities first, before any other scripts -->
+  <script>
+    window.currentUserId = 8;
+    app.put("/medications/:userId/:medicationId/missed", verifyJWT, validateMedicationIdParam, medTrackerController.markMedicationAsMissed);
+  </script>
+  <script src="/js/medication-utils.js"></script>
+  <script src="/js/date-utils-safe.js"></script>
+  <script src="/js/notification-system.js"></script>
 </head>
 <%- include('../partials/navbar') %>
 <body>
@@ -36,6 +51,7 @@
     <div class="daily-header">
       <h1>Today's Medications</h1>
       <div class="date-display" id="current-date"></div>
+      <div class="date-display-readable" id="current-date-readable" style="font-size: 0.9em; color: #666; margin-top: 5px;"></div>
     </div>
     
     <div id="reminders-container"></div>
@@ -45,6 +61,7 @@
         <div class="time-group">
           <div class="time-header">
             <span class="time-title">Morning</span>
+            <span class="time-range" style="font-size: 0.8em; color: #666;">(6:00 AM - 12:00 PM)</span>
             <div class="time-line"></div>
           </div>
           <div id="morning-meds-container"></div>
@@ -55,6 +72,7 @@
         <div class="time-group">
           <div class="time-header">
             <span class="time-title">Afternoon</span>
+            <span class="time-range" style="font-size: 0.8em; color: #666;">(12:00 PM - 5:00 PM)</span>
             <div class="time-line"></div>
           </div>
           <div id="afternoon-meds-container"></div>
@@ -65,6 +83,7 @@
         <div class="time-group">
           <div class="time-header">
             <span class="time-title">Evening</span>
+            <span class="time-range" style="font-size: 0.8em; color: #666;">(5:00 PM - 9:00 PM)</span>
             <div class="time-line"></div>
           </div>
           <div id="evening-meds-container"></div>
@@ -75,6 +94,7 @@
         <div class="time-group">
           <div class="time-header">
             <span class="time-title">Night</span>
+            <span class="time-range" style="font-size: 0.8em; color: #666;">(9:00 PM - 6:00 AM)</span>
             <div class="time-line"></div>
           </div>
           <div id="night-meds-container"></div>

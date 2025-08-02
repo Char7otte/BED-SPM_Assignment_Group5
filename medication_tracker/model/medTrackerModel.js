@@ -841,6 +841,54 @@ async function markMedicationAsMissed(medicationId, userId) {
     }
 }
 
+async function getUpcomingReminders(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTime = new Date();
+        
+        // Calculate the time 5 minutes from now and current time
+        const fiveMinutesFromNow = new Date(currentTime.getTime() + 5 * 60000);
+        const currentTimeStr = currentTime.toTimeString().substring(0, 5); // HH:MM format
+        const fiveMinutesFromNowStr = fiveMinutesFromNow.toTimeString().substring(0, 5);
+        
+        const query = `
+            SELECT medication_id, medication_name, medication_time, medication_dosage, medication_notes, medication_date
+            FROM Medications
+            WHERE user_id = @userId 
+              AND medication_date = @currentDate 
+              AND is_taken = 0
+              AND medication_reminders = 1
+              AND medication_time BETWEEN @currentTime AND @fiveMinutesFromNow
+            ORDER BY medication_time ASC
+        `;
+        
+        const request = connection.request();
+        request.input("userId", sql.Int, userId);
+        request.input("currentDate", sql.Date, currentDate);
+        request.input("currentTime", sql.VarChar, currentTimeStr);
+        request.input("fiveMinutesFromNow", sql.VarChar, fiveMinutesFromNowStr);
+
+        const result = await request.query(query);
+        return result.recordset || [];
+    }
+    catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    }
+    finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } 
+            catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getMedicationById,
     getAllMedicationByUser,
@@ -859,5 +907,6 @@ module.exports = {
     filterMedicationByDate,
     refillMedication,
     getExpiredMedications,
-    markMedicationAsMissed
+    markMedicationAsMissed,
+    getUpcomingReminders
 };

@@ -1,4 +1,58 @@
+function decodeJwtPayload(token) {
+    try {
+        const jwt = token.split(" ")[1] || token;
+        const payloadBase64 = jwt.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+function checkAuth() {
+    // Skip authentication for testing with TEST_USER_ID
+    const TEST_USER_ID = 8;
+    if (TEST_USER_ID === 8) {
+        console.log('Test mode - skipping authentication');
+        return true;
+    }
+    
+    const token = localStorage.getItem('token');
+    console.log("Token from localStorage:", token);
+    
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        
+        // Check for token in cookies if not found in localStorage
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        if (match) {
+            const cookieToken = decodeURIComponent(match[1]);
+            if (!isTokenExpired(cookieToken)) {
+                localStorage.setItem('token', cookieToken);
+                return true;
+            }
+        }
+        
+        window.location.href = '/login';
+        return false;
+    }
+    
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Check authentication first
+  if (!checkAuth()) {
+    return; // Stop execution if not authenticated
+  }
+  
   // Skip authentication for testing - use hardcoded user ID
   const TEST_USER_ID = 8; // Change this to match a user ID in your database
   
@@ -11,6 +65,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup event listeners
     setupEventListeners(TEST_USER_ID);
+    
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+    }
     
   } catch (error) {
     console.error('Initialization error:', error);
@@ -68,9 +127,17 @@ function updateCurrentWeek() {
   currentWeekStart = monday;
   currentWeekEnd = sunday;
   
+  // Use DateUtils for formatting
   const options = { month: 'short', day: 'numeric' };
   const weekText = `${monday.toLocaleDateString('en-US', options)} - ${sunday.toLocaleDateString('en-US', options)}`;
   document.getElementById('current-week').textContent = weekText;
+  
+  // Add readable format
+  const readableElement = document.getElementById('current-week-readable');
+  if (readableElement && window.DateUtils) {
+    const readableText = `${DateUtils.formatDate(monday.toISOString().split('T')[0])} to ${DateUtils.formatDate(sunday.toISOString().split('T')[0])}`;
+    readableElement.textContent = readableText;
+  }
 }
 
 async function loadWeeklyMedications(userId, startDate = null, endDate = null) {
@@ -151,6 +218,8 @@ function displayWeeklyMedications(medications) {
     return;
   }
   
+  const TEST_USER_ID = 8;
+  
   // Group medications by day
   const medicationsByDay = groupMedicationsByDay(medications);
   
@@ -180,7 +249,7 @@ function displayWeeklyMedications(medications) {
         const statusText = med.is_taken ? 'Taken' : 'Pending';
         
         calendarHTML += `
-          <div class="alert alert-${statusClass}" style="margin-bottom: 10px;">
+          <div class="alert alert-${statusClass}" style="margin-bottom: 10px;" data-medication-id="${med.medication_id}">
             <div class="row">
               <div class="col-md-8">
                 <h5><strong>${med.medication_name}</strong> - ${med.medication_dosage}</h5>
@@ -194,18 +263,18 @@ function displayWeeklyMedications(medications) {
                 <br><br>
                 <div class="btn-group-vertical" role="group">
                   ${!med.is_taken ? `
-                    <button class="btn btn-sm btn-success" onclick="takeMedication(${med.medication_id}, ${med.user_id})">
+                    <button class="btn btn-sm btn-success" onclick="takeMedication(${med.medication_id}, ${TEST_USER_ID})">
                       <i class="fa fa-check"></i> Take
                     </button>
                   ` : `
-                    <button class="btn btn-sm btn-warning" onclick="markAsMissed(${med.medication_id}, ${med.user_id})">
-                      <i class="fa fa-undo"></i> Mark Missed
+                    <button class="btn btn-sm btn-warning" onclick="markAsMissed(${med.medication_id}, ${TEST_USER_ID})">
+                      <i class="fa fa-undo"></i> Mark Not Taken
                     </button>
                   `}
                   <button class="btn btn-sm btn-info" onclick="editMedication(${med.medication_id})">
                     <i class="fa fa-edit"></i> Edit
                   </button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteMedication(${med.medication_id}, ${med.user_id})">
+                  <button class="btn btn-sm btn-danger" onclick="deleteMedication(${med.medication_id}, ${TEST_USER_ID})">
                     <i class="fa fa-trash"></i> Delete
                   </button>
                 </div>
@@ -276,7 +345,12 @@ function updateWeeklySummary(medications) {
 function formatTimeForDisplay(timeString) {
   if (!timeString) return 'Not specified';
   
-  // Handle both HH:MM and HH:MM:SS formats
+  // Use DateUtils if available
+  if (window.DateUtils) {
+    return DateUtils.formatTime(timeString);
+  }
+  
+  // Fallback to existing logic
   const timeParts = timeString.split(':');
   if (timeParts.length >= 2) {
     const hours = parseInt(timeParts[0]);
@@ -320,7 +394,7 @@ async function takeMedication(medicationId, userId) {
 }
 
 async function markAsMissed(medicationId, userId) {
-  if (!confirm('Mark this medication as missed?')) return;
+  if (!confirm('Mark this medication as not taken?')) return;
   
   try {
     // Remove authorization header for testing
@@ -333,39 +407,62 @@ async function markAsMissed(medicationId, userId) {
     
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to mark medication as missed: ${errorText}`);
+      throw new Error(`Failed to mark medication as not taken: ${errorText}`);
     }
     
     const result = await response.json();
-    showAlert('Medication marked as missed', 'warning');
+    showAlert('Medication marked as not taken', 'warning');
     
     // Reload medications
     loadWeeklyMedications(userId);
   } catch (error) {
-    console.error('Error marking medication as missed:', error);
+    console.error('Error marking medication as not taken:', error);
     showAlert(error.message, 'danger');
   }
 }
 
-async function deleteMedication(medicationId, userId) {
-  if (!confirm('Are you sure you want to delete this medication?')) return;
-  
-  try {
-    // Remove authorization header for testing
-    const response = await fetch(`/medications/${userId}/${medicationId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) throw new Error('Failed to delete medication');
-    
-    showAlert('Medication deleted successfully', 'success');
-    loadWeeklyMedications(userId);
-  } catch (error) {
-    showAlert(error.message, 'danger');
-  }
+async function deleteMedication(medicationId) {
+    // Validate inputs
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
+
+    // Use the same TEST_USER_ID as the rest of the file
+    const TEST_USER_ID = 8;
+
+    const userId = window.currentUserId || TEST_USER_ID; // Fallback to test user ID
+    if (!userId || userId === 'undefined') {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        // Refresh the weekly view after successful deletion
+        await loadWeeklyMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
 }
 
 function editMedication(medicationId) {
@@ -573,3 +670,4 @@ window.deleteMedication = deleteMedication;
 window.editMedication = editMedication;
 window.navigateWeek = navigateWeek;
 window.searchMedications = searchMedications;
+window.createMedication = createMedication;
