@@ -261,14 +261,15 @@ app.get("/feedback-form", (req, res) => {
 });
 
 // routes for note taker
-app.get("/notes", noteTakerController.getAllNotes);
-app.delete("/notes/bulk", noteTakerController.bulkDeleteNotes);
-app.get("/notes/search", noteTakerController.searchNotes);
-app.get("/notes/:id", noteTakerController.getNotesById);
-app.post("/notes", noteTakerController.createNote);
-app.delete("/notes/:id", noteTakerController.deleteNote);
-app.put("/notes/:id", noteTakerController.updateNote);
-app.get("/notes/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+app.get("/notes-api", noteTakerController.getAllNotes);
+app.delete("/notes-api/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
+app.get("/notes-api/search", noteTakerController.searchNotes);
+app.get("/notes-api/:id", validateNoteID, noteTakerController.getNotesById);
+app.post("/notes-api", noteTakerController.createNote);
+app.delete("/notes-api/:id", validateNoteID, noteTakerController.deleteNote);
+app.put("/notes-api/:id", validateNoteInput, noteTakerController.updateNote);
+app.get("/notes-api/export-md/:id", noteTakerController.exportNoteAsMarkdown);
+
 
 //routes for feedback - user
 app.get("/feedback", verifyJWT, feedbackController.getAllFeedbacksByUser);
