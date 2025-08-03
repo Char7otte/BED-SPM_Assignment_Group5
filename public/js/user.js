@@ -42,6 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (path === "/user") {
         displayOptions();
     }
+    else if (path === "/account") {
+        profile();
+    }
+    
 });
 
 function displayOptions() {
@@ -415,4 +419,85 @@ function handleDisplaySearchResults(users) {
     `;
 }
 
+async function profile() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
+    const user = decodeJwtPayload(token);
+    const userId = user.id;
+
+    try {
+        const response = await fetch(`${apiurl}/users/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': token
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch user profile.');
+
+        const userData = await response.json();
+        renderProfile(userData);
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        document.getElementById("myprofile").innerHTML = `<p class="text-danger">Unable to load profile. Please try again later.</p>`;
+    }
+}
+
+function renderProfile(userData) {
+    const myProfile = document.getElementById("myprofile");
+    myProfile.innerHTML = `
+        <div class="mb-3">
+            <p><strong>ID:</strong> ${userData.user_id}</p>
+            <p><strong>Name:</strong> ${userData.username}</p>
+            <p><strong>Phone:</strong> ${userData.phone_number}</p>
+        </div>
+
+        <form id="changePasswordForm">
+            <label for="newPassword" class="form-label">Change Password</label>
+            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+            <button type="submit" class="btn btn-warning mt-2">Change Password</button>
+            <div id="passwordMsg" class="mt-2"></div>
+        </form>
+    `;
+
+    document.getElementById("changePasswordForm").addEventListener("submit", handleChangePassword);
+}
+
+async function handleChangePassword(event) {
+    event.preventDefault();
+
+    const newPassword = document.getElementById("newPassword").value.trim();
+    const msgBox = document.getElementById("passwordMsg");
+
+    if (!newPassword) {
+        msgBox.innerHTML = `<p class="text-danger">Please enter a new password.</p>`;
+        return;
+    }
+
+    const token = localStorage.getItem('token');
+    const user = decodeJwtPayload(token);
+
+    try {
+        const response = await fetch(`${apiurl}/users/changepassword/${user.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': token
+            },
+            body: JSON.stringify({ password: newPassword })
+        });
+
+        if (!response.ok) throw new Error('Failed to change password.');
+
+        msgBox.innerHTML = `<p class="text-success">Password changed successfully.</p>`;
+        document.getElementById("newPassword").value = "";
+    } catch (error) {
+        console.error('Error changing password:', error);
+        msgBox.innerHTML = `<p class="text-danger">Something went wrong. Please try again.</p>`;
+    }
+}
+
+// Call profile() when page loads
+document.addEventListener("DOMContentLoaded", profile);

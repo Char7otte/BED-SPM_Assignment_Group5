@@ -121,68 +121,42 @@ async function createUser(user) {
 
 async function updateUser(id, user) {
     let conn;
-    let hashedLiao = null;
+    let hashedPassword = null;
     try {
         if (user.password) {
             const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(user.password, salt); // Hash the password
-            const hashedLiao = hashedPassword;
+            hashedPassword = await bcrypt.hash(user.password, salt);
         }
         conn = await sql.connect(dbConfig);
-        if (!user.password) {
-            // If password is not provided, do not update it
-            user.password = null;
-        }
+
+        // Build query dynamically based on whether password is provided
         const query = `
             UPDATE Users
             SET 
-            username = COALESCE(@username, username),
-            phone_number = COALESCE(@phone_number, phone_number),
-            password = COALESCE(@password, password),
-            age = COALESCE(@age, age),
-            gender = COALESCE(@gender, gender)
+                username = COALESCE(@username, username),
+                phone_number = COALESCE(@phone_number, phone_number),
+                ${hashedPassword ? "password = COALESCE(@password, password)," : ""}
+                age = COALESCE(@age, age),
+                gender = COALESCE(@gender, gender),
+                role = COALESCE(@role, role),
+                status = COALESCE(@status, status)
             WHERE user_id = @id
         `;
-        if (hashedLiao === null) {
-            const query = `
-            UPDATE Users
-            SET 
-            username = COALESCE(@username, username),
-            phone_number = COALESCE(@phone_number, phone_number),
-            age = COALESCE(@age, age),
-            gender = COALESCE(@gender, gender)
-            WHERE user_id = @id
-        `;
-            await conn.request()
+
+        const request = conn.request()
             .input("username", sql.NVarChar, user.username)
             .input("phone_number", sql.NVarChar, user.phone_number)
-            
             .input("age", sql.Int, user.age)
             .input("gender", sql.NVarChar, user.gender)
-            .input("id", sql.Int, id)
-            .query(query);
+            .input("role", sql.NVarChar, user.role)
+            .input("status", sql.NVarChar, user.status)
+            .input("id", sql.Int, id);
+
+        if (hashedPassword) {
+            request.input("password", sql.NVarChar, hashedPassword);
         }
-        else{
-            const query = `
-            UPDATE Users
-            SET 
-            username = COALESCE(@username, username),
-            phone_number = COALESCE(@phone_number, phone_number),
-            password = COALESCE(@password, password),
-            age = COALESCE(@age, age),
-            gender = COALESCE(@gender, gender)
-            WHERE user_id = @id
-        `;
-        await conn.request()
-            .input("username", sql.NVarChar, user.username)
-            .input("phone_number", sql.NVarChar, user.phone_number)
-            .input("password", sql.NVarChar, hashedPassword)
-            .input("age", sql.Int, user.age)
-            .input("gender", sql.NVarChar, user.gender)
-            .input("id", sql.Int, id)
-            .query(query);
-        }
-        
+
+        await request.query(query);
     } catch (error) {
         console.error("Error updating user:", error);
         throw error;
@@ -267,14 +241,12 @@ async function getUserRolesById(id) {
 
 async function changePassword(id, newPassword) {
     let conn;
+    console.log("Changing password for user IDMODEL:", id);
     try {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt); // Hash the new password
-
         conn = await sql.connect(dbConfig);
         const query = "UPDATE Users SET password = @password WHERE user_id = @id";
         await conn.request()
-            .input("password", sql.NVarChar, hashedPassword) // Use hashed password
+            .input("password", sql.NVarChar, newPassword) // Use hashed password
             .input("id", sql.Int, id)
             .query(query);
     } catch (error) {

@@ -106,6 +106,9 @@ app.get('/homepage', (req, res) => {
 app.get('/admin', (req, res) => {
     res.render('indexadmin', { user: res.locals.user });
 });
+app.get('/account', (req, res) => {
+  res.render('user/profile', { user: res.locals.user });
+});
 
 // Alert routes
 app.get("/alert", (req, res) => {
@@ -199,7 +202,7 @@ app.get("/alerts/:id", verifyJWT, validateAlertId, alertController.getAlertById)
 //routes for users
 app.post("/users/register", validateUserInput, userController.createUser); // User registration #okay
 app.post("/users/login", userController.loginUser); // User login #okay
-app.put("/users/changepassword/:id", userController.changePassword); // Change user password #okay
+app.patch("/users/changepassword/:id", userController.changePassword); // Change user password #okay
 //rotes for user management
 app.get("/users", verifyJWT, userController.getAllUsers); // Get all users #okay
 app.get("/users/username/:username", verifyJWT, userController.getUserByUsername); // Get user by username

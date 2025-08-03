@@ -60,12 +60,12 @@ document.addEventListener("DOMContentLoaded", function () {
       window.location.href = "/alert"; // Redirect to alerts page
     }
   } 
-  
   else if (path.includes("/alert")) {
     fetchAlerts();
-    handleQuickNotes();
-    fetchUpcomingMedications();
-
+    if( user && user.role === "U") {
+        handleQuickNotes();
+    }
+    // fetchUpcomingMedications();
     if (user && user.role === "A") {
       // Floating Add Alert Button
       const addBtn = document.createElement("button");
@@ -627,7 +627,7 @@ async function handleAddToNotes(alertId) {
 
 async function addAlertToNotes(userId, noteTitle, noteContent) {
     try {
-        const response = await fetch(`${apiurl}/notes/`, {
+        const response = await fetch(`${apiurl}/notes-api/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -707,59 +707,59 @@ async function handleCheckHasNotiesAdded(alertId) {
     }
 }
 
-async function fetchUpcomingMedications() {
-    try {
-        const user = decodeJwtPayload(localStorage.getItem("token"));
-        console.log("Fetching upcoming medications for user:", user.id);
-        const response = await fetch(`${apiurl}/medications/user/${user.id}/daily`);
+// async function fetchUpcomingMedications() {
+//     try {
+//         const user = decodeJwtPayload(localStorage.getItem("token"));
+//         console.log("Fetching upcoming medications for user:", user.id);
+//         const response = await fetch(`${apiurl}/medications/user/${user.id}/daily`);
           
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const medications = await response.json();
-        displayUpcomingMedications(medications);
-    } catch (error) {
-        console.error("Error fetching upcoming medications:", error);
-    }
-}
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+//         const medications = await response.json();
+//         displayUpcomingMedications(medications);
+//     } catch (error) {
+//         console.error("Error fetching upcoming medications:", error);
+//     }
+// }
 
-function displayUpcomingMedications(medications) {
-    const medContainer = document.getElementById("upcoming-med");
-    const medList = medContainer.querySelector(".medication-list");
-    medList.innerHTML = ""; // Clear previous medications
+// function displayUpcomingMedications(medications) {
+//     const medContainer = document.getElementById("upcoming-med");
+//     const medList = medContainer.querySelector(".medication-list");
+//     medList.innerHTML = ""; // Clear previous medications
 
-    if (medications.length === 0) {
-        medList.innerHTML = "<p>No upcoming medications.</p>";
-        return;
-    }
+//     if (medications.length === 0) {
+//         medList.innerHTML = "<p>No upcoming medications.</p>";
+//         return;
+//     }
 
-    // Only show the first 3 upcoming medications
-    medications.medications.slice(0, 3).forEach(med => {
-        if (med.medication_is_taken) return; // Skip if medication is already taken
-        const medItem = document.createElement("div");
-        medItem.className = "med-item";
-        medItem.innerHTML = `
-            <h5>${med.medication_name}</h5>
-            <p>Dosage: ${med.medication_dosage} ${med.medication_quantity}</p>
-            <p>Time: ${new Date(med.medication_time).toLocaleTimeString()}</p>
-        `;
-        medList.appendChild(medItem);
-    });
-    if (medications.length === 0 || !medications.medications || medications.medications.length === 0) {
-        medList.innerHTML = "<p>No upcoming medications. Stay healthy! 😊 Remember to drink water, eat well, and take care!</p>";
-    } else if (medications.medications.length > 3) {
-        const moreMed = document.createElement("div");
-        moreMed.className = "more-med";
-        moreMed.innerHTML = `<p>And ${medications.medications.length - 3} more...</p>`;
-        medList.appendChild(moreMed);
-    }else{
-        medList.innerHTML += "<p>Stay healthy! 😊 Remember to drink water, eat well, and take care!</p>";
-    }
+//     // Only show the first 3 upcoming medications
+//     medications.medications.slice(0, 3).forEach(med => {
+//         if (med.medication_is_taken) return; // Skip if medication is already taken
+//         const medItem = document.createElement("div");
+//         medItem.className = "med-item";
+//         medItem.innerHTML = `
+//             <h5>${med.medication_name}</h5>
+//             <p>Dosage: ${med.medication_dosage} ${med.medication_quantity}</p>
+//             <p>Time: ${new Date(med.medication_time).toLocaleTimeString()}</p>
+//         `;
+//         medList.appendChild(medItem);
+//     });
+//     if (medications.length === 0 || !medications.medications || medications.medications.length === 0) {
+//         medList.innerHTML = "<p>No upcoming medications. Stay healthy! 😊 Remember to drink water, eat well, and take care!</p>";
+//     } else if (medications.medications.length > 3) {
+//         const moreMed = document.createElement("div");
+//         moreMed.className = "more-med";
+//         moreMed.innerHTML = `<p>And ${medications.medications.length - 3} more...</p>`;
+//         medList.appendChild(moreMed);
+//     }else{
+//         medList.innerHTML += "<p>Stay healthy! 😊 Remember to drink water, eat well, and take care!</p>";
+//     }
 
-    const viewAllBtn = document.getElementById("view-all-medications");
-    viewAllBtn.addEventListener("click", () => {
-        window.location.href = "/medications"; // Redirect to medication page
-    });
-}
+//     const viewAllBtn = document.getElementById("view-all-medications");
+//     viewAllBtn.addEventListener("click", () => {
+//         window.location.href = "/medications"; // Redirect to medication page
+//     });
+// }
 
 
