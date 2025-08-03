@@ -15,6 +15,24 @@
                     <div class="column"></div>
                     <div class="column is-two-thirds">
                         <section class="messages">
+                            <section class="mb-4">
+                                <form action="/chats" method="GET" class="is-inline-block">
+                                    <button type="submit" class="button is-outlined is-light">
+                                        <span class="icon button-icon">
+                                            <i class="fa-solid fa-arrow-left"></i>
+                                        </span>
+                                        Return
+                                    </button>
+                                </form>
+                                <form action="#" method="GET" class="is-inline-block">
+                                    <button type="submit" class="button is-outlined is-primary">
+                                        <span class="icon button-icon">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                        Mark as answered
+                                    </button>
+                                </form>
+                            </section>
                             <div class="fixed-grid has-1-cols">
                                 <div class="grid">
                                     <%for (const m of messageData) {%>

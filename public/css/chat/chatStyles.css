@@ -28,3 +28,7 @@
     color: grey;
     border-radius: 10px;
 }
+
+.button-icon {
+    margin-right: 0.1em !important;
+}
