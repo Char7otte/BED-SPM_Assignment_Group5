@@ -20,7 +20,7 @@ const { authenticateToken } = require("./users/middlewares/auth");
 //Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
-const { validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase } = require("./chat/middleware/ChatValidation");
+const { validateChatID } = require("./chat/middleware/ChatValidation");
 const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
 //import medical appointment functions
