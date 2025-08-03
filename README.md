@@ -37,15 +37,19 @@
 
 ### User Management API
 
-| Method   | URL                                 | User Type   | Path Parameters        | Body Parameters                   | Function Used        |
-|----------|--------------------------------------|-------------|-------------------------|------------------------------------|-----------------------|
-| `POST`   | `/users/register`                    | User        |                         | `username`, `password`, `email`   | `createUser`          |
-| `POST`   | `/users/login`                       | All         |                         | `username`, `password`            | `loginUser`           |
-| `PUT`    | `/users/changepassword/:id`          | All         | `id` (User ID)          | `newPassword`                     | `changePassword`      |
-| `GET`    | `/users`                             | Admin       |                         |                                    | `getAllUsers`         |
-| `GET`    | `/users/username/:username`          | Admin       | `username`              |                                    | `getUserByUsername`   |
-| `PUT`    | `/users/updatedetail/:id`            | Admin        | `id` (User ID)          | `username`, `email`, etc.         | `updateUser`          |
-| `DELETE` | `/users/:id`                         | Admin       | `id` (User ID)          |                                    | `deleteUser`          |
+| Method | URL                              | User Type | Path Parameters       | Body Parameters                               | Function Used                 |
+|--------|----------------------------------|-----------|------------------------|------------------------------------------------|------------------------------|
+| POST   | `/users/register`                | ALL      | —                      | `username`, `password`, `email`, `age`, `number`, `gender` | `createUser`      |
+| POST   | `/users/login`                   | All       | —                      | `username`, `password`                         | `loginUser`                 |
+| GET    | `/users/logout`                  | All       | —                      | —                                              | `logoutUser`                |
+| PUT    | `/users/changepassword/:id`      | All       | `id` = User ID         | `newPassword`                                  | `changePassword`            |
+| GET    | `/users`                         | Admin     | —                      | —                                              | `getAllUsers`               |
+| GET    | `/users/username/:username`      | Admin     | `username`             | —                                              | `getUserByUsername`         |
+| GET    | `/users/:id`                     | Admin     | `id` = User ID         | —                                              | `getUserById`               |
+| PATCH  | `/users/updatedetail/:id`        | Admin     | `id` = User ID         | `username`, `email`, `number`                  | `updateUser`                |
+| PUT    | `/users/delete/:id`              | Admin     | `id` = User ID         | —                                              | `deleteUser`                |
+| POST   | `/users/search`                  | Admin     | —                      | `username`, `UserID`                             | `searchUserByUsernameNid`   |
+
 
 ### Note Taker API
 
