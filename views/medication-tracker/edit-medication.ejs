@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head') %>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Medication</title>
+  <link rel="stylesheet" href="/css/all-medications.css">
+  <link rel="stylesheet" href="/css/edit-medication.css">
+  <link rel="stylesheet" href="/css/medication-nav.css">
+  <script src="/js/date-utils.js"></script>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <!-- Remove the header section and replace with breadcrumb + tabs -->
+  
+  <main class="container">
+    <nav aria-label="breadcrumb" style="margin-bottom: 20px;">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/homepage">Home</a></li>
+        <li class="breadcrumb-item"><a href="/medications">Medications</a></li>
+        <li class="breadcrumb-item active">Edit Medication</li>
+      </ol>
+    </nav>
+    
+    <div class="medication-nav-tabs" style="margin-bottom: 20px;">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link" href="/medications">All Medications</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/medications/daily">Daily View</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/medications/weekly">Weekly View</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/medications/create">Add Medication</a>
+        </li>
+      </ul>
+    </div>
+    <!-- ...existing code... -->
+    <div id="alert-container"></div>
+    
+    <!-- Loading indicator -->
+    <div id="loading-message" class="alert alert-info">
+      <i class="fa fa-spinner fa-spin"></i> Loading medication details...
+    </div>
+    
+    <!-- Error message -->
+    <div id="error-message" class="alert alert-danger" style="display: none;">
+      <strong>Error:</strong> <span id="error-text"></span>
+    </div>
+    
+    <div class="card" id="edit-form-container" style="display: none;">
+      <div class="card-header">
+        <h2 class="card-title">Edit Medication</h2>
+        <div id="medication-summary" class="medication-summary" style="display: none;">
+          <p class="text-muted">
+            <i class="fa fa-clock"></i> 
+            <span id="next-dose-info"></span>
+          </p>
+        </div>
+        <div class="header-actions">
+          <a href="/medications" class="btn btn-outline">Back to List</a>
+          <a href="/medications/daily" class="btn btn-outline">Daily View</a>
+          <a href="/medications/weekly" class="btn btn-outline">Weekly View</a>
+        </div>
+      </div>
+      
+      <form id="edit-medication-form">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="medication_name">Medication Name *</label>
+            <input type="text" id="medication_name" class="form-control" required placeholder="Enter medication name">
+          </div>
+          
+          <div class="form-group col-md-6">
+            <label for="medication_dosage">Dosage *</label>
+            <input type="text" id="medication_dosage" class="form-control" required placeholder="e.g., 10mg, 2 tablets">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="medication_date">Date *</label>
+            <input type="date" id="medication_date" class="form-control" required>
+            <small class="form-text text-muted" id="readable-date"></small>
+          </div>
+          
+          <div class="form-group col-md-6">
+            <label for="medication_time">Time *</label>
+            <input type="time" id="medication_time" class="form-control" required>
+            <small class="form-text text-muted" id="readable-time"></small>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="medication_quantity">Quantity</label>
+            <input type="number" id="medication_quantity" class="form-control" min="0" value="0" placeholder="Number of pills/doses">
+          </div>
+          
+          <div class="form-group col-md-6">
+            <label for="is_taken">Status</label>
+            <select id="is_taken" class="form-control">
+              <option value="false">Not Taken</option>
+              <option value="true">Taken</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="prescription_startdate">Prescription Start Date</label>
+            <input type="date" id="prescription_startdate" class="form-control">
+            <small class="form-text text-muted" id="readable-start-date"></small>
+          </div>
+          
+          <div class="form-group col-md-6">
+            <label for="prescription_enddate">Prescription End Date</label>
+            <input type="date" id="prescription_enddate" class="form-control">
+            <small class="form-text text-muted" id="readable-end-date"></small>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="medication_notes">Notes</label>
+          <textarea id="medication_notes" class="form-control" rows="3" placeholder="Additional notes or instructions"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="medication_reminders"> 
+            <span class="checkmark"></span>
+            Enable Reminders
+          </label>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Update Medication
+          </button>
+          <button type="button" id="cancel-btn" class="btn btn-secondary">
+            <i class="fa fa-times"></i> Cancel
+          </button>
+          <button type="button" id="delete-btn" class="btn btn-danger">
+            <i class="fa fa-trash"></i> Delete Medication
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/edit-medication.js"></script>
+  <%- include('../partials/footer') %>
+</body>
+</html>

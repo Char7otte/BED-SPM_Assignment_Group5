@@ -12,7 +12,7 @@ async function authenticateToken(req, res, next) {
 
         // Attach decoded user to the request object for later use
         req.user = user;
-
+        console.log("Authenticated user:", user);
         // Allow Admins
         if (user.role === 'A') {
             return next();

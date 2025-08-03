@@ -4,20 +4,23 @@ const { validateID } = require("../../utils/validation/IDValidation");
 const userModel = require("../models/userModel");
 
 function validateUserInput(req, res, next) {
-    const schema = joi.object({
-        username: joi.string().min(3).max(30).required(),
-        phone_number: joi.string().required(),
-        password: joi.string().min(8).max(100).required(),
-        age: joi.number().integer().min(0).required(),
-        gender: joi.string().valid("Male", "Female", "Other"),
-        role: joi.string().valid("A", "U", "V"),
-    });
 
-    const { error } = schema.validate(req.body);
-    if (error) {
-        console.log("Validation error:", error.details[0].message);
-        return res.status(400).json({ message: error.details[0].message });
-    }
+  const schema = joi.object({
+    username: joi.string().min(3).max(30).required(),
+    phone_number: joi.string().min(8).max(8).required(),
+    password: joi.string().min(8).max(100).required(),
+    age: joi.number().integer().min(0).required(),
+    gender: joi.string().valid('Male', 'Female', 'Other'),
+    role: joi.string().valid('A', 'U', 'V')
+
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    console.log("Validation error:", error.details[0].message);
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
 
     next();
 }
@@ -59,13 +62,16 @@ async function verifyJWT(req, res, next) {
 
         const authorizedRoles = {
             //user
-            "POST /users/register": ["A", "U"], // Admin and User can register
+            // "POST /users/register": ["A", "U"], // Admin and User can register
             "PUT /users/changepassword/[0-9]+": ["A", "U"], // Admin and User can change password
             "GET /users/username/[a-zA-Z0-9]+": ["A", "U"], // Admin and User can get user by username
             //user management
             "GET /users": ["A"], // Only Admin can get all users
             "PUT /users/updatedetail/[0-9]+": ["A"], // Admin can update user details
-            "DELETE /users/[0-9]+": ["A"], // Only Admin can delete users
+            "PUT /users/delete/[0-9]+": ["A"], // Only Admin can delete users
+            "POST /users/login": ["A", "U"], // Admin and User can login
+            "POST /users/search": ["A"], // Admin and User can search users
+            "PATCH /users/updatedetail/:id": ["A"], // Admin and User can update their own details
 
             // Medical appointments - Only Users can access
             "GET /med-appointments": ["U"],
@@ -75,6 +81,31 @@ async function verifyJWT(req, res, next) {
             "POST /med-appointments": ["U"],
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
+
+            // Feedback - Only for Users 
+            "GET /feedback": ['U'], 
+            "GET /feedback/search": ['U'], 
+            "POST /feedback": ['U'], 
+            "PUT /feedback/[0-9]+": ['U'], 
+            "DELETE /feedback/[0-9]+": ['U'], 
+
+            // Feedback Admin - Only for admins
+            "GET /feedback/admin": ['A'], 
+            "GET /feedback/admin/search": ['A'], 
+            "PUT /feedback/admin/[0-9]+": ['A'],
+            "DELETE /feedback/admin/[0-9]+": ['A'], 
+
+            // Alerts
+
+            "GET /alerts": ['A', 'U'], // All alerts
+            "GET /alerts/search": ['A', 'U'], // Search alerts
+            "GET /alerts/readstatus/[0-9]+": ['U'], // Read status by ID
+            "POST /alerts/updatestatus/[0-9]+": ['U'], // Mark as read/unread
+            "POST /alerts/checkhasnoties/[0-9]+": ['U'], // Check if notes exist
+            "POST /alerts": ['A'], // Create alert
+            "PUT /alerts/[0-9]+": ['A'], // Update alert
+            "PUT /alerts/delete/[0-9]+": ['A'], // Delete alert
+            "GET /alerts/[0-9]+": ['A', 'U'], // View alert by ID
 
             // Feedback
             "GET /feedback": ["A", "U"], // Admin and User can get all feedback
@@ -235,3 +266,4 @@ module.exports = {
 //     LastEditedDate DATE NOT NULL DEFAULT GETDATE(),
 //     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 // );
+

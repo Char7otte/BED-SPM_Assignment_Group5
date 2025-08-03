@@ -12,10 +12,8 @@ document.getElementById("logbtn").addEventListener("click", login);
 document.getElementById("regbtn").addEventListener("click", register);
 
 function login() {
-    console.log("Login button clicked");
-
-    const username = document.getElementById("logname").value;
-    const password = document.getElementById("logpass").value;
+    const username = document.getElementById("logname").value.trim();
+    const password = document.getElementById("logpass").value.trim();
     console.log(username, password);
 
     fetch(`${apiurl}/users/login`, {
@@ -38,7 +36,7 @@ function login() {
         // ✅ Login successful
         alert(data.message);  // or "Login successful"
         localStorage.setItem("token","Bearer " + data.token);  // optional
-        window.location.href = "/dashboard";
+        window.location.href = "/homepage";
     } else {
         console.log(data);
         // ❌ Login failed - bad credentials or other issue
@@ -62,12 +60,11 @@ async function displayJWT() {
 }
 
 async function register() {
-    console.log("Register button clicked");
-    const username = document.getElementById("regname").value;
-    const phone_number = document.getElementById("regnum").value;
-    const password = document.getElementById("regpass").value;
-    const gender = document.getElementById("reggender").value;
-    const age = document.getElementById("regage").value;
+    const username = document.getElementById("regname").value.trim();
+    const phone_number = document.getElementById("regnum").value.trim();
+    const password = document.getElementById("regpass").value.trim();
+    const gender = document.getElementById("reggender").value.trim();
+    const age = document.getElementById("regage").value.trim();
     console.log(username, phone_number, password, gender, age);
 
     const response = await fetch(`${apiurl}/users/register`, {
@@ -80,15 +77,22 @@ async function register() {
 
     const data = await response.json();
     if (data.success || data.message === 'User created successfully') {
-        document.getElementById("status").value = "Registration successful!";
-        window.location.href = "/dashboard"; // Redirect to dashboard or home page
+        console.log("Registration successful:", data);
+        if (data.token) {
+            localStorage.setItem("token", "Bearer " + data.token); // Store token if available
+        }else {
+            alert("no token found");
+        }
+        
+        window.location.href = "/homepage"; // Redirect to dashboard or home page
     } else {
         if (data.message == 'Username already exists') {
             document.getElementById("status").innerText = "Registration failed: " + "Username already exists";
         } else {
             document.getElementById("status").innerText = "Registration failed: " + data.message;
         }
-        document.getElementById("status").style.color = "red";
+        
+        document.getElementById("status").style.color = "#d67272ff"; // Set text color to red
         console.error("Registration failed:", data.message);
         
     }

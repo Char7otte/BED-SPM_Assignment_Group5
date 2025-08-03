@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/bulma.min.css" />
+    <%- include("../partials/head") %>
     <link rel="stylesheet" href="/css/feedback.css" type="text/css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>Feedback</title>
@@ -34,8 +32,8 @@
                 <option value="Lottery">Lottery</option>
                 <option value="Bus Arrival">Bus Arrival</option>
                 <option value="Feedback">Feedback</option>
-                <option value="Reputation System">Reputation System</option>
-                <option value="Previous Asked Questions Log">Previous Asked Questions Log</option>
+                <option value="Quiz">Quiz</option>
+                <option value="News">News</option>
                 <option value="Other">Other</option>
             </select>
         </div>
@@ -51,8 +49,8 @@
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; padding-left: 85%;">
-            <button type="submit" id="submit-btn">Submit</button>
-            <button type="button" id="cancel-btn" onclick="window.location.href='/feedbacks';">Cancel</button>
+            <button type="submit" id="submit-btn" class="btn btn-sm">Submit</button>
+            <button type="button" id="cancel-btn" class="btn btn-sm" onclick="window.location.href='/feedbacks';">Cancel</button>
         </div>
     </form>
     

@@ -7,6 +7,43 @@ const modal = document.getElementById("modal");
 let selectedDate = null;
 let appointments = {};
 
+
+function decodeJwtPayload(token) {
+    const jwt = token.split(" ")[1]; // remove 'Bearer'
+    const payloadBase64 = jwt.split(".")[1]; // get payload
+    const payloadJson = atob(payloadBase64); // decode base64
+    return JSON.parse(payloadJson); // parse to JSON
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+const token = localStorage.getItem('token');
+console.log("Token from localStorage:", token);
+if (!token || isTokenExpired(token)) {
+    localStorage.removeItem('token');
+    window.location.href = '/login'; // Redirect to login
+}
+// Check for token in cookies if not found in localStorage
+if (!localStorage.getItem('token')) {
+    const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+    if (match) {
+        localStorage.setItem('token', decodeURIComponent(match[1]));
+    } else {
+        window.location.href = "/login.html";
+    }
+}
+if (token) {
+    const decoded = decodeJwtPayload(token);
+    console.log(decoded);
+    if (decoded.role === "A") {
+        window.location.href = "/adminindex"; // Redirect admin
+    }
+}
+
 const today = new Date();
 const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
 
@@ -79,7 +116,7 @@ function initializeCalendar() {
 function openDate(dateKey) {
     viewMode = "day";
     selectedDate = dateKey;
-    selectedDateEl.innerText = dateKey;
+    selectedDateEl.innerText = formatDateFancy(selectedDate);
 
     monthlyList.style.display = "none"; // Hide monthly list when viewing daily appointments
     appointmentList.style.display = "block"; // Show appointment list
@@ -105,6 +142,38 @@ function openDate(dateKey) {
     }
 }
 
+// Handle automatic status updates
+function updateAppointmentStatus(appt, dateKey) {
+    // Only auto-update if current status is "Scheduled" or "Ongoing"
+    if (!appt.status || appt.status === "Scheduled" || appt.status === "Ongoing") {
+        const now = new Date();
+        const startTime = appt.startTime || '00:00:00';
+        const endTime = appt.endTime || '23:59:59';
+        const start = new Date(`${dateKey}T${startTime}`);
+        const end = new Date(`${dateKey}T${endTime}`);
+
+        let newStatus = appt.status || "Scheduled";
+
+        if (now > end) {
+            // After end time, check if it was "Ongoing" to set as "Attended"
+            if (appt.status === "Ongoing") {
+                newStatus = "Attended";
+            } else {
+                newStatus = "Missed";  // If it was never "Ongoing", mark as "Missed"
+            }
+        } else if (now >= start && now <= end) {
+            newStatus = "Ongoing";
+        }
+
+        // Update status locally only 
+        if (newStatus !== appt.status) {
+            appt.status = newStatus;
+            console.log(`Appointment ${appt.id} status automatically updated to ${newStatus} (local only)`);
+        }
+    }
+    return appt;
+}
+
 function displayDailyAppointments(dateKey) {
     const dailyAppointments = appointments[dateKey] || [];
     appointmentList.innerHTML = ""; // Clear previous appointments
@@ -113,29 +182,19 @@ function displayDailyAppointments(dateKey) {
     dailyAppointments.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     document.querySelector(".modal-content h3").innerText = 
-    editingIndex !== null ? "Edit Appointment" : `New Appointment for ${selectedDate}`;
+    editingIndex !== null ? "Edit Appointment" : `New Appointment`;
 
     dailyAppointments.forEach((appt, index) => {
-        if (!appt.status || appt.status === "Scheduled") {
-            const now = new Date();
-            const startTime = appt.startTime || '00:00:00';
-            const endTime = appt.endTime || '23:59:59';
-            const start = new Date(`${dateKey}T${startTime}`);
-            const end = new Date(`${dateKey}T${endTime}`);
-
-            if (now > end) appt.status = "Missed";
-            else if (now >= start && now <= end) appt.status = "Ongoing";
-        }
-
+        updateAppointmentStatus(appt, dateKey);
         const li = document.createElement("li");
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
-            ${appt.date} <br>
+            ${formatDateFancy(appt.date)} <br>
             <strong>${appt.title}</strong> <br>
             Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
             Doctor: ${appt.doctor} <br>
             Location: ${appt.location} <br>
-            Notes: ${appt.notes} <br>
+            Notes: ${appt.notes ? appt.notes : ''} <br>
             <button onclick="editAppointment(${index})">Edit</button> 
             <button onclick="deleteAppointment(${index})">Delete</button> <br><br>`; 
         appointmentList.appendChild(li);
@@ -188,12 +247,11 @@ function displayAllAppointments() {
         dateHeader.className = "date-header";
         const dateObj = new Date(dateKey);
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-        const formattedDate = dateObj.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-        dateHeader.innerHTML = `<h4>${dayName}, ${formattedDate}</h4>`;
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleDateString('en-US', { month: 'long' });
+        const year = dateObj.getFullYear();
+        const formattedDate = `${dayName}, ${day} ${month} ${year}`;
+        dateHeader.innerHTML = `<h4>${formattedDate}</h4>`;
         monthlyList.appendChild(dateHeader);
         
         // Add appointments for this date
@@ -246,7 +304,7 @@ function editAppointmentById(appointmentId, dateKey) {
     
     // Set the selected date and edit the appointment
     selectedDate = dateKey;
-    selectedDateEl.innerText = selectedDate;
+    selectedDateEl.innerText = formatDateFancy(selectedDate);
     editAppointment(index);
 }
 
@@ -266,7 +324,7 @@ function deleteAppointmentById(appointmentId, dateKey) {
         
     // Set the selected date and delete the appointment
     selectedDate = dateKey;
-    selectedDateEl.innerText = selectedDate;
+    selectedDateEl.innerText = formatDateFancy(selectedDate);
     deleteAppointment(index);
 }
 
@@ -281,7 +339,17 @@ function openNewAppointment() {
         // Default to today's date if no date is selected
         const today = new Date();
         selectedDate = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-        selectedDateEl.innerText = selectedDate;
+        selectedDateEl.innerText = formatDateFancy(selectedDate);
+    }
+
+    // Validate that selected date is not in the past
+    const selectedDateObj = new Date(selectedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDateObj < today) {
+        alert("Cannot create appointments for past dates. Please select today's date or a future date.");
+        return;
     }
 
     // Reset form values
@@ -292,11 +360,16 @@ function openNewAppointment() {
     document.getElementById("end-time").value = "";
     document.getElementById("location").value = "";
     document.getElementById("notes").value = "";
-    document.getElementById("status").value = "Scheduled";
+
+    // Hide status select for new appointments
+    const statusSelect = document.getElementById("status");
+    if (statusSelect) {
+        statusSelect.style.display = "none";
+    }
     editingIndex = null;
 
     // Update modal title
-    document.querySelector(".modal-content h3").innerText = `New Appointment for ${selectedDate}`;
+    document.querySelector(".modal-content h3").innerText = `New Appointment`;
 
     modal.style.display = "flex";
 }
@@ -318,6 +391,131 @@ function editAppointment(index) {
     document.getElementById("location").value = appt.location;
     document.getElementById("notes").value = appt.notes;
     document.getElementById("status").value = appt.status || "Scheduled"; // Default to Scheduled if no status
+
+    // Determine if this is a past appointment
+    const appointmentDate = new Date(appt.date);
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const isPastAppointment = appointmentDate < today;
+    const isCompletedToday = appointmentDate.getTime() === today.getTime() && 
+                            appt.endTime && 
+                            now > new Date(`${appt.date}T${appt.endTime}`);
+    
+    // Set up status dropdown based on appointment timing
+    const statusSelect = document.getElementById("status");
+    const currentStatus = appt.status || "Scheduled";
+    
+    // Clear existing options
+    statusSelect.innerHTML = "";
+    
+    if (isPastAppointment || isCompletedToday) {
+        // For past appointments, only allow certain statuses
+        const allowedStatuses = ["Attended", "Missed"];
+        
+        allowedStatuses.forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = getStatusDisplayText(status);
+            if (status === currentStatus) {
+                option.selected = true;
+            }
+            statusSelect.appendChild(option);
+        });
+        
+        // If current status is not in allowed list, set to "Missed" by default
+        if (!allowedStatuses.includes(currentStatus)) {
+            statusSelect.value = "Missed";
+        }
+
+        // Add visual notice for past appointments
+        const existingNotice = document.getElementById("past-appointment-notice");
+        if (existingNotice) {
+            existingNotice.remove();
+        }
+        
+        if (isPastAppointment || isCompletedToday) {
+            const notice = document.createElement("div");
+            notice.id = "past-appointment-notice";
+            notice.className = "past-appointment-notice";
+            notice.innerHTML = "⚠️ This is a past appointment. Status can only be set to 'Attended' or 'Missed'.";
+            
+            // Insert notice after the status select
+            statusSelect.parentNode.insertBefore(notice, statusSelect.nextSibling);
+
+            // Add event listener to date input to revalidate when date changes
+            const dateInput = document.getElementById("appointment-date");
+            if (dateInput) {
+                dateInput.addEventListener('change', function() {
+                    const newDate = this.value;
+                    const newDateObj = new Date(newDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const isPastAppointment = newDateObj < today;
+                    const statusSelect = document.getElementById("status");
+                    
+                    // Remove existing notice
+                    const existingNotice = document.getElementById("past-appointment-notice");
+                    if (existingNotice) {
+                        existingNotice.remove();
+                    }
+                    
+                    // Clear and rebuild status options
+                    statusSelect.innerHTML = "";
+                    
+                    if (isPastAppointment) {
+                        // For past appointments, only allow certain statuses
+                        const allowedStatuses = ["Attended", "Missed"];
+                        
+                        allowedStatuses.forEach(status => {
+                            const option = document.createElement("option");
+                            option.value = status;
+                            option.textContent = getStatusDisplayText(status);
+                            statusSelect.appendChild(option);
+                        });
+                        
+                        // Add notice for past appointments
+                        const notice = document.createElement("div");
+                        notice.id = "past-appointment-notice";
+                        notice.className = "past-appointment-notice";
+                        notice.innerHTML = "⚠️ This is a past appointment. Status can only be set to 'Attended' or 'Missed'.";
+                        
+                        statusSelect.parentNode.insertBefore(notice, statusSelect.nextSibling);
+                        
+                    } else {
+                        // For future appointments, allow all statuses except "Ongoing"
+                        const allStatuses = ["Scheduled", "Attended", "Missed"];
+                        
+                        allStatuses.forEach(status => {
+                            const option = document.createElement("option");
+                            option.value = status;
+                            option.textContent = getStatusDisplayText(status);
+                            statusSelect.appendChild(option);
+                        });
+                        
+                        // Set to "Scheduled" by default for future appointments
+                        statusSelect.value = "Scheduled";
+                    }
+                });
+            }
+        }
+
+    } else {
+        // For future appointments, allow all statuses except "Ongoing"
+        const allStatuses = ["Scheduled", "Attended", "Missed"];
+        
+        allStatuses.forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = getStatusDisplayText(status);
+            if (status === currentStatus) {
+                option.selected = true;
+            }
+            statusSelect.appendChild(option);
+        });
+    }
 
     editingIndex = index;
     originalDate = selectedDate; // Store the original date for later comparison
@@ -353,14 +551,41 @@ function saveAppointment() {
         return;
     }
 
-    // Check if date is in the past ONLY for NEW appointments
-    if (editingIndex === null) {
-        const selectedDate = new Date(date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
+    // Convert string to Date object properly
+    const selectedDateObj = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Validate status for past appointments
+    if (editingIndex !== null) {
+        const isPastAppointment = selectedDateObj < today;
+        const isCompletedToday = selectedDateObj.getTime() === today.getTime() && 
+                                endTimeRaw && 
+                                now > new Date(`${date}T${endTimeRaw}`);
         
-        if (selectedDate < today) {
-            alert("Cannot schedule appointments in the past");
+        if (isPastAppointment || isCompletedToday) {
+            if (status === "Scheduled" || status === "Ongoing") {
+                alert("Cannot set past appointments to 'Scheduled' or 'Ongoing' status. Please select 'Attended' or 'Missed'.");
+                return;
+            }
+        }
+    }
+
+    // Check if date is in the past for new appointments
+    if (editingIndex === null && selectedDateObj < today) {
+        alert("Cannot schedule appointments in the past. Please select today's date or a future date.");
+        return;
+    }
+
+    // For today's appointments, check if the start time has already passed
+    if (selectedDateObj.getTime() === today.getTime()) {
+        const now = new Date();
+        const [hours, minutes] = startTimeRaw.split(':').map(Number);
+        const appointmentDateTime = new Date();
+        appointmentDateTime.setHours(hours, minutes, 0, 0);
+        
+        if (appointmentDateTime < now) {
+            alert("Cannot schedule appointments for times that have already passed today. Please select a future time.");
             return;
         }
     }
@@ -382,6 +607,7 @@ function saveAppointment() {
         start_time,
         end_time,
         location, 
+        status: status || "Scheduled", // Default to Scheduled if no status provided
         notes 
     };
 
@@ -420,7 +646,7 @@ function saveAppointment() {
             }
             
             selectedDate = date;
-            selectedDateEl.innerText = selectedDate;
+            selectedDateEl.innerText = formatDateFancy(selectedDate);
             
             const [year, month] = date.split("-").map(Number);
             currentYear = year;
@@ -471,7 +697,7 @@ function saveAppointment() {
             appointments[date].push(newAppt);
             
             selectedDate = date;
-            selectedDateEl.innerText = selectedDate;
+            selectedDateEl.innerText = formatDateFancy(selectedDate);
             
             const [year, month] = date.split("-").map(Number);
             currentYear = year;
@@ -534,30 +760,43 @@ function renderCalendar() {
     calendar.innerHTML = "";
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Sunday
+
     const monthName = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" });
     document.getElementById("current-month").innerText = `${monthName} ${currentYear}`;
 
-    for (let i = 1; i <= daysInMonth; i++) {
+    // Calculate total boxes (6 weeks × 7 days = 42)
+    const totalBoxes = 42;
+    let dayCounter = 1;
+
+    for (let i = 0; i < totalBoxes; i++) {
         const dayBox = document.createElement("div");
         dayBox.className = "day";
-        dayBox.innerText = i;
 
-        const dateKey = `${currentYear}-${(currentMonth+1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
-        dayBox.onclick = () => {
-            selectedDate = dateKey; // where dateKey = "YYYY-MM-DD"
-            selectedDateEl.innerText = selectedDate;
-            openDate(selectedDate); // show appointments for that day
-        };
+        // Fill leading empty boxes before the first day
+        if (i < firstDayOfWeek || dayCounter > daysInMonth) {
+            dayBox.classList.add("empty-day");
+            dayBox.innerText = "";
+        } else {
+            dayBox.innerText = dayCounter;
 
-        // Check if there is at least 1 appointment for this date before adding a dot
-        if (appointments[dateKey] && appointments[dateKey].length > 0) {
-            const dot = document.createElement("div");
-            dot.className = "appointment-dot";
-            dayBox.appendChild(dot);
+            const dateKey = `${currentYear}-${(currentMonth+1).toString().padStart(2, '0')}-${dayCounter.toString().padStart(2, '0')}`;
+            dayBox.onclick = () => {
+                selectedDate = dateKey;
+                selectedDateEl.innerText = formatDateFancy(selectedDate);
+                openDate(selectedDate);
+            };
+
+            if (appointments[dateKey] && appointments[dateKey].length > 0) {
+                const dot = document.createElement("div");
+                dot.className = "appointment-dot";
+                dayBox.appendChild(dot);
+            }
+            dayBox.dataset.date = dateKey;
+            dayCounter++;
         }
 
         calendar.appendChild(dayBox);
-        dayBox.dataset.date = dateKey;
     }
 }
 
@@ -572,25 +811,6 @@ function changeMonth(offset) {
         currentYear++;
     }
     renderCalendar();
-    renderMonthlyAppointments();
-}
-
-function renderMonthlyAppointments() {
-    const label = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long", year: "numeric" });
-    document.getElementById("month-summary-label").innerText = label;
-
-    monthlyList.innerHTML = "";
-
-    Object.keys(appointments).forEach(dateKey => {
-        const [year, month] = dateKey.split("-");
-        if (parseInt(year) === currentYear && parseInt(month) === currentMonth + 1) {
-            appointments[dateKey].forEach(appt => {
-                const li = document.createElement("li");
-                li.innerText = `${dateKey}: ${formatTimeForDisplay(appt.startTime)}-${formatTimeForDisplay(appt.endTime)} ${appt.title} (${appt.doctor})`;
-                monthlyList.appendChild(li);
-            });
-        }
-    });
 }
 
 function renderAllAppointments() {
@@ -632,13 +852,24 @@ function highlightDay(dateKey) {
     });
 }
 
+// For dropdown status display
+function getStatusDisplayText(status) {
+    const statusMap = {
+        "Scheduled": "🟢 Scheduled",
+        "Ongoing": "🟡 Ongoing", 
+        "Attended": "✅ Attended",
+        "Missed": "🔴 Missed",
+    };
+    return statusMap[status] || status;
+}
+
+// For css styling
 function getStatusClass(status) {
     return {
         "Scheduled": "status-scheduled",
         "Ongoing": "status-ongoing",
         "Attended": "status-attended",
         "Missed": "status-missed",
-        "Cancelled": "status-cancelled"
     }[status] || "status-scheduled";
 }
 
@@ -718,12 +949,12 @@ function searchAppointments() {
         const li = document.createElement("li");
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
-            ${appt.date} <br>
+            ${formatDateFancy(appt.date)} <br>
             <strong>${appt.title}</strong> <br>
             Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
             Doctor: ${appt.doctor} <br>
             Location: ${appt.location} <br>
-            Notes: ${appt.notes} <br>
+            Notes: ${appt.notes ? appt.notes : ''} <br>
             <button onclick="editAppointmentById('${appt.id}', '${appt.date}')">Edit</button> 
             <button onclick="deleteAppointmentById('${appt.id}', '${appt.date}')">Delete</button> <br><br>`;
         monthlyList.appendChild(li);
@@ -813,7 +1044,11 @@ function viewAppointmentsByMonth() {
         dateHeader.className = "date-header";
         const dateObj = new Date(dateKey);
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-        dateHeader.innerHTML = `<h4>${dayName}, ${dateKey}</h4>`;
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleDateString('en-US', { month: 'long' });
+        const year = dateObj.getFullYear();
+        const formattedDate = `${dayName}, ${day} ${month} ${year}`;
+        dateHeader.innerHTML = `<h4>${formattedDate}</h4>`;
         monthlyList.appendChild(dateHeader);
         
         // Add appointments for this date
@@ -916,10 +1151,20 @@ function quickNavigateToMonth(monthOffset) {
     viewAppointmentsByMonth();
 }
 
+function setDateInputMinimum() {
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const dateInput = document.getElementById("appointment-date");
+    if (dateInput) {
+        dateInput.min = todayString;
+    }
+}
+
 // Add event listener for search input
 document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
-    
+    setDateInputMinimum();
+
     // Add real-time validation
     const startTimeInput = document.getElementById("start-time");
     const endTimeInput = document.getElementById("end-time");
@@ -1010,6 +1255,18 @@ function formatTimeForDisplay(timeString) {
     }
     
     return 'Invalid time';
+}
+
+function formatDateFancy(dateString) {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayName = days[dateObj.getDay()];
+    const day = dateObj.getDate();
+    const month = months[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    return `${dayName}, ${day} ${month} ${year}`;
 }
 
 function validateAppointmentTimes(startTime, endTime) {

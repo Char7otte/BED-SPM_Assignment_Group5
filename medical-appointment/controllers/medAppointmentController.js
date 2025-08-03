@@ -47,7 +47,7 @@ async function getAppointmentsByMonthYear(req, res) {
     res.json(appointments);
   } catch (error) {
     console.error("Controller error in getAppointmentsByMonthYear:", error);
-    res.status(500).json({ error: "Error retrieving appointments for the month" });
+    res.status(500).json({ error: "Error retrieving appointments for the month and year" });
   }
 }
 
@@ -72,7 +72,17 @@ async function updateAppointment(req, res) {
     }
 
     const userId = req.user.id; // Get user ID from JWT token
-    const updatedAppointment = await medAppointmentModel.updateAppointment(id, userId, req.body);
+
+    if (!req.body) {
+      return res.status(400).json({ error: "Request body is required" });
+    }
+
+    const appointmentData = {
+      ...req.body,
+      status: req.body.status || "Scheduled" // Provide default status if not provided
+    };
+
+    const updatedAppointment = await medAppointmentModel.updateAppointment(id, userId, appointmentData);
     if (!updatedAppointment) {
       return res.status(404).json({ error: "Appointment not found" });
     }
@@ -98,13 +108,14 @@ async function deleteAppointment(req, res) {
         return res.status(404).json({ error: "Appointment not found"});
       }
 
-      res.status(204).json(deletedAppointment);
+      res.status(204).end(); // No content to return
     } catch (error) {
         console.error("Controller error in deleteAppointment:", error);
         res.status(500).json({ error: "Error deleting appointment" });
     }
 }
 
+// Search appointments by search term
 async function searchAppointments(req, res) {
     const searchTerm = req.query.searchTerm; // Extract search term from query params
 

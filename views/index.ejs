@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <%- include('./partials/head') %>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>The Old People App</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/styles.css" />
+        
+        <style>
+            
+
+            body {
+                font-family: Arial, sans-serif;
+                background-image: linear-gradient(135deg, #f5f7fa 0%, #8ea2c2 100%);
+                background-size: cover;
+                color: #333;
+                text-align: center;
+            }
+            h1 {
+                color: #2c3e50;
+            }
+            #weathertitle {
+                font-size: 1.5em;
+                color: #2c3e50;
+                text-align: left;
+            }
+
+            .main-container {
+                width: 95%;
+                margin: 0 auto;
+                padding: 0px;
+                background-color: transparent;
+                
+                /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+            }
+            
+            .row1, .row2, .row3 {
+                display: flex;
+                justify-content: space-between;
+                margin: 15px;
+                padding: 15px;
+                margin-top: 10px;
+                
+
+            }
+            .container-left1, .container-right2, .container-left3 {
+                /* background-color: #57b0e0; option 1*/
+                background-color: #b0dff9;
+                width: 35%;
+                height: 350px;
+                padding: 10px;
+                box-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
+                transition: box-shadow 0.3s ease;
+                margin-top: 10px;
+                border-radius: 10px;
+            }
+            .container-right1:hover, 
+            .container-left2:hover, .container-right2:hover, 
+            .container-left3:hover, .container-right3:hover {
+                box-shadow: 0 8px 24px rgba(44, 62, 80, 0.25);
+                cursor: pointer;
+                transform: translateY(-4px) scale(1.02);
+                transition: box-shadow 0.3s, transform 0.3s;
+            }
+            .container-left2, .container-right1, .container-right3 {
+                background-color: #acb9e8;
+                width: 60%;
+                height: 350px;
+                padding: 10px;
+                box-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
+                margin-top: 10px;
+                border-radius: 10px;
+                
+            }
+
+
+            .weather-up {
+                background-color: transparent;
+                width: 100%;
+                height: auto;
+                display: block;
+                align-items: left;
+                justify-content: left;
+                font-size: 1.4em;
+
+            }
+            .alert-up {
+                background-color: transparent;
+                width: 100%;
+                height: auto;
+                display: block;
+                align-items: left;
+                justify-content: left;
+                font-size: 1.4em;
+                margin-bottom: 20px;
+
+            }
+            .alert{
+                text-align: left;
+                
+                padding: 8px;
+                
+
+            }
+            .alert-info {
+                
+                
+                border-color: transparent;
+                border-width: 3px;
+                padding: 10px;
+                border-radius: 5px;
+                background-color: transparent;
+            }
+            .hover {
+                cursor: pointer;
+                text-align: left;
+                height: 100%;
+                padding: 10px;
+            }
+            .wleft{
+                text-align: left;
+                padding-left: 1px;
+                margin : 10px;
+                
+                  
+            }
+            .the-left{
+                display: flex;
+                flex-direction: column;
+                width: 75%;
+                
+            }
+            .wright{
+                text-align: right;
+                padding-right: 10px;
+                margin : 0px;
+                width: 35%;
+                
+            }
+            .the-right{
+                display: flex;
+                flex-direction: column;
+                width: 25%;
+                
+            }
+            .weather {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                
+            }
+            .weather-icon-north, .weather-icon-south, .weather-icon-east, .weather-icon-west {
+                font-size: 2em;
+                color: #2c3e50;
+                margin: 10px;
+            }
+            .weather-north, .weather-south, .weather-east, .weather-west {
+                font-size: 1.2em;
+                color: #2c3e50;
+                margin: 20px;
+            }
+
+            @media screen and (max-width: 768px) {
+                .row1, .row2, .row3 {
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .container-left1, .container-right1, .container-left2, .container-right2, .container-left3, .container-right3 {
+                    width: 90%;
+                    margin-bottom: 20px;
+                }
+                
+            }
+            @media screen and (max-width: 480px) {
+                .container-left1, .container-right1, .container-left2, .container-right2, .container-left3, .container-right3 {
+                    width: 100%;
+                   
+                }
+                .weather-up {
+                    font-size: 1.2em;
+                }
+                .weather-icon-north, .weather-icon-south, .weather-icon-east, .weather-icon-west {
+                    font-size: 1.5em;
+                }
+                
+            }
+
+            .infomation-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                
+                padding: 10px 20px;
+                
+            }
+            .infomation-bar-left {
+                flex: 1;
+                text-align: left;
+            }
+            .infomation-bar-right {
+                flex: 1;
+                text-align: right;
+            }
+            .clock {
+                margin: 15px;
+                font-size: 1.5em;
+                color: #2c3e50;
+                text-align: right;
+            }
+            .xtra-info {
+                font-size: 1.5em;
+                color: #7f8c8d;
+                text-align: left;
+            }
+
+
+
+            .upcoming-appointment-card {
+                background: #fff;
+                border: 1px solid #d3d3d3;
+                border-radius: 8px;
+                margin: 10px 0;
+                padding: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                list-style: none;
+                transition: box-shadow 0.2s;
+            }
+            .upcoming-appointment-card:hover {
+                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+                background: #f9f9f9;
+            }
+
+
+        </style>
+    </head>
+    <body>
+        <%- include('./partials/navbar') %>
+        <!-- <div class = "infomation-bar">
+            <div class = "infomation-bar-left">
+                <h1>Welcome to The Old People App</h1>
+            </div>
+            <div class = "infomation-bar-right">
+                <p>Stay connected, stay healthy, stay happy!</p>
+            </div>
+        </div> -->
+        <div class = "main-container">
+            <div class = "infomation-bar">
+                <div class = "infomation-bar-left">
+                    <h1 class = "xtra-info"></h1>
+                </div>
+                <div class = "infomation-bar-right">
+                    <div class = "clock">
+                
+                <h1>🕒: <span id="current-time"></span></h1>
+            </div>
+                </div>
+            </div>
+            <div class =  "image" style ="display: flex; justify-content: center; align-items: center; margin-top: 20px; width:70%; height: 80%; margin-left: auto; margin-right: auto;">
+                <img src="/images/ChatGPT_image5.png" alt="The Old People" class="img-fluid box-shadow mx-auto d-block" >
+                
+            </div>
+        <div class = "row1">
+        <div class = "container-left1">
+            <div>
+                <h4 id = "weathertitle">🌈Weather</h4>
+            </div>
+                <div class="weather-up">
+                    <h2>Weather</h2>
+                
+                </div>
+                <div class = "weather">
+                <div class =the-left>
+                <div class="weather-north wleft">
+                    <h5>North</h5>
+                    
+                </div>
+                <div class="weather-south wleft">
+                    <h5>South</h5>
+                </div>
+                <div class="weather-east wleft">
+                    <h5>East</h5>
+                </div>
+                <div class="weather-west wleft">
+                    <h5>West</h5>
+                </div>
+                </div>
+                <div class =the-right>
+                <div class="weather-icon-north wright"></div>
+                <div class="weather-icon-south wright"></div>
+                <div class="weather-icon-east wright"></div>
+                <div class="weather-icon-west wright"></div>
+                </div>
+
+            </div>
+        </div>
+        <a href = "/alert" class = "container-right1">
+            
+
+
+                <div class="alert-up">
+                <h2>📢Alert</h2>
+                    
+                </div>
+                <div class="alert-down">
+                    <alert class="alert alert-info" role="alert">
+                        
+
+                    </alert>
+                </div>
+           
+            </a>
+        
+        </div>
+        <div class = "row2">
+        <a href = "/medications" class = "container-left2">
+            <div class = "health">
+                <h2>💊Medication</h2>
+                <p>Medication tips and information will be displayed here.</p>
+            </div>
+        </a> 
+        <a href="/calendar" class="container-right2" style="display:block; text-decoration:none; color:inherit;">
+            <div class = "appointments">
+                <h2>📅Appointments</h2>
+
+                <div id="upcoming-appointments" class="card mt-3">
+                    <h4>Upcoming Appointments</h4>
+                    <ul id="upcoming-appointments-list"></ul>
+                </div>
+            </div>
+        </a>
+
+        </div>
+        <div class = "row3">
+        <div href = "Chat" class = "container-left3">
+            <div class = "Chat">
+                <h2>💬Chat</h2>
+                <p>Chat options and suggestions will be displayed here.</p>
+            </div>
+        </div>
+        <div href = "#" class = "container-right3">
+        <div class = "notes">
+            <h2>📝Notes</h2>
+            <p>Notes and reminders will be displayed here.</p>
+        </div>
+        </div> 
+        </div>
+    </div>
+
+    <%- include('./partials/footer') %>
+    </body>
+    <script src="/js/index.js" defer>
+    </script>      
+</html>

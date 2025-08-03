@@ -68,29 +68,55 @@ async function getUserByUsername(req, res) {
 }
 
 async function createUser(req, res) {
-    const { username, phone_number, password, age, gender, status = "active" } = req.body;
+
+    const { username, phone_number, password, age, gender, status = 'active' } = req.body;
+
     if (!username || !phone_number || !password || !age || !gender) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
     try {
+
+        // Create the user
         await userModel.createUser({ username, phone_number, password, age, gender, status });
+
+        // Get user info
         const user = await userModel.getUserByUsername(username);
-        const token = jwt.sign({ id: user.user_id, role: user.role, username: user.username }, process.env.JWT_SECRET, { expiresIn: "3600s" });
-        res.cookie("token", token, {
-            maxAge: 3 * 60 * 60 * 1000, // 3 hours
+
+        // Generate JWT
+        const token = jwt.sign(
+            { id: user.user_id, role: user.role, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '3600s' }
+        );
+
+        
+
+        // Set cookie before sending the final response
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 3 * 60 * 60 * 1000 // 3 hours
         });
-        res.status(201).json({ message: "User created successfully" });
+
+        // ✅ Send only one response
+        return res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            token: token
+        });
+
     } catch (err) {
-        console.log("Error creating user:", err);
-        if (err.message && err.message.includes("Violation of UNIQUE KEY")) {
-            return res.status(409).json({ message: "Username already exists" });
-        } else {
-            console.error("Error creating user:", err);
-            res.status(500).json({ message: "Internal server error" });
+        console.error("Error creating user:", err);
+
+        if (err.message && err.message.includes('Violation of UNIQUE KEY')) {
+            return res.status(409).json({ message: 'Username already exists' });
         }
+
+        return res.status(500).json({ message: 'Internal server error' });
+
     }
 }
+
 
 async function updateUser(req, res) {
     console.log("Update user data:", req.body);
@@ -99,7 +125,7 @@ async function updateUser(req, res) {
         return res.status(400).json({ message: "Invalid user ID" });
     }
     const { username, phone_number, password, age, gender } = req.body;
-    console.log("Update user data control:", req.body);
+   ;
 
     try {
         if (!password) {
@@ -154,7 +180,7 @@ async function getUserRolesById(req, res) {
     }
 }
 async function loginUser(req, res) {
-    console.log("Login attempt:", req.body);
+    
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -174,7 +200,7 @@ async function loginUser(req, res) {
         }
 
         const isPasswordValid = await userModel.verifyPassword(password, user.password);
-        console.log("Password valid:", isPasswordValid);
+        
 
         if (!isPasswordValid) {
             return res.status(401).json({
@@ -228,7 +254,7 @@ async function changePassword(req, res) {
 
 async function searchUserByUsernameNid(req, res) {
     const { username, id } = req.body;
-    console.log("Search user by username or ID:", req.body);
+    
 
     if (!username && !id) {
         return res.status(400).json({ message: "Username or ID is required" });
