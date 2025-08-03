@@ -103,6 +103,9 @@ app.get('/login', (req, res) => {
 app.get('/homepage', (req, res) => {
   res.render('index', { user: res.locals.user });
 });
+app.get('/admin', (req, res) => {
+    res.render('indexadmin', { user: res.locals.user });
+});
 
 // Alert routes
 app.get("/alert", (req, res) => {
@@ -174,27 +177,29 @@ app.get("/weather", async (req, res) => {
   res.render("weather/weather", { user: res.locals.user });
 });
 
-///// API routes /////
-//ALERT SEARCH + READ STATUS (specific paths FIRST)/
-app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
-app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
-app.post("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
 
-// CREATE ALERT (Admin only)
-app.post("/alerts", validateAlert, alertController.createAlert); //  Create a new alert
+// ===== ALERTS ROUTES ===== //
+// --- User-specific Operations --- //
+app.get("/alerts/search",verifyJWT, alertController.searchAlerts); // Search by title/category
+app.get("/alerts/readstatus/:id", verifyJWT, alertController.getreadAlerts); // Get read status
+app.post("/alerts/updatestatus/:id", verifyJWT, validateAlertId, alertController.updateAlertStatus); // Mark as read/unread
+app.post("/alerts/checkhasnoties/:id", verifyJWT, alertController.checkHasNotiesAdded); // Check if alert has notes
 
-// UPDATE + DELETE ALERT (Admin only)
-app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert); // Update an existing alert
-app.put("/alerts/delete/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
 
-// BASIC ALERT FETCHING
-app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admin)
-app.get("/alerts/:id", validateAlertId, alertController.getAlertById); // View alert by ID (last!)
+// --- Admin-only Operations --- //
+app.post("/alerts", verifyJWT, validateAlert, alertController.createAlert); // Create new alert
+app.put("/alerts/:id", verifyJWT, validateAlertId, validateAlert, alertController.updateAlert); // Update alert
+app.put("/alerts/delete/:id", verifyJWT, validateAlertId, alertController.deleteAlert); // Delete alert
+
+// --- General Fetch Operations --- //
+app.get("/alerts", verifyJWT, alertController.getAllAlerts); // Get all alerts
+app.get("/alerts/:id", verifyJWT, validateAlertId, alertController.getAlertById); // Get alert by ID
+
 
 //routes for users
 app.post("/users/register", validateUserInput, userController.createUser); // User registration #okay
 app.post("/users/login", userController.loginUser); // User login #okay
-app.put("/users/changepassword/:id", verifyJWT, userController.changePassword); // Change user password #okay
+app.put("/users/changepassword/:id", userController.changePassword); // Change user password #okay
 //rotes for user management
 app.get("/users", verifyJWT, userController.getAllUsers); // Get all users #okay
 app.get("/users/username/:username", verifyJWT, userController.getUserByUsername); // Get user by username
@@ -204,7 +209,9 @@ app.put("/users/delete/:id", verifyJWT, userController.deleteUser); //OKay
 app.post("/users/search", verifyJWT, userController.searchUserByUsernameNid); //
 app.get("/users/logout", userController.logoutUser); // Get user roles by ID #okay
 
+
 //routes for chats
+
 app.get("/chats", verifyJWT, chatController.getAllChats);
 app.post("/chats/create/:userID", validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.

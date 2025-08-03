@@ -31,7 +31,9 @@ if (!localStorage.getItem('token')) {
         window.location.href = "/login";
     }
 }
-
+if(decodeJwtPayload(token).role === 'A') {
+    window.location.href = "/admin"; 
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any JavaScript functionality here
@@ -92,7 +94,7 @@ async function weather() {
             
 
         function getWeatherIconHtml(iconCode) {
-            console.log("Icon code:", iconCode); // Debugging
+            
             description = iconCode.toLowerCase();
             if (description.includes("sunny")) return "01d";
             if (description.includes("clear")) return "01d";
@@ -121,6 +123,56 @@ async function weather() {
 
         document.getElementsByClassName('weather-up')[0].innerText = `${data.date}  High: ${data.temperature.high}°C  Low: ${data.temperature.low}°C`;
 
+        // If rainy, update .xtra-info and remind to bring umbrella
+        const isRainy = ["showers", "rain", "thunderstorm"].some(rain =>
+            [data.area.north, data.area.south, data.area.east, data.area.west].join(' ').toLowerCase().includes(rain)
+        );
+        const isSunny = ["sunny", "clear"].some(sun =>
+            [data.area.north, data.area.south, data.area.east, data.area.west].join(' ').toLowerCase().includes(sun)
+        );
+        if (isRainy) {
+            const xtraInfo = document.getElementsByClassName('xtra-info')[0];
+            if (xtraInfo) {
+            xtraInfo.innerText = "Remember to bring an umbrella! ☔️";
+            }
+        } else if (isSunny) {
+            const xtraInfo = document.getElementsByClassName('xtra-info')[0];
+            if (xtraInfo) {
+                xtraInfo.innerText = "It's a sunny day! Enjoy the weather! ☀️";
+            }
+        }
+        else {
+            const xtraInfo = document.getElementsByClassName('xtra-info')[0];
+            if (xtraInfo) {
+                const messages = [
+                    "Such a weather isn't it? 🌤️, go for a walk!",
+                    "Perfect time for a stroll outside! 🚶‍♂️",
+                    "Enjoy the fresh air today! 🌳",
+                    "Maybe read a book by the window? 📖",
+                    "Take a moment to relax and unwind! 😌",
+                    "Call a friend and catch up! 📞",
+                    "Try a new recipe today! 🍲",
+                    "Listen to your favorite music! 🎶",
+                    "Do some gentle stretching exercises! 🧘‍♂️",
+                    "Write in your journal or diary! 📝",
+                    "Watch a classic movie! 🎬",
+                    "Try a puzzle or brain game! 🧩",
+                    "Enjoy a cup of tea or coffee! ☕",
+                    "Take a nap and recharge! 😴",
+                    "Look at old photos and reminisce! 🖼️",
+                    "Do some gardening or water your plants! 🌱",
+                    "Practice deep breathing for relaxation! 🌬️",
+                    "Sketch or draw something! 🎨",
+                    "Feed the birds outside! 🐦",
+                    "Plan your week ahead! 📅",
+                    "Drink plenty of water to stay hydrated! 💧",
+                    "Drink a bo ohw o wo er to stay hydrated! 💧",
+                ];
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                xtraInfo.innerText = randomMsg;
+            }
+        }
+
     }
 
     async function fetchAlerts() {
@@ -130,7 +182,7 @@ async function weather() {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            console.log("Fetched alerts:", data); // Debugging
+           
             return data; // ✅ THIS LINE IS IMPORTANT
         } catch (error) {
             console.error('Error fetching alerts:', error);
@@ -145,8 +197,8 @@ async function fetchReadAlerts(userId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const unreadAlerts = await response.json();
-        console.log("Fetched unread alerts:", unreadAlerts); // Debugging
-        return unreadAlerts; // ✅ fixed
+        
+        return unreadAlerts; 
     } catch (error) {
         console.error("Error fetching unread alerts:", error);
         return [];
@@ -159,18 +211,27 @@ async function alerts() {
     const readData = await fetchReadAlerts(userId);
     const data = await fetchAlerts();
     let list = [];
-    console.log("Read alerts data:", readData); // Debugging
+    let list2 = [];
+    
     for (const alert of readData) {
+        
         list.push(alert.AlertID);
+
     }
-    console.log("Read alerts list:", list); // Debugging
+    let filtered = data.filter(alert => 
+    alert.AlertID !== null &&
+    alert.AlertID !== undefined &&
+    alert.status !== 'Deleted'
+    );
+    
+    
 
     let alertDown = document.getElementsByClassName('alert-down')[0];
     alertDown.innerHTML = ''; // Clear previous alerts
 
-    if (data && Array.isArray(data)) {
+    if (data && Array.isArray(filtered) && filtered.length > 0) {
         // Filter out alerts whose AlertID is in the list
-        const filteredAlerts = data.filter(alert => !list.includes(alert.AlertID));
+        const filteredAlerts = filtered.filter(alert => !list.includes(alert.AlertID));
         // Show top 3 alerts
         const topAlerts = filteredAlerts.slice(0, 3);
         topAlerts.forEach(alert => {
@@ -178,28 +239,35 @@ async function alerts() {
             alertDiv.className = 'alert-item';
             // Set alert class based on severity
             let severityClass = 'alert-info';
+            let borderColor = 'blue';
             if (alert.Severity) {
                 switch (alert.Severity.toLowerCase()) {
                     case 'high':
                         severityClass = '🚨';
+                        borderColor = 'pink';
                         break;
                     case 'medium':
                         severityClass = '🟡';
+                        borderColor = 'yellow';
                         break;
                     case 'low':
                         severityClass = '🟢';
+                        borderColor = 'green';
                         break;
                     case 'info':
                         severityClass = 'ℹ️';
+                        borderColor = 'blue';
                         break;
                     default:
                         severityClass = 'alert-secondary'; // Default class if severity is unknown
+                        borderColor = 'gray';
+                        
                 }
             }
             alertDiv.classList.add();
             alertDiv.setAttribute('role', 'alert');
             alertDiv.innerHTML = `
-                <div class="alert" id="hover" role="alert" style="cursor:pointer; text-align:left; height: 100%;" onclick="window.location.href='/alertdetail?id=${alert.AlertID}'">
+                <div class="alert alert-info" id="hover" role="alert" style="cursor:pointer; text-align:left; height: 100%; " onclick="window.location.href='/alertdetail?id=${alert.AlertID}'">
                     ${severityClass} <strong>${alert.Title || 'No title available'}</strong><br>
                     ${alert.Message || 'No message available'}
                 </div>
@@ -214,6 +282,17 @@ async function alerts() {
 
 alerts();
 
+
+ function updateTime() {
+            const now = new Date();
+            console.log("here");
+            const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', options);
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+
 function formatDateFancy(dateString) {
     if (!dateString) return '';
     const dateObj = new Date(dateString);
@@ -225,6 +304,7 @@ function formatDateFancy(dateString) {
     const year = dateObj.getFullYear();
     return `${dayName}, ${day} ${month} ${year}`;
 }
+
 
 async function fetchAllAppointments() {
     try {
