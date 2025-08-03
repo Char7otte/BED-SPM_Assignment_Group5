@@ -137,7 +137,7 @@ app.get('/users/profile', (req, res) => {
   res.render('user/profile', { user: res.locals.user });
 });
 app.get('/notes', (req, res) => {
-  res.render('note-taker/notes', { user: res.locals.user });
+  res.render('note-taker/notes');
 });
 
 // Medical appointment calendar route
