@@ -68,22 +68,31 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const noteDiv = document.createElement('div');
                 noteDiv.className = 'note-item';
-                noteDiv.dataset.id = note.id;
+                noteDiv.dataset.id = note.NoteID;
                 noteDiv.innerHTML = `
                     <strong>${note.NoteTitle}</strong><br>
-                    <small>${note.NoteContent.substring(0, 30)}...</small>
+                    <small>${note.NoteContent}...</small>
                 `;
-                noteDiv.addEventListener('click', () => {
-                    loadNoteById(note.id);
-                    selectedNoteId = note.id;
+                // noteDiv.addEventListener('click', () => {
+                //     loadNoteById(note.NoteID);
+                //     selectedNoteId = note.NoteID;
+                //     document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
+                //     noteDiv.classList.add('selected');
+                //     // Update Delete button enabled state
+                //     updateDeleteButtonState();
+                // });
+                noteDiv.addEventListener('click', async () => {
+                    selectedNoteId = note.NoteID;
                     document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
                     noteDiv.classList.add('selected');
-                    // Update Delete button enabled state
                     updateDeleteButtonState();
+                    await loadNoteById(note.NoteID);
+                    // this is not running?
+                    console.log("Selected note ID:", selectedNoteId);
                 });
                 // Highlight if selected (safe check)
                 // apparently this prevents all notes from being selected?
-                if (selectedNoteId && note.id === selectedNoteId) {
+                if (selectedNoteId && note.NoteID === selectedNoteId) {
                     noteDiv.classList.add('selected');
                 }
                 noteListContainer.appendChild(noteDiv);
@@ -108,10 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const noteContentField = document.getElementById('NoteContent');
 
             console.log(`Loading note with ID ${id}:`, note);
-            // noteTitleField.value = note.NoteTitle;
-            // noteContentField.value = note.NoteContent;
             noteTitleField.value = note.NoteTitle || 'what';
             noteContentField.value = note.NoteContent || 'smth went wrong';
+            // Make fields editable when a note is selected
+            noteTitleField.readOnly = false;
+            noteContentField.readOnly = false;
 
         } catch (err) {
             console.error(`Failed to load note ${id}:`, err);
@@ -143,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Create a new note
+    // Create or update a note
     const saveBtn = document.querySelector('#noteArea button[type="submit"]');
 
     saveBtn.addEventListener('click', async () => {
@@ -161,25 +171,70 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const res = await fetch('/notes-api', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newNote)
-            });
+            if (selectedNoteId !== null) {
+                // Update existing note
+                console.log("Updating note ID:", selectedNoteId, newNote);
+                const res = await fetch(`/notes-api/${Number(selectedNoteId)}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newNote)
+                });
 
-            const result = await res.json();
+                const result = await res.json();
 
-            if (!res.ok) {
-                throw new Error(result.error || 'Failed to create note');
+                if (!res.ok) {
+                    throw new Error(result.error || 'Failed to update note');
+                }
+
+                alert('Note updated successfully!');
+            } else {
+                // Create new note
+                const res = await fetch('/notes-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newNote)
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(result.error || 'Failed to create note');
+                }
+
+                alert('Note created successfully!');
+                // Make the newly created note the selected one and reload it
+                selectedNoteId = result.note.NoteID;
+                await loadNoteById(selectedNoteId);
             }
 
-            alert('Note created successfully!');
             fetchNotes(); // refresh note list
         } catch (err) {
-            console.error('Error creating note:', err);
-            alert('Error creating note.');
+            console.error(selectedNoteId !== null ? 'Error updating note:' : 'Error creating note:', err);
+            alert(selectedNoteId !== null ? 'Error updating note.' : 'Error creating note.');
+        }
+    });
+
+    // Edit button: Clear fields and set to editable, and disable delete button if no note selected
+    const editBtn = document.getElementById('toolbarCreateBtn');
+    editBtn.addEventListener('click', () => {
+        const noteTitleField = document.getElementById('NoteTitle');
+        const noteContentField = document.getElementById('NoteContent');
+        if (noteTitleField) noteTitleField.value = '';
+        if (noteContentField) noteContentField.value = '';
+        if (noteTitleField) noteTitleField.readOnly = false;
+        if (noteContentField) noteContentField.readOnly = false;
+        if (noteTitleField) noteTitleField.focus();
+        selectedNoteId = null;
+        document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
+        // Disable the delete button and add Bootstrap disabled style
+        const deleteBtn = document.getElementById('toolbarDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.disabled = true;
+            deleteBtn.classList.add('disabled');
         }
     });
 
@@ -188,25 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchNotes();
 });
 
-// Edit button: Clear fields and set to editable, and disable delete button if no note selected
-const editBtn = document.getElementById('toolbarCreateBtn');
-editBtn.addEventListener('click', () => {
-    const noteTitleField = document.getElementById('NoteTitle');
-    const noteContentField = document.getElementById('NoteContent');
-    if (noteTitleField) noteTitleField.value = '';
-    if (noteContentField) noteContentField.value = '';
-    if (noteTitleField) noteTitleField.readOnly = false;
-    if (noteContentField) noteContentField.readOnly = false;
-    if (noteTitleField) noteTitleField.focus();
-    selectedNoteId = null;
-    document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
-    // Disable the delete button and add Bootstrap disabled style
-    const deleteBtn = document.getElementById('toolbarDeleteBtn');
-    if (deleteBtn) {
-        deleteBtn.disabled = true;
-        deleteBtn.classList.add('disabled');
-    }
-});
 // Utility function to update Delete button state based on selectedNoteId
 function updateDeleteButtonState() {
     const deleteBtn = document.getElementById('toolbarDeleteBtn');
@@ -220,17 +256,3 @@ function updateDeleteButtonState() {
         deleteBtn.classList.remove('disabled');
     }
 }
-
-// Example: inside your note click listener
-noteDiv.addEventListener('click', () => {
-    selectedNoteId = note.id;
-
-    // Update selection UI (remove and add 'selected' class)
-    document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
-    noteDiv.classList.add('selected');
-
-    // Update Delete button enabled state
-    updateDeleteButtonState();
-
-    // Load or render note details, etc.
-});

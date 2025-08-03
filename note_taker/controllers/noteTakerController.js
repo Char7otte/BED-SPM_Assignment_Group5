@@ -1,3 +1,4 @@
+const { user } = require("../../dbConfig.js");
 const noteTakerModel = require("../models/noteTakerModel.js");
 
 // Get all notes
@@ -25,7 +26,7 @@ async function getNotesById(req, res) {
         // if (searchTerm === "") {
         //     return res.status(400).json({ error: "Search term cannot be empty" });
         // }
-        console.log("Searching for notes with term:", noteId);
+        console.log("Searching for notes with note id:", noteId);
         const note = await noteTakerModel.getNotesById(noteId, userId);
         // check if there are notes with the searchTerm
         if (!note) {
@@ -90,6 +91,9 @@ async function createNote(req, res) {
 // Update an existing note
 async function updateNote(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
+
         const noteId = req.params.id;
         const updatedNoteData = req.body;
         console.log("Updating note with ID:", noteId, "with data:", updatedNoteData);
@@ -98,7 +102,7 @@ async function updateNote(req, res) {
             return res.status(400).json({ error: "Note ID and updated data are required" });
         }
 
-        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData);
+        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData, userId);
         if (!updatedNote) {
             return res.status(404).json({ error: "Note not found" });
         }
