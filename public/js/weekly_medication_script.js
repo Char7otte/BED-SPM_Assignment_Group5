@@ -1,3 +1,16 @@
+function getCurrentUserId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
+
 function decodeJwtPayload(token) {
     try {
         const jwt = token.split(" ")[1] || token;
@@ -17,15 +30,7 @@ function isTokenExpired(token) {
 }
 
 function checkAuth() {
-    // Skip authentication for testing with TEST_USER_ID
-    const TEST_USER_ID = 8;
-    if (TEST_USER_ID === 8) {
-        console.log('Test mode - skipping authentication');
-        return true;
-    }
-    
     const token = localStorage.getItem('token');
-    console.log("Token from localStorage:", token);
     
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem('token');
@@ -47,28 +52,48 @@ function checkAuth() {
     return true;
 }
 
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/login';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Check authentication first
   if (!checkAuth()) {
     return; // Stop execution if not authenticated
   }
   
-  // Skip authentication for testing - use hardcoded user ID
-  const TEST_USER_ID = 8; // Change this to match a user ID in your database
+  // Get current user ID from token
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    console.error('Unable to get user ID from token');
+    showAlert('Authentication error. Please log in again.', 'danger');
+    logout();
+    return;
+  }
   
   try {
     // Initialize current week display
     updateCurrentWeek();
     
     // Load weekly medications
-    loadWeeklyMedications(TEST_USER_ID);
+    loadWeeklyMedications(currentUserId);
     
     // Setup event listeners
-    setupEventListeners(TEST_USER_ID);
+    setupEventListeners(currentUserId);
     
     // Initialize notification system
     if (window.medicationNotificationSystem) {
-      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+      window.medicationNotificationSystem.setUserId(currentUserId);
     }
     
   } catch (error) {
@@ -130,7 +155,10 @@ function updateCurrentWeek() {
   // Use DateUtils for formatting
   const options = { month: 'short', day: 'numeric' };
   const weekText = `${monday.toLocaleDateString('en-US', options)} - ${sunday.toLocaleDateString('en-US', options)}`;
-  document.getElementById('current-week').textContent = weekText;
+  const currentWeekElement = document.getElementById('current-week');
+  if (currentWeekElement) {
+    currentWeekElement.textContent = weekText;
+  }
   
   // Add readable format
   const readableElement = document.getElementById('current-week-readable');
@@ -155,14 +183,16 @@ async function loadWeeklyMedications(userId, startDate = null, endDate = null) {
       url += `?startDate=${startDate}&endDate=${endDate}`;
     }
     
-    // Remove authorization header for testing
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
       if (response.status === 404) {
         // No medications found - display empty state
         displayWeeklyMedications([]);
@@ -218,7 +248,12 @@ function displayWeeklyMedications(medications) {
     return;
   }
   
-  const TEST_USER_ID = 8;
+  // Get current user ID
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('User authentication error', 'danger');
+    return;
+  }
   
   // Group medications by day
   const medicationsByDay = groupMedicationsByDay(medications);
@@ -263,18 +298,18 @@ function displayWeeklyMedications(medications) {
                 <br><br>
                 <div class="btn-group-vertical" role="group">
                   ${!med.is_taken ? `
-                    <button class="btn btn-sm btn-success" onclick="takeMedication(${med.medication_id}, ${TEST_USER_ID})">
+                    <button class="btn btn-sm btn-success" onclick="takeMedication(${med.medication_id}, ${currentUserId})">
                       <i class="fa fa-check"></i> Take
                     </button>
                   ` : `
-                    <button class="btn btn-sm btn-warning" onclick="markAsMissed(${med.medication_id}, ${TEST_USER_ID})">
+                    <button class="btn btn-sm btn-warning" onclick="markAsMissed(${med.medication_id}, ${currentUserId})">
                       <i class="fa fa-undo"></i> Mark Not Taken
                     </button>
                   `}
                   <button class="btn btn-sm btn-info" onclick="editMedication(${med.medication_id})">
                     <i class="fa fa-edit"></i> Edit
                   </button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteMedication(${med.medication_id}, ${TEST_USER_ID})">
+                  <button class="btn btn-sm btn-danger" onclick="deleteMedication(${med.medication_id})">
                     <i class="fa fa-trash"></i> Delete
                   </button>
                 </div>
@@ -328,9 +363,13 @@ function updateWeeklySummary(medications) {
   const remaining = total - taken;
   const percentage = total > 0 ? Math.round((taken / total) * 100) : 0;
   
-  document.getElementById('weekly-total').textContent = total;
-  document.getElementById('weekly-taken').textContent = taken;
-  document.getElementById('weekly-remaining').textContent = remaining;
+  const totalElement = document.getElementById('weekly-total');
+  const takenElement = document.getElementById('weekly-taken');
+  const remainingElement = document.getElementById('weekly-remaining');
+  
+  if (totalElement) totalElement.textContent = total;
+  if (takenElement) takenElement.textContent = taken;
+  if (remainingElement) remainingElement.textContent = remaining;
   
   const progressBar = document.getElementById('weekly-progress');
   if (progressBar) {
@@ -364,15 +403,17 @@ function formatTimeForDisplay(timeString) {
 
 async function takeMedication(medicationId, userId) {
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
       const errorText = await response.text();
       throw new Error(`Failed to mark medication as taken: ${errorText}`);
     }
@@ -397,15 +438,17 @@ async function markAsMissed(medicationId, userId) {
   if (!confirm('Mark this medication as not taken?')) return;
   
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/${userId}/${medicationId}/missed`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
       const errorText = await response.text();
       throw new Error(`Failed to mark medication as not taken: ${errorText}`);
     }
@@ -422,47 +465,49 @@ async function markAsMissed(medicationId, userId) {
 }
 
 async function deleteMedication(medicationId) {
-    // Validate inputs
-    if (!medicationId || medicationId === 'undefined') {
-        showAlert('Invalid medication ID', 'error');
+  // Validate inputs
+  if (!medicationId || medicationId === 'undefined') {
+    showAlert('Invalid medication ID', 'danger');
+    return;
+  }
+
+  // Get current user ID
+  const userId = getCurrentUserId();
+  if (!userId || userId === 'undefined') {
+    showAlert('User authentication error', 'danger');
+    logout();
+    return;
+  }
+
+  // Show confirmation dialog
+  if (!confirm('Are you sure you want to delete this medication?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/medications/${userId}/${medicationId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
         return;
+      }
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete medication');
     }
 
-    // Use the same TEST_USER_ID as the rest of the file
-    const TEST_USER_ID = 8;
-
-    const userId = window.currentUserId || TEST_USER_ID; // Fallback to test user ID
-    if (!userId || userId === 'undefined') {
-        showAlert('User ID not found', 'error');
-        return;
-    }
-
-    // Show confirmation dialog
-    if (!confirm('Are you sure you want to delete this medication?')) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`/medications/${userId}/${medicationId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete medication');
-        }
-
-        // Refresh the weekly view after successful deletion
-        await loadWeeklyMedications(userId);
-        showAlert('Medication deleted successfully', 'success');
-        
-    } catch (error) {
-        console.error('Error deleting medication:', error);
-        showAlert(`Error deleting medication: ${error.message}`, 'error');
-    }
+    // Refresh the weekly view after successful deletion
+    await loadWeeklyMedications(userId);
+    showAlert('Medication deleted successfully', 'success');
+    
+  } catch (error) {
+    console.error('Error deleting medication:', error);
+    showAlert(`Error deleting medication: ${error.message}`, 'danger');
+  }
 }
 
 function editMedication(medicationId) {
@@ -470,8 +515,13 @@ function editMedication(medicationId) {
 }
 
 function navigateWeek(direction) {
-  // Use the hardcoded TEST_USER_ID instead of token
-  const TEST_USER_ID = 8; // Make sure this matches the ID at the top
+  // Get current user ID
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAlert('User authentication error', 'danger');
+    logout();
+    return;
+  }
   
   // Calculate new week dates
   if (direction === 'prev') {
@@ -493,7 +543,7 @@ function navigateWeek(direction) {
   // Load medications for new week
   const startDate = currentWeekStart.toISOString().split('T')[0];
   const endDate = currentWeekEnd.toISOString().split('T')[0];
-  loadWeeklyMedications(TEST_USER_ID, startDate, endDate);
+  loadWeeklyMedications(userId, startDate, endDate);
 }
 
 async function searchMedications(userId, query) {
@@ -503,14 +553,18 @@ async function searchMedications(userId, query) {
   }
   
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/user/${userId}/search?name=${encodeURIComponent(query)}`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
-    if (!response.ok) throw new Error('Search failed');
+    if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
+      throw new Error('Search failed');
+    }
     
     const medications = await response.json();
     displayWeeklyMedications(medications);
@@ -561,7 +615,7 @@ function setupEventListeners(userId) {
     });
   }
   
-  // Logout button - just reload for testing
+  // Logout button
   const logoutBtn = document.getElementById('logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', function(e) {
@@ -627,16 +681,18 @@ async function createMedication(userId) {
   };
   
   try {
-    // Remove authorization header for testing
     const response = await fetch('/medications', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(formData)
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
       const errorData = await response.json();
       throw new Error(errorData.error || `Server error: ${response.status}`);
     }
@@ -671,3 +727,4 @@ window.editMedication = editMedication;
 window.navigateWeek = navigateWeek;
 window.searchMedications = searchMedications;
 window.createMedication = createMedication;
+window.logout = logout;

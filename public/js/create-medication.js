@@ -1,3 +1,16 @@
+function getCurrentUserId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
+
 function decodeJwtPayload(token) {
     try {
         const jwt = token.split(" ")[1] || token;
@@ -17,15 +30,7 @@ function isTokenExpired(token) {
 }
 
 function checkAuth() {
-    // Skip authentication for testing with TEST_USER_ID
-    const TEST_USER_ID = 8;
-    if (TEST_USER_ID === 8) {
-        console.log('Test mode - skipping authentication');
-        return true;
-    }
-    
     const token = localStorage.getItem('token');
-    console.log("Token from localStorage:", token);
     
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem('token');
@@ -47,18 +52,37 @@ function checkAuth() {
     return true;
 }
 
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/login';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Check authentication first
   if (!checkAuth()) {
     return; // Stop execution if not authenticated
   }
   
-  // Skip authentication for testing - use hardcoded user ID
-  const TEST_USER_ID = 8; // Change this to match a user ID in your database
+  // Get current user ID from token
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('Unable to get user information. Please log in again.', 'danger');
+    logout();
+    return;
+  }
   
   try {
     // Setup event listeners
-    setupEventListeners(TEST_USER_ID);
+    setupEventListeners(currentUserId);
     
     // Set default values
     setDefaultValues();
@@ -71,11 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
     showAlert('Failed to initialize application. Please refresh the page.', 'danger');
   }
 });
-
-function logout() {
-  // For testing, just redirect to medications list
-  window.location.href = '/medications';
-}
 
 function showAlert(message, type = 'success') {
   let alertContainer = document.getElementById('alert-container');
@@ -274,12 +293,9 @@ async function createMedication(userId) {
       is_taken: false
     };
     
-    // Remove authorization header for testing
     const response = await fetch('/medications', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(formData)
     });
     

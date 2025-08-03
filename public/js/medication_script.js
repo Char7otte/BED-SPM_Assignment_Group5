@@ -1,4 +1,15 @@
-const TEST_USER_ID = 8; // Change this to match a user ID in your database
+function getCurrentUserId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
 
 function decodeJwtPayload(token) {
     try {
@@ -19,14 +30,7 @@ function isTokenExpired(token) {
 }
 
 function checkAuth() {
-    // Skip authentication for testing with TEST_USER_ID
-    if (TEST_USER_ID === 8) {
-        console.log('Test mode - skipping authentication');
-        return true;
-    }
-    
     const token = localStorage.getItem('token');
-    console.log("Token from localStorage:", token);
     
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem('token');
@@ -48,24 +52,46 @@ function checkAuth() {
     return true;
 }
 
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/login';
+}
+
 document.addEventListener('DOMContentLoaded', function() { 
   // Check authentication first
   if (!checkAuth()) {
     return; // Stop execution if not authenticated
   }
   
+  // Get current user ID from token
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('Unable to get user information. Please log in again.', 'danger');
+    logout();
+    return;
+  }
+  
   try {
     // Load medications
     if (window.location.pathname === '/medications') {
-      loadAllMedications(TEST_USER_ID);
-      loadLowQuantityMedications(TEST_USER_ID);
-      loadExpiredMedications(TEST_USER_ID);
+      loadAllMedications(currentUserId);
+      loadLowQuantityMedications(currentUserId);
+      loadExpiredMedications(currentUserId);
       
       // Setup search
       const searchInput = document.getElementById('search-input');
       if (searchInput) {
         searchInput.addEventListener('input', function() {
-          searchMedications(TEST_USER_ID, this.value);
+          searchMedications(currentUserId, this.value);
         });
       }
       
@@ -73,14 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const statusFilter = document.getElementById('status-filter');
       if (statusFilter) {
         statusFilter.addEventListener('change', function() {
-          filterMedications(TEST_USER_ID, this.value);
+          filterMedications(currentUserId, this.value);
         });
       }
     }
     
     // Initialize notification system
     if (window.medicationNotificationSystem) {
-      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+      window.medicationNotificationSystem.setUserId(currentUserId);
     }
     
     // Logout button
@@ -94,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (createForm) {
       createForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        createMedication(TEST_USER_ID);
+        createMedication(currentUserId);
       });
     }
   } catch (error) {
@@ -102,19 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
     showAlert('Failed to initialize application. Please refresh the page.', 'danger');
   }
 });
-
-// Commented out for testing
-// function checkAuth() {
-//   const token = localStorage.getItem('token');
-//   if (!token && window.location.pathname !== '/loginauth.html') {
-//     window.location.href = '/loginauth.html';
-//   }
-// }
-
-function logout() {
-  // For testing, just reload the page
-  window.location.reload();
-}
 
 function showAlert(message, type = 'success') {
   let alertContainer = document.getElementById('alert-container');
@@ -148,11 +161,8 @@ function showAlert(message, type = 'success') {
 
 async function loadAllMedications(userId) {
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/user/${userId}`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -173,11 +183,8 @@ async function loadAllMedications(userId) {
 
 async function loadLowQuantityMedications(userId) {
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/user/${userId}/low-quantity`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -198,11 +205,8 @@ async function loadLowQuantityMedications(userId) {
 
 async function loadExpiredMedications(userId) {
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/user/${userId}/expired`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -245,7 +249,7 @@ function displayLowQuantityMedications(medications) {
     return;
   }
   
-  const TEST_USER_ID = 8; // Use consistent test user ID
+  const currentUserId = getCurrentUserId();
   
   medications.forEach(med => {
     const medItem = document.createElement('div');
@@ -258,7 +262,7 @@ function displayLowQuantityMedications(medications) {
         </div>
       </div>
       <div class="medication-actions">
-        <button class="btn btn-primary" onclick="refillMedication(${med.medication_id}, ${TEST_USER_ID})">Refill</button>
+        <button class="btn btn-primary" onclick="refillMedication(${med.medication_id}, ${currentUserId})">Refill</button>
       </div>
     `;
     container.appendChild(medItem);
@@ -274,10 +278,7 @@ function displayExpiredMedications(medications) {
     return;
   }
   
-  const TEST_USER_ID = 8; // Use consistent test user ID
-  
   medications.forEach(med => {
-    // Format expiry date using DateUtils
     const formattedExpiryDate = window.DateUtils && med.prescription_enddate ? 
       DateUtils.formatDate(med.prescription_enddate) : 
       new Date(med.prescription_enddate).toLocaleDateString();
@@ -300,9 +301,8 @@ function displayExpiredMedications(medications) {
 }
 
 function createMedicationElement(med) {
-  const TEST_USER_ID = 8; // Use consistent test user ID
+  const currentUserId = getCurrentUserId();
   
-  // Format date and time using DateUtils
   const formattedDate = window.DateUtils && med.medication_date ? 
     DateUtils.formatDate(med.medication_date) : 
     (med.medication_date ? new Date(med.medication_date).toLocaleDateString() : 'No date');
@@ -311,11 +311,9 @@ function createMedicationElement(med) {
     DateUtils.formatTime(med.medication_time) : 
     (med.medication_time || 'No time specified');
   
-  // Calculate relative time if DateUtils is available
   const relativeTime = window.DateUtils && med.medication_date && med.medication_time ? 
     DateUtils.getRelativeTime(med.medication_date, med.medication_time) : '';
   
-  // Format prescription dates
   const formattedStartDate = window.DateUtils && med.prescription_startdate ?
     DateUtils.formatDate(med.prescription_startdate) :
     (med.prescription_startdate ? new Date(med.prescription_startdate).toLocaleDateString() : '');
@@ -343,7 +341,7 @@ function createMedicationElement(med) {
       </div>
     </div>
     <div class="medication-actions">
-      ${!med.is_taken ? `<button class="btn btn-primary" onclick="tickOffMedication(${med.medication_id}, ${TEST_USER_ID})">Mark Taken</button>` : ''}
+      ${!med.is_taken ? `<button class="btn btn-primary" onclick="tickOffMedication(${med.medication_id}, ${currentUserId})">Mark Taken</button>` : ''}
       <button class="btn btn-outline" onclick="editMedication(${med.medication_id})">Edit</button>
       <button class="btn btn-outline" onclick="deleteMedication(${med.medication_id})">Delete</button>
     </div>
@@ -358,11 +356,8 @@ async function searchMedications(userId, query) {
   }
   
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/user/${userId}/search?name=${encodeURIComponent(query)}`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -390,11 +385,8 @@ async function filterMedications(userId, status) {
       url += '?is_taken=false';
     }
     
-    // Remove authorization header for testing
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -429,12 +421,9 @@ async function createMedication(userId) {
   };
   
   try {
-    // Remove authorization header for testing
     const response = await fetch('/medications', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(formData)
     });
     
@@ -456,7 +445,6 @@ async function createMedication(userId) {
 
 async function tickOffMedication(medicationId, userId) {
   try {
-    // Remove authorization header for testing
     if (!medicationId || medicationId === 'undefined') {
         showAlert('Invalid medication ID', 'danger');
         return;
@@ -469,9 +457,7 @@ async function tickOffMedication(medicationId, userId) {
     
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) throw new Error('Failed to mark medication as taken');
@@ -495,12 +481,9 @@ async function refillMedication(medicationId, userId) {
   const refillDate = new Date().toISOString().split('T')[0];
   
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/${userId}/${medicationId}/refill`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         refillQuantity: parseInt(refillQuantity),
         refillDate: refillDate
@@ -520,19 +503,17 @@ async function refillMedication(medicationId, userId) {
 }
 
 async function deleteMedication(medicationId) {
-    // Validate inputs
     if (!medicationId || medicationId === 'undefined') {
         showAlert('Invalid medication ID', 'error');
         return;
     }
     
-    const userId = window.currentUserId || 8; // Fallback to test user ID
-    if (!userId || userId === 'undefined') {
+    const userId = getCurrentUserId();
+    if (!userId) {
         showAlert('User ID not found', 'error');
         return;
     }
 
-    // Show confirmation dialog
     if (!confirm('Are you sure you want to delete this medication?')) {
         return;
     }
@@ -540,9 +521,7 @@ async function deleteMedication(medicationId) {
     try {
         const response = await fetch(`/medications/${userId}/${medicationId}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) {
@@ -550,7 +529,6 @@ async function deleteMedication(medicationId) {
             throw new Error(errorData.error || 'Failed to delete medication');
         }
 
-        // Refresh the medications list after successful deletion
         await loadAllMedications(userId);
         showAlert('Medication deleted successfully', 'success');
         
