@@ -4,7 +4,7 @@
 
 > npm i
 
-## Node apps used
+## Node apps used :gear:
 
 -   [Express](https://www.npmjs.com/package/express) - Web framework
 -   [mssql](https://www.npmjs.com/package/mssql) - Connecting to SQL databases
@@ -12,11 +12,11 @@
 -   [method-override](https://www.npmjs.com/package/method-override) - Enables HTTP verbs like PUT and DELETE in forms
 -   [dotenv](https://www.npmjs.com/package/dotenv) - Loads environment variables
 
-## Other tools used
+## Other tools used :toolbox:
 
 -   [Bulma](https://bulma.io/) - CSS Framework for styling
 
-## Folder structure
+## Folder structure :file_folder:
 
 - **public** - CSS, JS, images, and other assets
 - **views** - HTML & ejs files
