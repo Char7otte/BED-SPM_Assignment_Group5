@@ -158,6 +158,10 @@ app.get("/medications/weekly", (req, res) => {
 app.get("/medications/create", (req, res) => {
     res.render("medication-tracker/create-medication");
 });
+
+app.get('/medications/edit/:id', (req, res) => {
+  res.render('medication-tracker/edit-medication');
+});
   
 // Route to serve the notes page
 app.get('/notes', (req, res) => {
