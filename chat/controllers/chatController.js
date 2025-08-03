@@ -64,9 +64,22 @@ async function deleteChat(req, res) {
     }
 }
 
+async function markChatAsAnswered(req, res) {
+    try {
+        const chatID = req.params.chatID;
+        const isUpdated = await chatModel.markChatAsAnswered(chatID);
+        if (isUpdated) res.redirect("/chats");
+        else res.status(500).send("Error updating chat status");
+    } catch (error) {
+        console.error("Controller error: ", error);
+        return res.status(500).send("Error updating chat status");
+    }
+}
+
 module.exports = {
     getAllChats,
     getChatByID,
     createChat,
     deleteChat,
+    markChatAsAnswered,
 };

@@ -119,10 +119,34 @@ async function deleteChat(chatID) {
     }
 }
 
+async function markChatAsAnswered(chatID) {
+    let connection;
+    try {
+        connection = await sql.connect(config);
+        const query = `UPDATE Chats SET chat_status = 'Closed' WHERE chat_id = @chatID`;
+        const request = connection.request();
+        request.input("chatID", chatID);
+        const result = await request.query(query);
+        console.log(result);
+        return result.rowsAffected;
+    } catch (error) {
+        console.error("Database error:", error);
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (error) {
+                console.error("Error closing connection:", error);
+            }
+        }
+    }
+}
+
 module.exports = {
     getAllChats,
     getAllChatsByHelpeeID,
     getChatByID,
     createChat,
     deleteChat,
+    markChatAsAnswered,
 };
