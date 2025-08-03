@@ -39,7 +39,7 @@
 
 | Method | URL                              | User Type | Path Parameters       | Body Parameters                               | Function Used                 |
 |--------|----------------------------------|-----------|------------------------|------------------------------------------------|------------------------------|
-| POST   | `/users/register`                | ALL      | —                      | `username`, `password`, `email`, `age`, `number`, `gender` | `createUser`      |
+| POST   | `/users/register`                | All      | —                      | `username`, `password`, `email`, `age`, `number`, `gender` | `createUser`      |
 | POST   | `/users/login`                   | All       | —                      | `username`, `password`                         | `loginUser`                 |
 | GET    | `/users/logout`                  | All       | —                      | —                                              | `logoutUser`                |
 | PUT    | `/users/changepassword/:id`      | All       | `id` = User ID         | `newPassword`                                  | `changePassword`            |
