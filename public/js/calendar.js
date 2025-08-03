@@ -507,6 +507,9 @@ function editAppointment(index) {
         });
     }
 
+    if (statusSelect) {
+        statusSelect.style.display = ""; // Ensure status select is visible when editing
+    }
     editingIndex = index;
     originalDate = selectedDate; // Store the original date for later comparison
 
