@@ -40,7 +40,8 @@
                                     <%for (const m of messageData) {%>
                                     <div class="cell">
                                         <%- include("./partials/chatMessageCard",{chatID, messageID:m.message_id, senderID: m.sender_id, message:
-                                        m.message, sentDateTime: m.sent_date_time, username: m.username, userID, senderRole: m.sender_role, }) %>
+                                        m.message, sentDateTime: m.sent_date_time, username: m.username, userID, senderRole: m.sender_role, isClosed
+                                        }) %>
                                     </div>
                                     <%}%>
                                 </div>
@@ -63,7 +64,7 @@
                                 </div>
                             </form>
                             <% }else {%>
-                            <p class="title mb-2">This chat has been marked as Answered. No further messages can be sent.</p>
+                            <p class="title mb-6 mt-6">This chat has been marked as Answered. No further messages can be sent.</p>
                             <% } %>
                         </section>
                     </div>

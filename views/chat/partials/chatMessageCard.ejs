@@ -9,7 +9,7 @@
                     </p>
                 </div>
                 <div class="cell">
-                    <% if (senderID == userID || userRole =="A") { %>
+                    <% if ((!isClosed && senderID == userID) || userRole =="A") { %>
                     <div class="columns">
                         <div class="column"></div>
                         <div class="column is-flex is-justify-content-flex-end">
