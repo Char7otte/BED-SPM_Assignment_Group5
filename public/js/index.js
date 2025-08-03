@@ -93,7 +93,7 @@ async function weather() {
             
 
         function getWeatherIconHtml(iconCode) {
-            console.log("Icon code:", iconCode); // Debugging
+            
             description = iconCode.toLowerCase();
             if (description.includes("sunny")) return "01d";
             if (description.includes("clear")) return "01d";
@@ -181,7 +181,7 @@ async function weather() {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            console.log("Fetched alerts:", data); // Debugging
+           
             return data; // ✅ THIS LINE IS IMPORTANT
         } catch (error) {
             console.error('Error fetching alerts:', error);
@@ -196,8 +196,8 @@ async function fetchReadAlerts(userId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const unreadAlerts = await response.json();
-        console.log("Fetched unread alerts:", unreadAlerts); // Debugging
-        return unreadAlerts; // ✅ fixed
+        
+        return unreadAlerts; 
     } catch (error) {
         console.error("Error fetching unread alerts:", error);
         return [];
@@ -210,18 +210,27 @@ async function alerts() {
     const readData = await fetchReadAlerts(userId);
     const data = await fetchAlerts();
     let list = [];
-    console.log("Read alerts data:", readData); // Debugging
+    let list2 = [];
+    
     for (const alert of readData) {
+        
         list.push(alert.AlertID);
+
     }
-    console.log("Read alerts list:", list); // Debugging
+    let filtered = data.filter(alert => 
+    alert.AlertID !== null &&
+    alert.AlertID !== undefined &&
+    alert.status !== 'Deleted'
+    );
+    
+    
 
     let alertDown = document.getElementsByClassName('alert-down')[0];
     alertDown.innerHTML = ''; // Clear previous alerts
 
-    if (data && Array.isArray(data)) {
+    if (data && Array.isArray(filtered) && filtered.length > 0) {
         // Filter out alerts whose AlertID is in the list
-        const filteredAlerts = data.filter(alert => !list.includes(alert.AlertID));
+        const filteredAlerts = filtered.filter(alert => !list.includes(alert.AlertID));
         // Show top 3 alerts
         const topAlerts = filteredAlerts.slice(0, 3);
         topAlerts.forEach(alert => {
