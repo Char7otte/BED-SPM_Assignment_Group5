@@ -150,13 +150,13 @@ app.get("/users/logout", userController.logoutUser); // Get user roles by ID #ok
 //Charlotte's Chat routes
 app.get("/chats", verifyJWT, chatController.getAllChats);
 app.post("/chats/create/:userID", verifyJWT, onlyAllowUser, validateUserID, chatController.createChat);
-app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
+app.patch("/chats/delete/:chatID", verifyJWT, validateChatID, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 app.patch("/chats/status/:chatID", verifyJWT, validateChatID, chatController.markChatAsAnswered);
 
-app.get("/chats/:chatID", verifyJWT, validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
-app.post("/chats/:chatID", validateChatID, validateSenderID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.createMessage);
-app.patch("/chats/:chatID", validateChatID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.editMessage);
-app.delete("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.deleteMessage);
+app.get("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.getAllMessagesInAChat);
+app.post("/chats/:chatID", verifyJWT, validateChatID, validateSenderID, validateChatMessage, chatMessageController.createMessage);
+app.patch("/chats/:chatID", verifyJWT, validateChatID, validateChatMessage, chatMessageController.editMessage);
+app.delete("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.deleteMessage);
 
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
