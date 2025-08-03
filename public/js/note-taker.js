@@ -1,5 +1,7 @@
 let selectedNoteIds = [];
 let lastSelectedIndex = null;
+let isNoteDirty = false;
+let lastEditedNoteId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -8,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Note title and content fields
     const noteTitleField = document.getElementById('NoteTitle');
     const noteContentField = document.getElementById('NoteContent');
+
+    noteTitleField.addEventListener('input', () => {
+        isNoteDirty = true;
+    });
+    noteContentField.addEventListener('input', () => {
+        isNoteDirty = true;
+    });
 
     const searchBtn = document.getElementById('searchBtn');
     // Add event listener for Enter key in search input
@@ -18,6 +27,58 @@ document.addEventListener('DOMContentLoaded', () => {
             searchBtn.click();
         }
     });
+
+    // debounce utility function
+    function debounce(fn, delay) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    const debouncedSave = debounce(async () => {
+        if (lastEditedNoteId) {
+            await saveCurrentNote(lastEditedNoteId);
+            const res = await fetch('/notes-api');
+            const notes = await res.json();
+            renderNoteList(notes);
+        }
+    }, 500);
+
+    noteTitleField.addEventListener('input', () => {
+        isNoteDirty = true;
+        debouncedSave();
+    });
+    noteContentField.addEventListener('input', () => {
+        isNoteDirty = true;
+        debouncedSave();
+    });
+
+    // save current note on input change
+    async function saveCurrentNote(noteId) {
+        const noteTitle = noteTitleField.value.trim();
+        const noteContent = noteContentField.value.trim();
+        if (!noteTitle || !noteContent) return;
+        try {
+            const newNote = {
+                NoteTitle: noteTitle,
+                NoteContent: noteContent
+            };
+            const res = await fetch(`/notes-api/${Number(noteId)}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newNote)
+            });
+            if (res.ok) {
+                isNoteDirty = false;
+            }
+        } catch (err) {
+            console.error('Auto-save failed:', err);
+        }
+    }
 
     // Get all notes to display in the list, and auto-select first note
     async function fetchNotes() {
@@ -79,6 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             noteDiv.addEventListener('click', async (e) => {
+                // Auto-save if dirty and leaving a single selected note
+                if (isNoteDirty && lastEditedNoteId && !selectedNoteIds.includes(note.NoteID)) {
+                    await saveCurrentNote(lastEditedNoteId);
+                    await fetchNotes(); // Refresh the note list after saving
+                    return; // Prevent further processing until refreshed list is displayed
+                }
                 if (e.shiftKey && lastSelectedIndex !== null) {
                     // Shift-click: select or unselect range
                     const start = Math.min(lastSelectedIndex, index);
@@ -117,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (selectedNoteIds.length === 1 && selectedNoteIds[0] === note.NoteID) {
                         // Do nothing: prevent unselecting the last note
                     } else {
+                        if (isNoteDirty && lastEditedNoteId && lastEditedNoteId !== note.NoteID) {
+                            await saveCurrentNote(lastEditedNoteId);
+                            await fetchNotes(); // Refresh the note list after saving
+                            return; // Prevent further processing until refreshed list is displayed
+                        }
                         selectedNoteIds = [note.NoteID];
                         lastSelectedIndex = index;
                     }
@@ -148,11 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderSelectedNote(selectedNoteId) {
-        // render the selected note 
-        // with id = selectedNoteId
-    }
-
     // Load note by ID
     async function loadNoteById(id) {
         try {
@@ -168,6 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Make fields editable when a note is selected
             noteTitleField.readOnly = false;
             noteContentField.readOnly = false;
+
+            lastEditedNoteId = id;
+            isNoteDirty = false;
 
         } catch (err) {
             console.error(`Failed to load note ${id}:`, err);
