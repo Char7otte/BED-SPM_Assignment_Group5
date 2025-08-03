@@ -50,6 +50,24 @@
 | PUT    | `/users/delete/:id`              | Admin     | `id` = User ID         | —                                              | `deleteUser`                |
 | POST   | `/users/search`                  | Admin     | —                      | `username`, `UserID`                             | `searchUserByUsernameNid`   |
 
+### Medication Tracker 
+
+Request	URL	Path Parameters	Body Parameters
+GET Get all medications	/medications/user/:userId	userId	
+GET Get medication by ID	/medications/user/:userId/:medicationId	userId, medicationId	
+POST Create medication	/medications		medication_name, medication_date, medication_time, medication_dosage, medication_quantity,  prescription_startdate, prescription_enddate
+PUT Update medication	/medications/:userId/:medicationId	userId, medicationId	Same as create + is_taken, medication_reminders
+DELETE Delete medication	/medications/:userId/:medicationId	userId, medicationId	
+GET Daily medications	/medications/user/:userId/daily	userId	
+GET Weekly medications	/medications/user/:userId/weekly	userId	startDate, endDate (optional)
+GET Search by name	/medications/user/:userId/search	userId	name (search term)
+GET Low quantity medications	/medications/user/:userId/low-quantity	userId	
+GET Expired medications	/medications/user/:userId/expired	userId	
+PUT Mark as taken	/medications/:userId/:medicationId/is-taken	userId, medicationId	
+PUT Mark all as taken	/medications/:userId/tick-all	userId	
+PUT Refill medication	/medications/:userId/:id/refill	userId, id	refillQuantity, refillDate
+PUT Mark as missed	/medications/:userId/:id/missed	userId, id	
+GET Upcoming reminders	/medications/user/:userId/reminders	userId	
 
 ### Note Taker API
 
