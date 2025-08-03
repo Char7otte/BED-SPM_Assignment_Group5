@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch('/notes-api');
             const notes = await res.json();
-            selectedNoteId = notes.length ? notes[0].id : null;  // auto-select first
+            selectedNoteId = notes.length ? notes[0].NoteID : null;  // auto-select first
             renderNoteList(notes);
             if (selectedNoteId) {
                 loadNoteById(selectedNoteId);
@@ -58,53 +58,51 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderNoteList(notes) {
         noteListContainer.innerHTML = '';
 
-        // Show message if no notes found
         if (!notes || notes.length === 0) {
             noteListContainer.innerHTML = '<p class="text-muted fade-in-message">No notes found.</p>';
             return;
         }
 
-        notes.forEach((note, index) => {
-            setTimeout(() => {
-                const noteDiv = document.createElement('div');
-                noteDiv.className = 'note-item';
-                noteDiv.dataset.id = note.NoteID;
-                noteDiv.innerHTML = `
-                    <strong>${note.NoteTitle}</strong><br>
-                    <small>${note.NoteContent}...</small>
-                `;
-                // noteDiv.addEventListener('click', () => {
-                //     loadNoteById(note.NoteID);
-                //     selectedNoteId = note.NoteID;
-                //     document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
-                //     noteDiv.classList.add('selected');
-                //     // Update Delete button enabled state
-                //     updateDeleteButtonState();
-                // });
+        notes.forEach((note) => {
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'note-item';
+            noteDiv.dataset.NoteID = note.NoteID;
+            noteDiv.innerHTML = `
+            <strong>${note.NoteTitle}</strong><br>
+            <small>${note.NoteContent}...</small>
+        `;
+
+            if (!selectedNoteId || note.NoteID !== selectedNoteId) {
                 noteDiv.addEventListener('click', async () => {
                     selectedNoteId = note.NoteID;
-                    document.querySelectorAll('.note-item').forEach(item => item.classList.remove('selected'));
-                    noteDiv.classList.add('selected');
+                    renderNoteList(notes); // no animation on selection
                     updateDeleteButtonState();
                     await loadNoteById(note.NoteID);
-                    // this is not running?
                     console.log("Selected note ID:", selectedNoteId);
                 });
-                // Highlight if selected (safe check)
-                // apparently this prevents all notes from being selected?
-                if (selectedNoteId && note.NoteID === selectedNoteId) {
-                    noteDiv.classList.add('selected');
-                }
-                noteListContainer.appendChild(noteDiv);
-            }, index * 50); // 50ms staggered animation delay
+            } else {
+                noteDiv.classList.add('selected');
+            }
+
+            noteListContainer.appendChild(noteDiv);
+        });
+    }
+
+    // Animate note list items
+    function animateNoteList() {
+        const noteItems = document.querySelectorAll('.note-item');
+        noteItems.forEach((item, index) => {
+            item.style.opacity = 0;
+            setTimeout(() => {
+                item.style.transition = "opacity 0.3s";
+                item.style.opacity = 1;
+            }, index * 50);
         });
     }
 
     function renderSelectedNote(selectedNoteId) {
         // render the selected note 
         // with id = selectedNoteId
-
-
     }
 
     // Load note by ID
@@ -138,12 +136,23 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch(`/notes-api/search?search=${encodeURIComponent(query)}`);
             const notes = await res.json();
-            // selectedNoteId = null; // Clear selection on search results
+
+            // 1. Select first note if available
+            if (notes.length > 0) {
+                selectedNoteId = notes[0].NoteID || notes[0].noteId;
+            } else {
+                selectedNoteId = null;
+            }
+
+            // 2. Render list with selection
             renderNoteList(notes);
 
-            if (notes.length > 0) {
-                selectedNoteId = notes[0].id || notes[0].noteId // Auto-select first note in search results
-                loadNoteById(selectedNoteId);
+            // 3. Animate after rendering
+            animateNoteList();
+
+            // 4. Load first note if available
+            if (selectedNoteId) {
+                await loadNoteById(selectedNoteId);
             }
 
             console.log(selectedNoteId);

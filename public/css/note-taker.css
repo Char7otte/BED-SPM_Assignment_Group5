@@ -280,7 +280,7 @@ button:hover {
     }
 }
 
-.note-item {
+.note-item.animated {
     animation: fadeInUp 0.3s ease forwards;
 }
 
