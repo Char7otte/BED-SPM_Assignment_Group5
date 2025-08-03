@@ -90,6 +90,18 @@ async function checkIfChatIsAnswered(req, res, next) {
     }
 }
 
+async function searchClosedChats(req, res) {
+    try {
+        const searchQuery = `%${req.query.q || ""}%`;
+        const chats = await chatModel.searchClosedChats(searchQuery);
+
+        return res.json(chats);
+    } catch (error) {
+        console.error("Controller error: ", error);
+        return res.status(500).send("Error getting all closed chats");
+    }
+}
+
 module.exports = {
     getAllChats,
     getChatByID,
@@ -97,4 +109,5 @@ module.exports = {
     deleteChat,
     markChatAsAnswered,
     checkIfChatIsAnswered,
+    searchClosedChats,
 };

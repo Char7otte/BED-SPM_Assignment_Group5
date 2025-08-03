@@ -148,6 +148,28 @@ async function markChatAsAnswered(chatID) {
     }
 }
 
+async function searchClosedChats(searchQuery) {
+    let connection;
+    try {
+        connection = await sql.connect(config);
+        const query = `SELECT * FROM Chats WHERE chat_status = 'Closed' AND  title LIKE @searchQuery`;
+        const request = connection.request();
+        request.input("searchQuery", searchQuery);
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (error) {
+                console.error("Error closing connection:", error);
+            }
+        }
+    }
+}
+
 module.exports = {
     getAllChats,
     getAllChatsByHelpeeID,
@@ -155,4 +177,5 @@ module.exports = {
     createChat,
     deleteChat,
     markChatAsAnswered,
+    searchClosedChats,
 };
