@@ -27,7 +27,7 @@
                                 <div class="cell">
                                     <%- include("./partials/chatCard", {chatID: c.chat_id, helpeeID: c.helpee_id, username: c.username, status:
                                     c.chat_status, createdDateTime: c.created_date_time, lastActivityDateTime: c.last_activity_date_time, title:
-                                    c.title }) %>
+                                    c.title, userID }) %>
                                 </div>
                                 <%}%> <% } %>
                             </div>
@@ -41,5 +41,6 @@
         <script src="/js/deleteContent.js" data-class-of-form-to-look-for="delete-chat-form" data-class-of-element-to-hide="chat-card"></script>
         <script src="/js/chat/createNewChat.js"></script>
         <script src="https://kit.fontawesome.com/fe51342540.js" crossorigin="anonymous"></script>
+        <script src="/js/chat/dropdownToggle.js"></script>
     </body>
 </html>

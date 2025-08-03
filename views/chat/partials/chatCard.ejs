@@ -1,6 +1,6 @@
 <div class="card chat-card">
-    <a href="/chats/<%= chatID %>">
-        <div class="card-content">
+    <div class="card-content">
+        <a href="/chats/<%= chatID %>">
             <div class="is-flex is-justify-content-space-between">
                 <p class="title mb-1 mr-3"><%= title %></p>
                 <div class="status-indicator">
@@ -22,20 +22,38 @@
                     <% } %>
                 </div>
             </div>
+        </a>
+        <a href="/chats/<%= chatID %>">
             <p class="subtitle mb-1"><%= username %></p>
-
-            <p>Created Time: <%= createdDateTime %></p>
-            <p>Last Activity: <%= lastActivityDateTime %></p>
+        </a>
+        <div class="is-flex is-justify-content-space-between">
+            <a href="/chats/<%= chatID %>">
+                <p>Created Time: <%= createdDateTime %></p>
+                <p>Last Activity: <%= lastActivityDateTime %></p>
+            </a>
+            <div class="dropdown">
+                <div class="dropdown-trigger">
+                    <button class="button dropdown-trigger-button" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span class="icon is-small">
+                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        <div class="dropdown-item">
+                            <form action="/chats/delete/<%= chatID %>?_method=PATCH" method="POST" class="delete-chat-form card-footer-item">
+                                <button class="has-text-danger card-button" type="submit">
+                                    <span class="icon"> <i class="fa-solid fa-trash"></i> </span>
+                                    Delete <% if (helpeeID != userID) { %>
+                                    <span class="icon"> <i class="fa-solid fa-triangle-exclamation has-text-warning"></i> </span>
+                                    <% } %>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </a>
-    <footer class="card-footer">
-        <form method="POST" action="/chats/delete/<%= chatID %>?_method=PATCH" class="card-footer-item delete-chat-form">
-            <button class="has-text-danger card-button">
-                <span class="icon">
-                    <i class="fa-solid fa-trash"></i>
-                </span>
-                Delete
-            </button>
-        </form>
-    </footer>
+    </div>
 </div>
