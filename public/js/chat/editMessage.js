@@ -5,7 +5,8 @@ for (const form of forms) {
         const message = form[1].value;
 
         const newMessage = prompt("Edit message:", message);
-        if (!newMessage) {
+        if (newMessage === null) {
+        } else if (newMessage === "") {
             alert("Message can't be empty!");
         } else {
             form[1].value = newMessage;

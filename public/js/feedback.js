@@ -110,7 +110,7 @@ function populateForm(feedback) {
         
         // Handle feature selection 
         if (featureSelect && feedback.feature) {
-            const predefinedFeatures = ['Chat', 'Medication Tracker', 'Medical Appointments Calendar', 'Note Taker', 'Alert', 'Weather', 'Lottery', 'Bus Arrival', 'Feedback', 'Reputation System', 'Previous Asked Questions Log'];
+            const predefinedFeatures = ['Chat', 'Medication Tracker', 'Medical Appointments Calendar', 'Note Taker', 'Alert', 'Weather', 'Feedback', 'Trivia Quiz', 'News'];
 
             // Check if the feature matches any predefined options
             if (predefinedFeatures.includes(feedback.feature)) {

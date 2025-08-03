@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
+const userModel = require("../models/userModel");
 
 function validateUserInput(req, res, next) {
 
@@ -44,16 +45,20 @@ function validateUserInputForUpdate(req, res, next) {
     next();
 }
 
-function verifyJWT(req, res, next) {
+async function verifyJWT(req, res, next) {
     const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
         return res.status(401).json({ message: "Unauthorized" });
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: "Unauthorized" });
         }
+
+        //Check that the user is actually in the database(Prevent deleted account JWT from being valid)
+        const user = await userModel.getUserById(decoded.id);
+        if (!user) return res.status(404).send("Invalid account");
 
         const authorizedRoles = {
             //user
@@ -145,11 +150,23 @@ function validateUserID(req, res, next) {
     next();
 }
 
+function onlyAllowUser(req, res, next) {
+    if (req.user.role != "U") return res.status(403).send("Forbidden");
+    next();
+}
+
+function onlyAllowAdmin(req, res, next) {
+    if (req.user.role != "A") return res.status(403).send("Forbidden");
+    next();
+}
+
 module.exports = {
     validateUserInput,
     validateUserInputForUpdate,
     verifyJWT,
     validateUserID,
+    onlyAllowUser,
+    onlyAllowAdmin,
 };
 
 // --bed_spm db v1.05

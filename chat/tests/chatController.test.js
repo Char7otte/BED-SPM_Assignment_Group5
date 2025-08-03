@@ -8,7 +8,35 @@ describe("chatController getAllChats", () => {
         jest.clearAllMocks();
     });
 
-    test("Retrieve all chats", async () => {
+    test("Retrieve all chats when logged in user has the role 'U'", async () => {
+        const mockChats = [
+            { chatID: 1, title: "Title1" },
+            { chatID: 2, title: "Title2" },
+        ];
+
+        Chat.getAllChatsByHelpeeID.mockResolvedValue(mockChats);
+
+        const req = {
+            user: {
+                id: 17,
+                role: "U",
+            },
+        };
+        const res = {
+            render: jest.fn(),
+            status: jest.fn().mockReturnThis(),
+            send: jest.fn(),
+        };
+
+        await chatController.getAllChats(req, res);
+
+        expect(Chat.getAllChatsByHelpeeID).toHaveBeenCalledTimes(1);
+        expect(Chat.getAllChatsByHelpeeID).toHaveBeenCalledWith(17);
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith("chat/allChats", { chatData: mockChats });
+    });
+
+    test("Retrieve all chats when logged in user has the role 'A'", async () => {
         const mockChats = [
             { chatID: 1, title: "Title1" },
             { chatID: 2, title: "Title2" },
@@ -16,7 +44,12 @@ describe("chatController getAllChats", () => {
 
         Chat.getAllChats.mockResolvedValue(mockChats);
 
-        const req = {};
+        const req = {
+            user: {
+                id: 17,
+                role: "A",
+            },
+        };
         const res = {
             render: jest.fn(),
             status: jest.fn().mockReturnThis(),

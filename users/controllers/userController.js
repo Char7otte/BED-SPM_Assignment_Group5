@@ -35,6 +35,20 @@ async function getUserById(req, res) {
     }
 }
 
+//Deemed unnecessary, call from userModel instead
+// async function getUserByIDBoolean(req, res) {
+//     try {
+//         const userID = req.params.userID;
+//         const user = await userModel.getUserById(userID);
+//         console.log(user);
+//         if (!user) return false;
+//         return true;
+//     } catch (err) {
+//         console.error("Error fetching user:", err);
+//         return res.status(500).json({ message: "Internal server error" });
+//     }
+// }
+
 async function getUserByUsername(req, res) {
     const username = req.params.username;
     if (!username) {
@@ -267,6 +281,7 @@ function logoutUser(req, res) {
 module.exports = {
     getAllUsers,
     getUserById,
+    // getUserByIDBoolean,
     getUserByUsername,
     getUserRolesById,
     createUser,

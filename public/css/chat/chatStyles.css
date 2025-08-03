@@ -1,0 +1,34 @@
+.sticky-header {
+    position: sticky;
+    top: 0;
+    padding: 10px 16px;
+    z-index: 1000;
+}
+
+.card-button {
+    width: 100%;
+    height: 100%;
+}
+
+.dropdown-trigger-button {
+    border: none;
+}
+
+.bottom-right {
+    float: right;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    shape-outside: inset(calc(100% - 100px) 0 0);
+}
+
+.chat-role-identifier {
+    width: 30px;
+    height: 30px;
+    color: grey;
+    border-radius: 10px;
+}
+
+.button-icon {
+    margin-right: 0.1em !important;
+}

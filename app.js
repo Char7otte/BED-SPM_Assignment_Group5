@@ -15,14 +15,21 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 // Import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput, validateUserInputForUpdate, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
+const {
+    validateUserInput,
+    validateUserInputForUpdate,
+    verifyJWT,
+    validateUserID,
+    onlyAllowUser,
+    onlyAllowAdmin,
+} = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
 
 // Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
-const { validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase } = require("./chat/middleware/ChatValidation");
+const { validateChatID } = require("./chat/middleware/ChatValidation");
 const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
 
@@ -154,6 +161,10 @@ app.get("/medications/weekly", (req, res) => {
 app.get("/medications/create", (req, res) => {
     res.render("medication-tracker/create-medication");
 });
+
+app.get('/medications/edit/:id', (req, res) => {
+  res.render('medication-tracker/edit-medication');
+});
   
 // Route to serve the notes page
 app.get('/notes', (req, res) => {
@@ -175,11 +186,19 @@ app.get("/loginauth.html", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
-// Weather
+// Weather route
 app.get("/weather", async (req, res) => {
   res.render("weather/weather", { user: res.locals.user });
 });
 
+// Trivia Quiz 3rd Party route
+app.get('/trivia', (req, res) => {
+  res.render('trivia-quiz/trivia');
+});
+
+app.get('/credits', (req, res) => {
+  res.render('credits');
+});
 
 // ===== ALERTS ROUTES ===== //
 // --- User-specific Operations --- //
@@ -214,15 +233,16 @@ app.get("/users/logout", userController.logoutUser); // Get user roles by ID #ok
 
 
 //routes for chats
-
 app.get("/chats", verifyJWT, chatController.getAllChats);
-app.post("/chats/create/:userID", validateUserID, chatController.createChat);
-app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
+app.post("/chats/create/:userID", verifyJWT, onlyAllowUser, validateUserID, chatController.createChat);
+app.patch("/chats/delete/:chatID", verifyJWT, validateChatID, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
+app.patch("/chats/status/:chatID", verifyJWT, validateChatID, chatController.markChatAsAnswered);
+app.get("/chats/closed", chatController.searchClosedChats);
 
-app.get("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
-app.post("/chats/:chatID", validateChatID, validateSenderID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.createMessage);
-app.patch("/chats/:chatID", validateChatID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.editMessage);
-app.delete("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.deleteMessage);
+app.get("/chats/:chatID", verifyJWT, validateChatID, chatController.checkIfChatIsAnswered, chatMessageController.getAllMessagesInAChat);
+app.post("/chats/:chatID", verifyJWT, validateChatID, validateSenderID, validateChatMessage, chatMessageController.createMessage);
+app.patch("/chats/:chatID", verifyJWT, validateChatID, validateChatMessage, chatMessageController.editMessage);
+app.delete("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.deleteMessage);
 
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
@@ -274,19 +294,11 @@ app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksA
 app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
 app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
 
-// Serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-  res.render("medical-appointment/calendar");
-});
+
 //Weather API 3rd Party
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
 app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
-
-// Trivia Quiz 3rd Party routes
-app.get('/trivia', (req, res) => {
-  res.render('trivia-quiz/trivia');
-});
 
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
