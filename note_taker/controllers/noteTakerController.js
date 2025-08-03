@@ -76,8 +76,6 @@ async function createNote(req, res) {
         //basic validation
         if (!userId) {
             return res.status(400).json({ error: "Missing userId, need to test in browser" });
-        } else if (!noteData.NoteTitle || !noteData.NoteContent) {
-            return res.status(400).json({ error: "Missing required fields" });
         }
 
         const newNote = await noteTakerModel.createNote(noteData, userId);
@@ -91,15 +89,15 @@ async function createNote(req, res) {
 // Update an existing note
 async function updateNote(req, res) {
     try {
+        const userId = res.locals.user?.id;  // ADD THIS LINE
         const noteId = req.params.id;
         const updatedNoteData = req.body;
         console.log("Updating note with ID:", noteId, "with data:", updatedNoteData);
-        // Basic validation for noteId and updatedNoteData
         if (!noteId || !updatedNoteData || Object.keys(updatedNoteData).length === 0) {
             return res.status(400).json({ error: "Note ID and updated data are required" });
         }
 
-        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData);
+        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData, userId);
         if (!updatedNote) {
             return res.status(404).json({ error: "Note not found" });
         }

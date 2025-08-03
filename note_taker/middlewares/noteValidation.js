@@ -25,8 +25,8 @@ function validateNoteID(req, res, next) {
 }
 
 const createNoteSchema = joi.object({
-    NoteTitle: joi.string().min(1).required(),
-    NoteContent: joi.string().min(1).required()
+    NoteTitle: joi.string().allow('').required(),
+    NoteContent: joi.string().allow('').required()
 });
 
 function validateCreateNoteInput(req, res, next) {
@@ -40,8 +40,8 @@ function validateCreateNoteInput(req, res, next) {
 }
 
 const noteInputSchema = joi.object({
-    NoteTitle: joi.string().min(1).required(),
-    NoteContent: joi.string().min(1).required()
+    NoteTitle: joi.string().allow('').required(),
+    NoteContent: joi.string().allow('').required()
 });
 
 function validateNoteInput(req, res, next) {
