@@ -16,12 +16,12 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 // Import functions from userRoutes
 const userController = require("./users/controllers/userController");
 const {
-    validateUserInput,
-    validateUserInputForUpdate,
-    verifyJWT,
-    validateUserID,
-    onlyAllowUser,
-    onlyAllowAdmin,
+  validateUserInput,
+  validateUserInputForUpdate,
+  verifyJWT,
+  validateUserID,
+  onlyAllowUser,
+  onlyAllowAdmin,
 } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
@@ -111,7 +111,7 @@ app.get('/homepage', (req, res) => {
   res.render('index', { user: res.locals.user });
 });
 app.get('/admin', (req, res) => {
-    res.render('indexadmin', { user: res.locals.user });
+  res.render('indexadmin', { user: res.locals.user });
 });
 
 // Alert routes
@@ -137,7 +137,7 @@ app.get('/users/profile', (req, res) => {
   res.render('user/profile', { user: res.locals.user });
 });
 app.get('/notes', (req, res) => {
-  res.render('note-taker/notes');
+  res.render('note-taker/notes', { user: res.locals.user });
 });
 
 // Medical appointment calendar route
@@ -147,18 +147,18 @@ app.get("/calendar", (req, res) => {
 
 // Medication tracker routes
 app.get("/medications", (req, res) => {
-    res.render("medication-tracker/all-medications");
+  res.render("medication-tracker/all-medications");
 });
 app.get("/medications/daily", (req, res) => {
-    res.render("medication-tracker/daily_medication");
+  res.render("medication-tracker/daily_medication");
 });
 app.get("/medications/weekly", (req, res) => {
-    res.render("medication-tracker/weekly_medication");
+  res.render("medication-tracker/weekly_medication");
 });
 app.get("/medications/create", (req, res) => {
-    res.render("medication-tracker/create-medication");
+  res.render("medication-tracker/create-medication");
 });
-  
+
 // Route to serve the notes page
 app.get('/notes', (req, res) => {
   res.render('note-taker/notes', { user: res.locals.user });
@@ -192,7 +192,7 @@ app.get('/trivia', (req, res) => {
 
 // ===== ALERTS ROUTES ===== //
 // --- User-specific Operations --- //
-app.get("/alerts/search",verifyJWT, alertController.searchAlerts); // Search by title/category
+app.get("/alerts/search", verifyJWT, alertController.searchAlerts); // Search by title/category
 app.get("/alerts/readstatus/:id", verifyJWT, alertController.getreadAlerts); // Get read status
 app.post("/alerts/updatestatus/:id", verifyJWT, validateAlertId, alertController.updateAlertStatus); // Mark as read/unread
 app.post("/alerts/checkhasnoties/:id", verifyJWT, alertController.checkHasNotiesAdded); // Check if alert has notes
