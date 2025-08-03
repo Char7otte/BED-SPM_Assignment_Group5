@@ -27,14 +27,14 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 if (token) {
     const decoded = decodeJwtPayload(token);
     console.log(decoded);
     if (decoded.role === "A") {
-        window.location.href = "/adminindex"; // Redirect admin
+        window.location.href = "/admin"; // Redirect admin
     }
 }
 

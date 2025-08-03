@@ -179,9 +179,14 @@ app.get("/loginauth.html", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "auth", "loginauth.html"));
 });
 
-// Weather
+// Weather route
 app.get("/weather", async (req, res) => {
   res.render("weather/weather", { user: res.locals.user });
+});
+
+// Trivia Quiz 3rd Party route
+app.get('/trivia', (req, res) => {
+  res.render('trivia-quiz/trivia');
 });
 
 
@@ -218,7 +223,6 @@ app.get("/users/logout", userController.logoutUser); // Get user roles by ID #ok
 
 
 //routes for chats
-
 app.get("/chats", verifyJWT, chatController.getAllChats);
 app.post("/chats/create/:userID", verifyJWT, onlyAllowUser, validateUserID, chatController.createChat);
 app.patch("/chats/delete/:chatID", verifyJWT, validateChatID, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
@@ -280,19 +284,12 @@ app.get("/feedback/admin/search", verifyJWT, feedbackController.searchFeedbacksA
 app.put("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.editFeedbackStatus);
 app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedbackController.deleteFeedbackAdmin);
 
-// Serve the calendar HTML file
-app.get("/calendar", (req, res) => {
-  res.render("medical-appointment/calendar");
-});
+
 //Weather API 3rd Party
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
 app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
 
-// Trivia Quiz 3rd Party routes
-app.get('/trivia', (req, res) => {
-  res.render('trivia-quiz/trivia');
-});
 
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

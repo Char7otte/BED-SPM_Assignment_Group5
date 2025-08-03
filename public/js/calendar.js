@@ -33,35 +33,19 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 if (token) {
     const decoded = decodeJwtPayload(token);
     console.log(decoded);
     if (decoded.role === "A") {
-        window.location.href = "/adminindex"; // Redirect admin
+        window.location.href = "/admin"; // Redirect admin
     }
 }
 
 const today = new Date();
 const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-
-for (let i = 1; i <= daysInMonth; i++) {
-    const dayBox = document.createElement("div");
-    dayBox.className = "day";
-    dayBox.innerText = i;
-
-    const dateKey = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
-    dayBox.onclick = () => openDate(dateKey);
-    if (appointments[dateKey]) {
-    const dot = document.createElement("div");
-    dot.className = "appointment-dot";
-    dayBox.appendChild(dot);
-    }
-
-    calendar.appendChild(dayBox);
-}
 
 // Initialize calendar on page load
 function initializeCalendar() {
@@ -189,14 +173,20 @@ function displayDailyAppointments(dateKey) {
         const li = document.createElement("li");
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
-            ${formatDateFancy(appt.date)} <br>
-            <strong>${appt.title}</strong> <br>
-            Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
-            Doctor: ${appt.doctor} <br>
-            Location: ${appt.location} <br>
-            Notes: ${appt.notes ? appt.notes : ''} <br>
-            <button onclick="editAppointment(${index})">Edit</button> 
-            <button onclick="deleteAppointment(${index})">Delete</button> <br><br>`; 
+            <div class="appointment-details">
+                ${formatDateFancy(dateKey)} <br>
+                <strong>${appt.title}</strong> <br>
+                Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
+                Doctor: ${appt.doctor} <br>
+                Location: ${appt.location} <br>
+                ${appt.notes ? `Notes: ${appt.notes} <br>` : ''}
+                Status: <span class="status-badge ${getStatusClass(appt.status)}">${appt.status}</span> <br>
+                <div class="appointment-actions">
+                    <button onclick="editAppointment(${index})">Edit</button>
+                    <button onclick="deleteAppointment(${index})">Delete</button>
+                </div>
+            </div>
+        `;
         appointmentList.appendChild(li);
     });
     // modal.style.display = "flex";  // Add new appointment when user clicks on the date
