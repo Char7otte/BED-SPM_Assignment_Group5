@@ -51,7 +51,7 @@ function getDisplayFeatureName(featureValue) {
         'Alert': 'Alert',
         'Weather': 'Weather',
         'Feedback': 'Feedback',
-        'Quiz': 'Quiz',
+        'Trivia Quiz': 'Trivia Quiz',
         'News': 'News',
         'Other': 'Other'
     };
@@ -322,7 +322,7 @@ function editFeedback(feedbackId) {
             'Alert': 'Alert',
             'Weather': 'Weather',
             'Feedback': 'Feedback',
-            'Quiz': 'Quiz',
+            'Trivia Quiz': 'Trivia Quiz',
             'News': 'News'
         };
         
