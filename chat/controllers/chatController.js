@@ -1,5 +1,5 @@
 const chatModel = require("../models/chatModel");
-const { format } = require("date-and-time");
+const { format, addHours } = require("date-and-time");
 
 async function getAllChats(req, res) {
     try {
@@ -13,7 +13,9 @@ async function getAllChats(req, res) {
         }
 
         chats.forEach((chat) => {
+            chat.created_date_time = addHours(chat.created_date_time, -8);
             chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.last_activity_date_time = addHours(chat.last_activity_date_time, -8);
             chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
         });
 

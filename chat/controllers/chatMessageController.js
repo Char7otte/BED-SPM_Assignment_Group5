@@ -1,6 +1,6 @@
 const chatMessageModel = require("../models/chatMessageModel");
 const chatModel = require("../models/chatModel");
-const { format } = require("date-and-time");
+const { format, addHours } = require("date-and-time");
 
 async function getAllMessagesInAChat(req, res) {
     try {
@@ -18,6 +18,7 @@ async function getAllMessagesInAChat(req, res) {
 
         const messages = await chatMessageModel.getAllMessagesInAChat(chatID);
         messages.forEach((message) => {
+            message.sent_date_time = addHours(message.sent_date_time, -8);
             message.sent_date_time = format(message.sent_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
 
             //This is kind of a scuffed solution but having to update everyone's code this late into development  is too much trouble
