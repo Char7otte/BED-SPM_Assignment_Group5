@@ -2,6 +2,42 @@ const feedbackDiv = document.getElementById("feedback");
 const messageDiv = document.getElementById("message");
 const apiBaseUrl = "http://localhost:3000";
 
+function decodeJwtPayload(token) {
+    const jwt = token.split(" ")[1]; // remove 'Bearer'
+    const payloadBase64 = jwt.split(".")[1]; // get payload
+    const payloadJson = atob(payloadBase64); // decode base64
+    return JSON.parse(payloadJson); // parse to JSON
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+const token = localStorage.getItem('token');
+console.log("Token from localStorage:", token);
+if (!token || isTokenExpired(token)) {
+    localStorage.removeItem('token');
+    window.location.href = '/login'; // Redirect to login
+}
+// Check for token in cookies if not found in localStorage
+if (!localStorage.getItem('token')) {
+    const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+    if (match) {
+        localStorage.setItem('token', decodeURIComponent(match[1]));
+    } else {
+        window.location.href = "/login.html";
+    }
+}
+if (token) {
+    const decoded = decodeJwtPayload(token);
+    console.log(decoded);
+    if (decoded.role === "A") {
+        window.location.href = "/adminindex"; // Redirect admin
+    }
+}
+
 // Global variable to store all feedback data for filtering
 let allFeedbackData = [];
 
@@ -14,11 +50,9 @@ function getDisplayFeatureName(featureValue) {
         'Note Taker': 'Note Taker',
         'Alert': 'Alert',
         'Weather': 'Weather',
-        'Lottery': 'Lottery',
-        'Bus Arrival': 'Bus Arrival',
         'Feedback': 'Feedback',
-        'Reputation System': 'Reputation System',
-        'Previous Asked Questions Log': 'Previous Asked Questions Log',
+        'Quiz': 'Quiz',
+        'News': 'News',
         'Other': 'Other'
     };
     
@@ -78,6 +112,18 @@ function getNormalizedStatus(status) {
 function getStatusBadgeClass(status) {
     const normalizedStatus = getNormalizedStatus(status);
     return normalizedStatus === 'Reviewed' ? 'success' : 'warning';
+}
+
+function formatDateFancy(dateString) {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayName = days[dateObj.getDay()];
+    const day = dateObj.getDate();
+    const month = months[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    return `${dayName}, ${day} ${month} ${year}`;
 }
 
 // Function to display feedback items
@@ -141,11 +187,7 @@ function displayFeedbackItems(feedbackList) {
                     }
                     
                     if (!isNaN(date.getTime())) {
-                        formattedDate = date.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        });
+                        formattedDate = formatDateFancy(date);
                     } else {
                         formattedDate = 'Invalid date';
                     }
@@ -279,11 +321,9 @@ function editFeedback(feedbackId) {
             'Note Taker': 'Note Taker',
             'Alert': 'Alert',
             'Weather': 'Weather',
-            'Lottery': 'Lottery',
-            'Bus Arrival': 'Bus Arrival',
             'Feedback': 'Feedback',
-            'Reputation System': 'Reputation System',
-            'Previous Asked Questions Log': 'Previous Asked Questions Log'
+            'Quiz': 'Quiz',
+            'News': 'News'
         };
         
         // Keep the display name for new records, or convert if needed

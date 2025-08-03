@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include("../partials/head") %>
+    <link rel="stylesheet" href="/css/feedback.css" type="text/css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Feedback</title>
+</head>
+<body>
+    <%- include("../partials/navbar") %>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">All Feedback</h1>
+        
+        <!-- Search and Filter Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-search"></i> Search & Filter Feedback
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="searchInput">Search by title or description:</label>
+                            <input type="text" 
+                                   id="searchInput" 
+                                   class="form-control" 
+                                   placeholder="Enter keywords to search..."
+                                   autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="statusFilter">Filter by status:</label>
+                            <select id="statusFilter" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Reviewed">Reviewed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button id="clearFilters" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times"></i> Clear All Filters
+                        </button>
+                        <span id="searchResults" class="ml-3 text-muted"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Message div for status messages -->
+        <div id="message" class="mb-3"></div>
+        
+        <div id="feedback" class="feedback-container">
+            <!-- Feedback items will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script src="/js/adminFeedback.js"></script>
+
+    <%- include("../partials/footer") %>
+</body>
+</html>

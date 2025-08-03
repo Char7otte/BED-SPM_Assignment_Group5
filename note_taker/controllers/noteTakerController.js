@@ -3,10 +3,13 @@ const noteTakerModel = require("../models/noteTakerModel.js");
 // Get all notes
 async function getAllNotes(req, res) {
     try {
-        const notes = await noteTakerModel.getAllNotes();
+        // get userId
+        const userId = res.locals.user?.id;
+        console.log("Fetching all notes for user ID:", userId);
+        const notes = await noteTakerModel.getAllNotes(userId);
         res.json(notes);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in getAllNotes:", error.message, error.stack);
         res.status(500).json({ error: "Error retrieving notes" });
     }
 }
@@ -14,6 +17,8 @@ async function getAllNotes(req, res) {
 // get note by id
 async function getNotesById(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
         const noteId = parseInt(req.params.id);
         console.log("Search term:", `"${noteId}"`);
         // check if searchTerm is empty
@@ -21,7 +26,7 @@ async function getNotesById(req, res) {
         //     return res.status(400).json({ error: "Search term cannot be empty" });
         // }
         console.log("Searching for notes with term:", noteId);
-        const note = await noteTakerModel.getNotesById(noteId);
+        const note = await noteTakerModel.getNotesById(noteId, userId);
         // check if there are notes with the searchTerm
         if (!note) {
             return res.status(404).json({ error: `There are no notes with ${noteId}` });
@@ -29,7 +34,7 @@ async function getNotesById(req, res) {
 
         res.json(note);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in getNotesById:", error.message, error.stack);
         res.status(500).json({ error: "Error retrieving note" });
     }
 }
@@ -37,6 +42,8 @@ async function getNotesById(req, res) {
 // search Notes by searchTerm
 async function searchNotes(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
         const searchTerm = req.query.search?.trim();
         console.log("Search term:", `"${searchTerm}"`);
         // check if searchTerm is empty
@@ -44,7 +51,7 @@ async function searchNotes(req, res) {
         //     return res.status(400).json({ error: "Search term cannot be empty" });
         // }
         console.log("Searching for notes with term:", searchTerm);
-        const note = await noteTakerModel.searchNotes(searchTerm);
+        const note = await noteTakerModel.searchNotes(searchTerm, userId);
         // check if there are notes with the searchTerm
         if (!note) {
             return res.status(404).json({ error: `There are no notes with ${searchTerm}` });
@@ -52,7 +59,7 @@ async function searchNotes(req, res) {
 
         res.json(note);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in searchNotes:", error.message, error.stack);
         res.status(500).json({ error: "Error retrieving note" });
     }
 }
@@ -60,6 +67,8 @@ async function searchNotes(req, res) {
 // Create a new note
 async function createNote(req, res) {
     try {
+        // get userId
+        const userId = res.locals.user?.id;
         const noteData = req.body;
         console.log("Creating note with data:", noteData);
 
@@ -68,10 +77,10 @@ async function createNote(req, res) {
             return res.status(400).json({ error: "missing required fields" });
         }
 
-        const newNote = await noteTakerModel.createNote(noteData);
+        const newNote = await noteTakerModel.createNote(noteData, userId);
         res.status(201).json({ message: 'Note created successfully', note: newNote });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in createNote:", error.message, error.stack);
         res.status(500).json({ error: "Error creating note" });
     }
 }
@@ -93,7 +102,7 @@ async function updateNote(req, res) {
         }
         res.json({ message: "Note updated successfully", note: updatedNote });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in updateNote:", error.message, error.stack);
         res.status(500).json({ error: "Error updating note" });
     }
 }
@@ -112,7 +121,7 @@ async function deleteNote(req, res) {
         await noteTakerModel.deleteNote(noteId);
         res.status(200).json({ message: "Note deleted successfully" });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in deleteNote:", error.message, error.stack);
         res.status(500).json({ error: "Error deleting note" });
     }
 }
@@ -146,7 +155,7 @@ async function exportNoteAsMarkdown(req, res) {
 
         res.send(markdownContent);
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in expostNoteAsMarkdown:", error.message, error.stack);
         res.status(500).json({ error: "Error exporting note" });
     }
 }
@@ -165,7 +174,7 @@ async function bulkDeleteNotes(req, res) {
         await noteTakerModel.bulkDeleteNotes(noteIds);
         res.status(200).json({ message: "Notes deleted successfully" });
     } catch (error) {
-        console.error("Controller error:", error);
+        console.error("Controller error in bulkDeleteNotes:", error.message, error.stack);
         res.status(500).json({ error: "Error deleting notes" });
     }
 }

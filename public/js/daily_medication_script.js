@@ -1,748 +1,660 @@
-$(document).ready(function() {
-    // Global variables
-    const currentUserId = 8; // Using user 8 since that's your test user
-    let dailyMedications = [];
-    let reminderInterval;
-    let snoozedReminders = new Set(); // Track snoozed reminders
-
-    function decodeJwtPayload(token) {
-    const jwt = token.split(" ")[1]; // remove 'Bearer'
-    const payloadBase64 = jwt.split(".")[1]; // get payload
-    const payloadJson = atob(payloadBase64); // decode base64
-    return JSON.parse(payloadJson); // parse to JSON
-    }
-
-    function isTokenExpired(token) {
-        const decoded = decodeJwtPayload(token);
-        if (!decoded || !decoded.exp) return true;
-        return decoded.exp < Date.now() / 1000;
-    }
-
+function getCurrentUserId() {
     const token = localStorage.getItem('token');
-    console.log("Token from localStorage:", token);
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
+
+function decodeJwtPayload(token) {
+    try {
+        const jwt = token.split(" ")[1] || token;
+        const payloadBase64 = jwt.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem('token');
-        window.location.href = '/login'; // Redirect to login
-    }
-
-    // Check for token in cookies if not found in localStorage
-    if (!localStorage.getItem('token')) {
+        
+        // Check for token in cookies if not found in localStorage
         const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
         if (match) {
-            localStorage.setItem('token', decodeURIComponent(match[1]));
-        } else {
-            window.location.href = "/login.html";
-        }
-    }
-
-    // Initialize the page
-    displayCurrentDate();
-    loadDailyMedications();
-    startReminderSystem();
-
-    // Event Listeners
-    $('#save-med-btn').click(addMedication);
-    $('#update-med-btn').click(updateMedication);
-    $('#delete-med-btn').click(deleteMedication);
-
-    // Search functionality
-    $('#search-btn').click(function() {
-        const searchTerm = $('#search-input').val().trim();
-        if (searchTerm) {
-            searchMedications(searchTerm);
-        }
-    });
-
-    $('#search-input').keypress(function(e) {
-        if (e.which === 13) {
-            $('#search-btn').click();
-        }
-    });
-
-    // Set default values when Add Medication modal is opened
-    $('#addMedModal').on('show.bs.modal', function() {
-        const today = new Date().toISOString().split('T')[0];
-        const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        
-        $('#medication-date').val(today);
-        $('#prescription-start').val(today);
-        $('#prescription-end').val(thirtyDaysLater);
-        $('#reminders').prop('checked', true);
-    });
-
-    // Reminder popup event listeners
-    $('#acknowledgeReminder').click(function() {
-        $('#reminderPopup').modal('hide');
-        const medicationId = $(this).data('med-id');
-        if (medicationId) {
-            updateTakenStatus(medicationId);
-        }
-    });
-
-    $('#snoozeReminder').click(function() {
-        const medicationId = $(this).data('med-id');
-        if (medicationId) {
-            snoozedReminders.add(medicationId);
-            setTimeout(() => {
-                snoozedReminders.delete(medicationId);
-            }, 5 * 60 * 1000); // 5 minutes
-        }
-        $('#reminderPopup').modal('hide');
-    });
-
-    // Functions
-    function displayCurrentDate() {
-        const today = new Date();
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        $('#current-date').text(today.toLocaleDateString('en-US', options));
-    }
-
-    async function loadDailyMedications() {
-        try {
-            $('#loading-message').show();
-            const response = await fetch(`/medications/user/${currentUserId}/daily`);
-            
-            if (!response.ok) {
-                throw new Error('Failed to load daily medications');
-            }
-            
-            dailyMedications = await response.json();
-            $('#loading-message').hide();
-            
-            displayDailyMedications(dailyMedications);
-            updateDailyProgress(dailyMedications);
-            
-            // Set up reminder checking
-            if (reminderInterval) clearInterval(reminderInterval);
-            reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
-            
-        } catch (error) {
-            console.error('Error loading daily medications:', error);
-            $('#loading-message').html(`
-                <div class="alert alert-danger">
-                    <i class="fa fa-exclamation-triangle"></i> 
-                    <strong>Error loading medications.</strong> Please refresh the page to try again.
-                </div>
-            `);
-        }
-    }
-
-    // Helper function to map backend data to frontend format
-    function mapMedicationData(med) {
-        return {
-            id: med.medication_id,
-            name: med.medication_name,
-            dosage: med.medication_dosage,
-            quantity: med.medication_quantity,
-            time: med.medication_time,
-            notes: med.medication_notes,
-            isTaken: med.is_taken,
-            date: med.medication_date,
-            reminders: med.medication_reminders,
-            prescriptionStart: med.prescription_startdate,
-            prescriptionEnd: med.prescription_enddate
-        };
-    }
-
-    function displayDailyMedications(medications) {
-        if (medications.length === 0) {
-            $('#medication-container').html(`
-                <div class="alert alert-info text-center" style="font-size: 20px; padding: 40px;">
-                    <i class="fa fa-smile-o fa-4x" style="color: #27ae60; margin-bottom: 20px;"></i><br>
-                    <strong>Great News!</strong><br>
-                    <span style="font-size: 18px;">You have no medications scheduled for today.</span>
-                </div>
-            `);
-            return;
-        }
-
-        // Sort by time
-        const sortedMeds = medications.sort((a, b) => {
-            return new Date(`1970/01/01 ${a.medication_time}`) - new Date(`1970/01/01 ${b.medication_time}`);
-        });
-
-        let html = '';
-        sortedMeds.forEach(medication => {
-            html += displayDailyMedicationForElderly(medication);
-        });
-        
-        $('#medication-container').html(html);
-    }
-
-    // Time conversion helpers (same as before)
-    function convertTo12Hour(time24) {
-        if (!time24) return { hour: '', minute: '', ampm: '' };
-        
-        const [hours, minutes] = time24.split(':');
-        const hour24 = parseInt(hours);
-        const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-        const ampm = hour24 >= 12 ? 'PM' : 'AM';
-        
-        return {
-            hour: hour12.toString().padStart(2, '0'),
-            minute: minutes,
-            ampm: ampm
-        };
-    }
-
-    function convertTo24Hour(hour12, minute, ampm) {
-        if (!hour12 || !minute || !ampm) return '';
-        
-        let hour24 = parseInt(hour12);
-        if (ampm === 'AM' && hour24 === 12) hour24 = 0;
-        if (ampm === 'PM' && hour24 !== 12) hour24 += 12;
-        
-        return `${hour24.toString().padStart(2, '0')}:${minute}`;
-    }
-
-    function displayDailyMedicationForElderly(medication) {
-        const time12 = convertTo12Hour(medication.medication_time);
-        const timeDisplay = `${time12.hour}:${time12.minute} ${time12.ampm}`;
-        const currentTime = new Date();
-        const medTime = new Date(`${medication.medication_date} ${medication.medication_time}`);
-        const isTimeToTake = currentTime >= medTime;
-        
-        // Determine card styling based on status
-        let cardClass = 'medication-card';
-        let statusBadge = '';
-        let actionButton = '';
-        
-        if (medication.is_taken) {
-            cardClass += ' medication-taken';
-            statusBadge = '<span class="label label-success pull-right"><i class="fa fa-check"></i> TAKEN</span>';
-            actionButton = `
-                <button class="btn btn-secondary btn-lg" disabled style="margin-bottom: 10px;">
-                    <i class="fa fa-check-circle"></i> Already Taken
-                </button>`;
-        } else if (isTimeToTake) {
-            cardClass += ' medication-due';
-            statusBadge = '<span class="label label-warning pull-right animate-pulse"><i class="fa fa-clock-o"></i> DUE NOW</span>';
-            actionButton = `
-                <button class="btn btn-success btn-lg take-medication-btn" 
-                        onclick="markAsTakenDaily(${medication.medication_id})" 
-                        style="margin-bottom: 10px; animation: pulse 2s infinite;">
-                    <i class="fa fa-check"></i> TAKE NOW
-                </button>`;
-        } else {
-            statusBadge = '<span class="label label-info pull-right"><i class="fa fa-clock-o"></i> SCHEDULED</span>';
-            actionButton = `
-                <button class="btn btn-default btn-lg" 
-                        onclick="markAsTakenDaily(${medication.medication_id})" 
-                        style="margin-bottom: 10px;">
-                    <i class="fa fa-check"></i> Mark as Taken
-                </button>`;
-        }
-        
-        return `
-            <div class="${cardClass}" data-id="${medication.medication_id}" style="position: relative;">
-                ${statusBadge}
-                <h3><i class="fa fa-pills"></i> ${medication.medication_name}</h3>
-                <div class="row">
-                    <div class="col-md-8">
-                        <p><strong><i class="fa fa-clock-o"></i> Time:</strong> 
-                           <span class="medication-time" style="font-size: 24px; color: ${isTimeToTake ? '#e74c3c' : '#2c3e50'};">
-                               ${timeDisplay}
-                           </span>
-                        </p>
-                        <p><strong><i class="fa fa-prescription-bottle"></i> Dosage:</strong> 
-                           <span style="font-size: 20px;">${medication.medication_dosage || 'As prescribed'}</span>
-                        </p>
-                        ${medication.medication_quantity ? 
-                            `<p><strong><i class="fa fa-pills"></i> Quantity Remaining:</strong> 
-                             <span style="font-size: 18px;">${medication.medication_quantity}</span></p>` : ''
-                        }
-                        ${medication.medication_notes ? 
-                            `<p><strong><i class="fa fa-sticky-note"></i> Notes:</strong> 
-                             <span style="font-size: 16px; font-style: italic;">${medication.medication_notes}</span></p>` : ''
-                        }
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="medication-actions">
-                            ${actionButton}
-                            <button class="btn btn-primary" onclick="openEditModal(${medication.medication_id})" style="margin-bottom: 5px;">
-                                <i class="fa fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-info" onclick="setMedicationReminder(${medication.medication_id})" style="margin-bottom: 5px;">
-                                <i class="fa fa-bell"></i> Remind Me
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    function updateDailyProgress(medications) {
-        const total = medications.length;
-        const taken = medications.filter(med => med.is_taken).length;
-        const remaining = total - taken;
-        const percentage = total > 0 ? Math.round((taken / total) * 100) : 0;
-        
-        // Update counters
-        $('#total-meds').text(total);
-        $('#taken-meds').text(taken);
-        $('#remaining-meds').text(remaining);
-        
-        // Update progress bar
-        $('#daily-progress')
-            .css('width', percentage + '%')
-            .text(percentage + '%');
-        
-        // Show/hide completion elements
-        if (percentage === 100 && total > 0) {
-            $('#mark-all-taken').hide();
-            $('#completion-message').show();
-            celebrateDailyCompletion();
-        } else if (remaining > 0) {
-            $('#mark-all-taken').show();
-            $('#completion-message').hide();
-        } else {
-            $('#mark-all-taken').hide();
-            $('#completion-message').hide();
-        }
-    }
-
-    function addMedication() {
-        const medication = {
-            user_id: parseInt(currentUserId),
-            medication_name: $('#name').val(),
-            medication_date: $('#medication-date').val(),
-            medication_time: $('#time').val(),
-            medication_dosage: $('#dosage').val(),
-            medication_quantity: $('#quantity').val(),
-            medication_notes: $('#notes').val() || '',
-            medication_reminders: $('#reminders').is(':checked'),
-            prescription_startdate: $('#prescription-start').val(),
-            prescription_enddate: $('#prescription-end').val(),
-            is_taken: false
-        };
-
-        $.ajax({
-            url: '/medications',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(medication),
-            success: function() {
-                $('#addMedModal').modal('hide');
-                loadDailyMedications();
-                $('#medication-form')[0].reset();
-                showSuccessMessage('Medication added successfully!');
-            },
-            error: function(error) {
-                console.error('Error adding medication:', error);
-                alert('Failed to add medication. Please try again.');
-            }
-        });
-    }
-
-    function openEditModal(medication) {
-        $('#edit-medication-id').val(medication.id);
-        $('#edit-name').val(medication.name);
-        $('#edit-dosage').val(medication.dosage);
-        $('#edit-quantity').val(medication.quantity);
-        $('#edit-medication-date').val(medication.date);
-        $('#edit-time').val(medication.time);
-        $('#edit-notes').val(medication.notes || '');
-        $('#edit-prescription-start').val(medication.prescriptionStart);
-        $('#edit-prescription-end').val(medication.prescriptionEnd);
-        $('#edit-reminders').prop('checked', medication.reminders);
-        $('#editMedModal').modal('show');
-    }
-
-    function updateMedication() {
-        const medicationId = $('#edit-medication-id').val();
-        const medication = {
-            userId: parseInt(currentUserId),
-            medicationName: $('#edit-name').val(),
-            medicationDate: $('#edit-medication-date').val(),
-            medicationTime: $('#edit-time').val(),
-            medicationDosage: $('#edit-dosage').val(),
-            medicationQuantity: $('#edit-quantity').val(),
-            medicationNotes: $('#edit-notes').val() || '',
-            medicationReminders: $('#edit-reminders').is(':checked'),
-            prescriptionStartDate: $('#edit-prescription-start').val(),
-            prescriptionEndDate: $('#edit-prescription-end').val(),
-            isTaken: false
-        };
-
-        $.ajax({
-            url: `/medications/${currentUserId}/${medicationId}`,
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify(medication),
-            success: function() {
-                $('#editMedModal').modal('hide');
-                loadDailyMedications();
-                showSuccessMessage('Medication updated successfully!');
-            },
-            error: function(error) {
-                console.error('Error updating medication:', error);
-                alert('Failed to update medication. Please try again.');
-            }
-        });
-    }
-
-    function deleteMedication() {
-        if (!confirm('Are you sure you want to delete this medication?')) return;
-
-        const medId = $('#edit-medication-id').val();
-        $.ajax({
-            url: `/medications/${currentUserId}/${medId}`,
-            method: 'DELETE',
-            success: function() {
-                $('#editMedModal').modal('hide');
-                loadDailyMedications();
-                showSuccessMessage('Medication deleted successfully!');
-            },
-            error: function(error) {
-                console.error('Error deleting medication:', error);
-                alert('Failed to delete medication. Please try again.');
-            }
-        });
-    }
-
-    function searchMedications(searchTerm) {
-        $.ajax({
-            url: `/medications/user/${currentUserId}/search?name=${searchTerm}`,
-            method: 'GET',
-            success: function(data) {
-                $('#search-results').show();
-                if (data.length > 0) {
-                    let html = '';
-                    data.forEach(med => {
-                        const mappedMed = mapMedicationData(med);
-                        html += `
-                            <div class="search-result-item" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 3px;">
-                                <h5 style="margin: 0 0 5px 0;">${mappedMed.name}</h5>
-                                <p style="margin: 0; font-size: 12px; color: #666;">
-                                    <strong>Dosage:</strong> ${mappedMed.dosage}<br>
-                                    <strong>Quantity:</strong> ${mappedMed.quantity}<br>
-                                    <strong>Time:</strong> ${formatTime(mappedMed.time)}<br>
-                                    <strong>Date:</strong> ${mappedMed.date}
-                                </p>
-                                ${mappedMed.isTaken ? 
-                                    '<span class="label label-success">Taken</span>' : 
-                                    '<span class="label label-warning">Pending</span>'
-                                }
-                            </div>
-                        `;
-                    });
-                    $('#search-results-body').html(html);
-                } else {
-                    $('#search-results-body').html('<p>No medications found matching your search.</p>');
-                }
-            },
-            error: function(error) {
-                console.error('Error searching medications:', error);
-                $('#search-results-body').html('<p class="text-danger">Error searching medications. Please try again.</p>');
-            }
-        });
-    }
-
-    // Reminder System Functions
-    function startReminderSystem() {
-        checkForReminders();
-        reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
-    }
-
-    function checkForReminders() {
-        $.ajax({
-            url: `/medications/user/${currentUserId}/reminders`,
-            method: 'GET',
-            success: function(reminders) {
-                if (reminders && reminders.length > 0) {
-                    reminders.forEach(reminder => {
-                        if (!snoozedReminders.has(reminder.medication_id)) {
-                            showReminderPopup(reminder);
-                        }
-                    });
-                }
-            },
-            error: function(error) {
-                console.error('Error checking reminders:', error);
-            }
-        });
-    }
-
-    function showReminderPopup(reminder) {
-        const reminderHtml = `
-            <div class="reminder-item" style="margin-bottom: 15px; padding: 15px; border: 1px solid #f0ad4e; border-radius: 5px; background-color: #fcf8e3;">
-                <h4 style="margin-top: 0; color: #8a6d3b;">
-                    <i class="fa fa-pills"></i> ${reminder.medication_name}
-                </h4>
-                <p><strong>Dosage:</strong> ${reminder.medication_dosage}</p>
-                <p><strong>Scheduled Time:</strong> ${formatTime(reminder.medication_time)}</p>
-                ${reminder.medication_notes ? `<p><strong>Notes:</strong> ${reminder.medication_notes}</p>` : ''}
-                <div class="alert alert-warning" style="margin-bottom: 0;">
-                    <i class="fa fa-clock-o"></i> This medication is due in 5 minutes or less!
-                </div>
-            </div>
-        `;
-
-        $('#reminderContent').html(reminderHtml);
-        $('#acknowledgeReminder').data('med-id', reminder.medication_id);
-        $('#snoozeReminder').data('med-id', reminder.medication_id);
-        $('#reminderPopup').modal('show');
-
-        // Browser notification if supported
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification(`Medication Reminder: ${reminder.medication_name}`, {
-                body: `Time to take your ${reminder.medication_dosage} dose`,
-                icon: '/favicon.ico'
-            });
-        }
-    }
-
-    // Mark all remaining as taken
-    $('#mark-all-taken').click(async function() {
-        if (confirm('Are you sure you want to mark ALL remaining medications as taken?')) {
-            try {
-                const response = await fetch(`/medications/${currentUserId}/tick-all`, {
-                    method: 'PUT'
-                });
-
-                if (!response.ok) throw new Error('Failed to mark all medications');
-
-                showDailySuccessMessage('🎉 All remaining medications marked as taken!');
-                await loadDailyMedications();
-            } catch (error) {
-                console.error('Error marking all medications:', error);
-                showDailyErrorMessage('❌ Unable to mark all medications. Please try again.');
+            const cookieToken = decodeURIComponent(match[1]);
+            if (!isTokenExpired(cookieToken)) {
+                localStorage.setItem('token', cookieToken);
+                return true;
             }
         }
-    });
-
-    // Enhanced mark as taken function
-    async function markAsTakenDaily(medicationId) {
-        try {
-            // Add visual feedback immediately
-            const card = $(`.medication-card[data-id="${medicationId}"]`);
-            const button = card.find('.take-medication-btn');
-            
-            button.prop('disabled', true)
-                  .html('<i class="fa fa-spinner fa-spin"></i> Taking...');
-            
-            const response = await fetch(`/medications/${currentUserId}/${medicationId}/is-taken`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) throw new Error('Failed to mark medication as taken');
-
-            const result = await response.json();
-            
-            // Show success message
-            showDailySuccessMessage(`✅ Great job! You've taken your ${result.medicationName || 'medication'}.`);
-            
-            // Reload to update display
-            await loadDailyMedications();
-            
-            // Check for quantity warning
-            if (result.isLowQuantity) {
-                showDailyWarningMessage(`⚠️ ${result.message} Please refill soon.`);
-            }
-
-        } catch (error) {
-            console.error('Error marking medication as taken:', error);
-            showDailyErrorMessage('❌ Unable to mark medication as taken. Please try again.');
-            
-            // Reset button on error
-            const card = $(`.medication-card[data-id="${medicationId}"]`);
-            const button = card.find('.take-medication-btn');
-            button.prop('disabled', false)
-                  .html('<i class="fa fa-check"></i> TAKE NOW');
-        }
-    }
-
-    // Celebration function
-    function celebrateDailyCompletion() {
-        // Add confetti effect (simple version)
-        $('body').append(`
-            <div id="celebration-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                 background: rgba(39, 174, 96, 0.1); z-index: 9999; pointer-events: none;">
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                     text-align: center; color: #27ae60; font-size: 48px;">
-                    🎉 EXCELLENT! 🎉<br>
-                    <span style="font-size: 24px;">All medications taken today!</span>
-                </div>
-            </div>
-        `);
         
-        setTimeout(() => {
-            $('#celebration-overlay').fadeOut(1000, () => {
-                $('#celebration-overlay').remove();
-            });
-        }, 3000);
-
-        // Play a sound if available
-    if (typeof Audio !== 'undefined') {
-        try {
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+PruW8gBjOCz/LCdCIEK3vM8+WRNA4dac7r4nIcFGPP5vlkTg0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1cZD0mW3PVhTw0dhM71s1caD0mX3PVhTw0dhM71s1caDkmV3PVhTw0dhM71s1cZD0mW3P===');
-            audio.play();
-        } catch (e) {
-            console.log('Audio not supported');
-        }
+        window.location.href = '/login';
+        return false;
     }
+    
+    return true;
 }
 
-// Enhanced message functions
-function showDailySuccessMessage(message) {
-    showDailyMessage(message, 'success');
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 }
 
-function showDailyWarningMessage(message) {
-    showDailyMessage(message, 'warning');
+function logout() {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/login';
 }
 
-function showDailyErrorMessage(message) {
-    showDailyMessage(message, 'danger');
+document.addEventListener('DOMContentLoaded', function() {
+  // Check authentication first
+  if (!checkAuth()) {
+    return; // Stop execution if not authenticated
+  }
+  
+  // Get current user ID from token
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('Unable to get user information. Please log in again.', 'danger');
+    logout();
+    return;
+  }
+  
+  try {
+    // Initialize current date display
+    updateCurrentDate();
+    
+    // Load daily medications
+    loadDailyMedications(currentUserId);
+    
+    // Setup event listeners
+    setupEventListeners(currentUserId);
+    
+    // Initialize notification system
+    if (window.medicationNotificationSystem) {
+      window.medicationNotificationSystem.setUserId(currentUserId);
+    }
+    
+  } catch (error) {
+    console.error('Initialization error:', error);
+    showAlert('Failed to initialize application. Please refresh the page.', 'danger');
+  }
+});
+
+function showAlert(message, type = 'success') {
+  let alertContainer = document.getElementById('alert-container');
+  if (!alertContainer) {
+    alertContainer = document.createElement('div');
+    alertContainer.id = 'alert-container';
+    document.body.insertBefore(alertContainer, document.body.firstChild);
+  }
+  
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.style.marginBottom = '10px';
+  alert.innerHTML = `
+    <button type="button" class="close" onclick="this.parentElement.remove()">
+      <span>&times;</span>
+    </button>
+    ${message}
+  `;
+  alertContainer.appendChild(alert);
+  
+  setTimeout(() => {
+    if (alert.parentElement) {
+      alert.remove();
+    }
+  }, 5000);
 }
 
-function showDailyMessage(message, type) {
-    const alertHtml = `
-        <div class="alert alert-${type} alert-dismissible" role="alert" style="font-size: 18px; margin-top: 20px;">
-            <button type="button" class="close" data-dismiss="alert" style="font-size: 24px;">
-                <span>&times;</span>
-            </button>
-            <i class="fa fa-2x ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle'}" 
-               style="margin-bottom: 10px;"></i><br>
-            <strong style="font-size: 20px;">${message}</strong>
+function updateCurrentDate() {
+  const now = new Date();
+  const options = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+  
+  // Add readable relative date using DateUtils
+  const readableElement = document.getElementById('current-date-readable');
+  if (readableElement && window.DateUtils) {
+    const todayString = now.toISOString().split('T')[0];
+    const relativeTime = DateUtils.getRelativeTime(todayString);
+    readableElement.textContent = `Today is ${DateUtils.formatDate(todayString)} (${relativeTime === 'now' ? 'Today' : relativeTime})`;
+  }
+}
+
+async function loadDailyMedications(userId) {
+  try {
+    // Show loading state
+    const loadingMessage = document.getElementById('loading-message');
+    if (loadingMessage) {
+      loadingMessage.style.display = 'block';
+      loadingMessage.innerHTML = '<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Loading medications...</div>';
+    }
+    
+    const response = await fetch(`/medications/user/${userId}/daily`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
+      if (response.status === 404) {
+        // No medications found - display empty state
+        displayDailyMedications([]);
+        if (loadingMessage) {
+          loadingMessage.style.display = 'none';
+        }
+        return;
+      }
+      const errorText = await response.text();
+      throw new Error(`Server error: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Validate that data is an array
+    let medications = [];
+    if (Array.isArray(data)) {
+      medications = data;
+    } else if (data && Array.isArray(data.medications)) {
+      medications = data.medications;
+    } else if (data && typeof data === 'object') {
+      console.warn('Unexpected response format:', data);
+      // Try to extract medications from common response patterns
+      if (data.data && Array.isArray(data.data)) {
+        medications = data.data;
+      } else if (data.results && Array.isArray(data.results)) {
+        medications = data.results;
+      } else {
+        throw new Error('Invalid response format: medications data is not an array');
+      }
+    } else {
+      throw new Error('Invalid response format: expected array or object with medications');
+    }
+    
+    console.log('Loaded medications:', medications); // Debug log
+    
+    displayDailyMedications(medications);
+    
+    // Check for reminders
+    checkReminders(userId);
+    
+    // Hide loading message
+    if (loadingMessage) {
+      loadingMessage.style.display = 'none';
+    }
+    
+  } catch (error) {
+    console.error('Error loading daily medications:', error);
+    const loadingMessage = document.getElementById('loading-message');
+    if (loadingMessage) {
+      loadingMessage.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fa fa-exclamation-triangle"></i>
+          Error loading medications: ${error.message}
+          <br><button class="btn btn-sm btn-primary" onclick="location.reload()">Retry</button>
         </div>
-    `;
-    $('#medication-container').prepend(alertHtml);
-    
-    // Auto-hide after 6 seconds
-    setTimeout(() => {
-        $(`.alert-${type}`).fadeOut();
-    }, 6000);
-}
-
-// Setup time dropdowns (same as before)
-function setupTimeDropdowns() {
-    // For add medication modal
-    $('#time-hour, #time-minute, #time-ampm').change(function() {
-        const hour = $('#time-hour').val();
-        const minute = $('#time-minute').val();
-        const ampm = $('#time-ampm').val();
-        
-        if (hour && minute && ampm) {
-            const time24 = convertTo24Hour(hour, minute, ampm);
-            $('#time').val(time24);
-        }
-    });
-    
-    // For edit medication modal
-    $('#edit-time-hour, #edit-time-minute, #edit-time-ampm').change(function() {
-        const hour = $('#edit-time-hour').val();
-        const minute = $('#edit-time-minute').val();
-        const ampm = $('#edit-time-ampm').val();
-        
-        if (hour && minute && ampm) {
-            const time24 = convertTo24Hour(hour, minute, ampm);
-            $('#edit-time').val(time24);
-        }
-    });
-}
-
-// Update your existing loadDailyMedications function
-async function loadDailyMedications() {
-    try {
-        $('#loading-message').show();
-        const response = await fetch(`/medications/user/${currentUserId}/daily`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to load daily medications');
-        }
-        
-        dailyMedications = await response.json();
-        $('#loading-message').hide();
-        
-        displayDailyMedications(dailyMedications);
-        updateDailyProgress(dailyMedications);
-        
-        // Set up reminder checking
-        if (reminderInterval) clearInterval(reminderInterval);
-        reminderInterval = setInterval(checkForReminders, 30000); // Check every 30 seconds
-        
-    } catch (error) {
-        console.error('Error loading daily medications:', error);
-        $('#loading-message').html(`
-            <div class="alert alert-danger">
-                <i class="fa fa-exclamation-triangle"></i> 
-                <strong>Error loading medications.</strong> Please refresh the page to try again.
-            </div>
-        `);
+      `;
     }
+    showAlert(`Error loading medications: ${error.message}`, 'danger');
+  }
 }
 
-// Update your existing displayDailyMedications function
 function displayDailyMedications(medications) {
-    if (medications.length === 0) {
-        $('#medication-container').html(`
-            <div class="alert alert-info text-center" style="font-size: 20px; padding: 40px;">
-                <i class="fa fa-smile-o fa-4x" style="color: #27ae60; margin-bottom: 20px;"></i><br>
-                <strong>Great News!</strong><br>
-                <span style="font-size: 18px;">You have no medications scheduled for today.</span>
-            </div>
-        `);
+  const loadingMessage = document.getElementById('loading-message');
+  const noMedsMessage = document.getElementById('no-medications-message');
+  const errorMessage = document.getElementById('error-message');
+  
+  // Hide all status messages
+  if (loadingMessage) loadingMessage.style.display = 'none';
+  if (noMedsMessage) noMedsMessage.style.display = 'none';
+  if (errorMessage) errorMessage.style.display = 'none';
+  
+  // Validate medications is an array
+  if (!Array.isArray(medications)) {
+    console.error('displayDailyMedications: medications is not an array', medications);
+    showAlert('Error: Invalid medication data format', 'danger');
+    return;
+  }
+  
+  if (medications.length === 0) {
+    // Show no medications message
+    const noMedsDiv = document.createElement('div');
+    noMedsDiv.className = 'no-medications';
+    noMedsDiv.innerHTML = `
+      <div class="alert alert-info">
+        <h4><i class="fa fa-info-circle"></i> No medications scheduled for today</h4>
+        <p>You don't have any medications scheduled for today.</p>
+        <a href="/medications/create" class="btn btn-primary">Add Medication</a>
+      </div>
+    `;
+    
+    // Clear existing content
+    const containers = ['morning-medications', 'afternoon-medications', 'evening-medications', 'night-medications'];
+    containers.forEach(containerId => {
+      const container = document.getElementById(containerId);
+      if (container) container.innerHTML = '';
+    });
+    
+    // Add to morning section
+    const morningContainer = document.getElementById('morning-medications');
+    if (morningContainer) {
+      morningContainer.appendChild(noMedsDiv);
+    }
+    
+    return;
+  }
+  
+  // Get current user ID for actions
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('User authentication error', 'danger');
+    return;
+  }
+  
+  // Group medications by time of day
+  const groupedMeds = groupMedicationsByTimeOfDay(medications);
+  
+  // Display medications in their respective time periods
+  displayTimeGroupMedications('morning-medications', groupedMeds.morning, 'Morning', currentUserId);
+  displayTimeGroupMedications('afternoon-medications', groupedMeds.afternoon, 'Afternoon', currentUserId);
+  displayTimeGroupMedications('evening-medications', groupedMeds.evening, 'Evening', currentUserId);
+  displayTimeGroupMedications('night-medications', groupedMeds.night, 'Night', currentUserId);
+}
+
+function groupMedicationsByTimeOfDay(medications) {
+  // Validate input
+  if (!Array.isArray(medications)) {
+    console.error('groupMedicationsByTimeOfDay: medications is not an array', medications);
+    return {
+      morning: [],
+      afternoon: [],
+      evening: [],
+      night: []
+    };
+  }
+  
+  const grouped = {
+    morning: [],    // 6:00 AM - 11:59 AM
+    afternoon: [],  // 12:00 PM - 5:59 PM
+    evening: [],    // 6:00 PM - 9:59 PM
+    night: []       // 10:00 PM - 5:59 AM
+  };
+  
+  medications.forEach(med => {
+    try {
+      const timeStr = med.medication_time || '12:00';
+      const timeParts = timeStr.split(':');
+      const hour = parseInt(timeParts[0]) || 12;
+      
+      if (hour >= 6 && hour < 12) {
+        grouped.morning.push(med);
+      } else if (hour >= 12 && hour < 18) {
+        grouped.afternoon.push(med);
+      } else if (hour >= 18 && hour < 22) {
+        grouped.evening.push(med);
+      } else {
+        grouped.night.push(med);
+      }
+    } catch (error) {
+      console.error('Error processing medication time:', med, error);
+      // Default to morning if there's an error
+      grouped.morning.push(med);
+    }
+  });
+  
+  // Sort each group by time
+  Object.keys(grouped).forEach(timeOfDay => {
+    grouped[timeOfDay].sort((a, b) => {
+      const timeA = a.medication_time || '12:00';
+      const timeB = b.medication_time || '12:00';
+      return timeA.localeCompare(timeB);
+    });
+  });
+  
+  return grouped;
+}
+
+function displayTimeGroupMedications(containerId, medications, timeLabel, userId) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.warn(`Container ${containerId} not found`);
+    return;
+  }
+  
+  // Validate medications is an array
+  if (!Array.isArray(medications)) {
+    console.error(`displayTimeGroupMedications: medications for ${timeLabel} is not an array`, medications);
+    container.innerHTML = `<div class="alert alert-warning">Error loading ${timeLabel.toLowerCase()} medications</div>`;
+    return;
+  }
+  
+  if (medications.length === 0) {
+    container.innerHTML = `
+      <div class="time-period-header">
+        <h3><i class="fa fa-clock-o"></i> ${timeLabel}</h3>
+        <span class="badge">0</span>
+      </div>
+      <div class="no-medications-time">
+        <p class="text-muted">No medications scheduled for ${timeLabel.toLowerCase()}</p>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = `
+    <div class="time-period-header">
+      <h3><i class="fa fa-clock-o"></i> ${timeLabel}</h3>
+      <span class="badge">${medications.length}</span>
+    </div>
+    <div class="medications-list">
+  `;
+  
+  medications.forEach(med => {
+    try {
+      html += createMedicationCard(med, userId);
+    } catch (error) {
+      console.error('Error creating medication card:', med, error);
+      html += `<div class="alert alert-warning">Error displaying medication: ${med.medication_name || 'Unknown'}</div>`;
+    }
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function createMedicationCard(med, userId) {
+  // Validate medication object
+  if (!med || typeof med !== 'object') {
+    console.error('Invalid medication object:', med);
+    return '<div class="alert alert-warning">Invalid medication data</div>';
+  }
+  
+  const medicationId = med.medication_id || med.id;
+  const medicationName = med.medication_name || 'Unknown Medication';
+  const medicationDosage = med.medication_dosage || 'No dosage specified';
+  const medicationTime = med.medication_time || '00:00';
+  const medicationNotes = med.medication_notes || '';
+  const isTaken = med.is_taken || false;
+  const quantity = med.medication_quantity || 0;
+  
+  // Validate required fields
+  if (!medicationId || !userId) {
+    console.error('Missing required fields:', { medicationId, userId, med });
+    return '<div class="alert alert-warning">Missing medication information</div>';
+  }
+  
+  const statusClass = isTaken ? 'taken' : 'pending';
+  const statusIcon = isTaken ? 'check-circle' : 'clock-o';
+  const statusText = isTaken ? 'Taken' : 'Pending';
+  const lowQuantityClass = quantity < 5 ? 'low-quantity' : '';
+  
+  return `
+    <div class="medication-item ${statusClass} ${lowQuantityClass}" data-medication-id="${medicationId}">
+      <div class="medication-info">
+        <div class="medication-name">${medicationName}</div>
+        <div class="medication-details">
+          <div><i class="fa fa-pills"></i> ${medicationDosage}</div>
+          <div><i class="fa fa-clock-o"></i> ${formatTimeForDisplay(medicationTime)}</div>
+          ${medicationNotes ? `<div><i class="fa fa-sticky-note"></i> ${medicationNotes}</div>` : ''}
+          <div><i class="fa fa-archive"></i> Quantity: ${quantity}</div>
+        </div>
+      </div>
+      <div class="medication-status">
+        <span class="status-badge ${statusClass}">
+          <i class="fa fa-${statusIcon}"></i> ${statusText}
+        </span>
+      </div>
+      <div class="medication-actions">
+        ${!isTaken ? `
+          <button class="btn btn-success btn-sm" onclick="takeMedication(${medicationId}, ${userId})">
+            <i class="fa fa-check"></i> Take
+          </button>
+        ` : `
+          <button class="btn btn-warning btn-sm" onclick="markAsMissed(${medicationId}, ${userId})">
+            <i class="fa fa-undo"></i> Undo
+          </button>
+        `}
+        <button class="btn btn-info btn-sm" onclick="editMedication(${medicationId})">
+          <i class="fa fa-edit"></i> Edit
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMedication(${medicationId})">
+          <i class="fa fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function formatTimeForDisplay(timeString) {
+  if (!timeString) return 'Not specified';
+  
+  // Use DateUtils if available
+  if (window.DateUtils) {
+    return DateUtils.formatTime(timeString);
+  }
+  
+  // Fallback logic
+  const timeParts = timeString.split(':');
+  if (timeParts.length >= 2) {
+    const hours = parseInt(timeParts[0]);
+    const minutes = timeParts[1];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes} ${ampm}`;
+  }
+  return timeString;
+}
+
+async function takeMedication(medicationId, userId) {
+  try {
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'danger');
+        return;
+    }
+    
+    if (!userId || userId === 'undefined') {
+        showAlert('Invalid user ID', 'danger');
         return;
     }
 
-    // Sort by time
-    const sortedMeds = medications.sort((a, b) => {
-        return new Date(`1970/01/01 ${a.medication_time}`) - new Date(`1970/01/01 ${b.medication_time}`);
-    });
-
-    let html = '';
-    sortedMeds.forEach(medication => {
-        html += displayDailyMedicationForElderly(medication);
+    const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
     });
     
-    $('#medication-container').html(html);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to mark medication as taken: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    showAlert('Medication marked as taken successfully!', 'success');
+    
+    // Reload medications to update display
+    await loadDailyMedications(userId);
+
+    // Show low quantity warning if applicable
+    if (result.isLowQuantity) {
+      showAlert(result.message, 'warning');
+    }
+  } catch (error) {
+    console.error('Error taking medication:', error);
+    showAlert(error.message, 'danger');
+  }
 }
 
-// Mark all remaining as taken
-$('#mark-all-taken').click(async function() {
-    if (confirm('Are you sure you want to mark ALL remaining medications as taken?')) {
-        try {
-            const response = await fetch(`/medications/${currentUserId}/tick-all`, {
-                method: 'PUT'
-            });
-
-            if (!response.ok) throw new Error('Failed to mark all medications');
-
-            showDailySuccessMessage('🎉 All remaining medications marked as taken!');
-            await loadDailyMedications();
-        } catch (error) {
-            console.error('Error marking all medications:', error);
-            showDailyErrorMessage('❌ Unable to mark all medications. Please try again.');
-        }
+async function markAsMissed(medicationId, userId) {
+  if (!confirm('Mark this medication as missed? This will reset it to not taken.')) return;
+  
+  try {
+    console.log(`Marking medication ${medicationId} as missed for user ${userId}`);
+    
+    const response = await fetch(`/medications/${userId}/${medicationId}/missed`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      throw new Error(`Failed to mark medication as missed: ${errorText}`);
     }
-});
+    
+    const result = await response.json();
+    showAlert('Medication marked as missed', 'warning');
+    await loadDailyMedications(userId);
+    
+  } catch (error) {
+    console.error('Error marking medication as missed:', error);
+    showAlert(`Error marking medication as missed: ${error.message}`, 'danger');
+  }
+}
 
-// Initialize when document ready
-$(document).ready(function() {
-    // Your existing initialization code...
-    setupTimeDropdowns();
+async function markAllAsTaken(userId) {
+  if (!confirm('Mark all pending medications as taken?')) return;
+  
+  try {
+    const response = await fetch(`/medications/${userId}/tick-all`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    });
     
-    // Set today's date as default for new medications
-    const today = new Date().toISOString().split('T')[0];
-    $('#medication-date').val(today);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to mark all medications as taken: ${errorText}`);
+    }
     
-    // Display current date
-    const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    };
-    $('#current-date').text(new Date().toLocaleDateString('en-US', options));
-});
-})
+    const result = await response.json();
+    showAlert(result.message || 'All medications marked as taken!', 'success');
+    loadDailyMedications(userId);
+  } catch (error) {
+    console.error('Error marking all medications as taken:', error);
+    showAlert(error.message, 'danger');
+  }
+}
+
+async function checkReminders(userId) {
+  try {
+    const response = await fetch(`/medications/user/${userId}/reminders`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) return;
+    
+    const reminders = await response.json();
+    if (reminders && reminders.length > 0) {
+      displayReminders(reminders);
+    }
+  } catch (error) {
+    console.error('Error checking reminders:', error);
+  }
+}
+
+function displayReminders(reminders) {
+  const container = document.getElementById('reminders-container');
+  if (!container) return;
+  
+  const currentUserId = getCurrentUserId();
+  
+  const reminderHTML = reminders.map(reminder => `
+    <div class="alert alert-warning reminder-alert">
+      <strong>Reminder:</strong> It's time to take ${reminder.medication_name} (${reminder.medication_dosage})
+      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, ${currentUserId})">
+        Take Now
+      </button>
+    </div>
+  `).join('');
+  
+  container.innerHTML = reminderHTML;
+}
+
+function editMedication(medicationId) {
+  window.location.href = `/medications/edit/${medicationId}`;
+}
+
+function setupEventListeners(userId) {
+  // Mark all as taken button
+  const tickAllBtn = document.getElementById('tick-all-btn');
+  if (tickAllBtn) {
+    tickAllBtn.addEventListener('click', () => markAllAsTaken(userId));
+  }
+  
+  // Logout button
+  const logoutBtn = document.getElementById('logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+  }
+}
+
+async function deleteMedication(medicationId) {
+    if (!medicationId || medicationId === 'undefined') {
+        showAlert('Invalid medication ID', 'error');
+        return;
+    }
+
+    const userId = getCurrentUserId();
+    if (!userId) {
+        showAlert('User ID not found', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete medication');
+        }
+
+        await loadDailyMedications(userId);
+        showAlert('Medication deleted successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error deleting medication:', error);
+        showAlert(`Error deleting medication: ${error.message}`, 'error');
+    }
+}
+
+// Make functions available globally
+window.takeMedication = takeMedication;
+window.markAsMissed = markAsMissed;
+window.editMedication = editMedication;
+window.deleteMedication = deleteMedication;

@@ -3,14 +3,16 @@ const joi = require("joi");
 const { validateID } = require("../../utils/validation/IDValidation");
 
 function validateUserInput(req, res, next) {
-    const schema = joi.object({
-        username: joi.string().min(3).max(30).required(),
-        phone_number: joi.string().required(),
-        password: joi.string().min(8).max(100).required(),
-        age: joi.number().integer().min(0).required(),
-        gender: joi.string().valid("Male", "Female", "Other"),
-        role: joi.string().valid("A", "U", "V"),
-    });
+
+  const schema = joi.object({
+    username: joi.string().min(3).max(30).required(),
+    phone_number: joi.string().min(8).max(8).required(),
+    password: joi.string().min(8).max(100).required(),
+    age: joi.number().integer().min(0).required(),
+    gender: joi.string().valid('Male', 'Female', 'Other'),
+    role: joi.string().valid('A', 'U', 'V')
+
+  });
 
   const { error } = schema.validate(req.body);
   if (error) {
@@ -75,7 +77,21 @@ function verifyJWT(req, res, next) {
             "PUT /med-appointments/[0-9]+": ["U"],
             "DELETE /med-appointments/[0-9]+": ["U"],
 
+            // Feedback - Only for Users 
+            "GET /feedback": ['U'], 
+            "GET /feedback/search": ['U'], 
+            "POST /feedback": ['U'], 
+            "PUT /feedback/[0-9]+": ['U'], 
+            "DELETE /feedback/[0-9]+": ['U'], 
+
+            // Feedback Admin - Only for admins
+            "GET /feedback/admin": ['A'], 
+            "GET /feedback/admin/search": ['A'], 
+            "PUT /feedback/admin/[0-9]+": ['A'],
+            "DELETE /feedback/admin/[0-9]+": ['A'], 
+
             // Alerts
+
             "GET /alerts": ['A', 'U'], // All alerts
             "GET /alerts/search": ['A', 'U'], // Search alerts
             "GET /alerts/readstatus/[0-9]+": ['U'], // Read status by ID
@@ -92,7 +108,6 @@ function verifyJWT(req, res, next) {
             "POST /feedback": ["U"], // Only User can create feedback
             "PUT /feedback/[0-9]+": ["U"], // Only User can update their own feedback
             "DELETE /feedback/[0-9]+": ["U"], // Only User can delete their own feedback
-
         };
 
         // Check if the current route requires role-based authorization

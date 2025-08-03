@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="/css/bulma.min.css" />
+    <%- include("../partials/head") %>
     <link rel="stylesheet" href="/css/calendar.css" type="text/css">
     <title>Medical Appointment Calendar</title>
 </head>
@@ -16,7 +14,7 @@
 
     <div id="main">
         <div id="appointments">
-            <h2>Medical Appointments on <span id="selected-date">the Calendar</span></h2>    
+            <h1><strong>Medical Appointments on <span id="selected-date">the Calendar</span></strong></h1>
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="Search appointments (title, doctor, location, notes...)">
                 <button onclick="searchAppointments()">Search</button>
@@ -61,6 +59,15 @@
                 <button onclick="changeMonth(1)">Next Month →</button>
             </div>
 
+            <div id="calendar-days-row" class="calendar-days-row">
+                <div class="calendar-day-name">Sunday</div>
+                <div class="calendar-day-name">Monday</div>
+                <div class="calendar-day-name">Tuesday</div>
+                <div class="calendar-day-name">Wednesday</div>
+                <div class="calendar-day-name">Thursday</div>
+                <div class="calendar-day-name">Friday</div>
+                <div class="calendar-day-name">Saturday</div>
+            </div>
             <div id="calendar"></div> <!-- Calendar grid goes here -->
         </div>
     </div>
@@ -68,13 +75,13 @@
     <div id="modal">
         <div class="modal-content">
             <h3>New Appointment</h3>
-            <input type="date" id="appointment-date" placeholder="Date" required>
+            <input type="date" id="appointment-date" placeholder="Date" min=""required>
             <input type="text" id="title" placeholder="Title" required>
             <input type="text" id="doctor" placeholder="Doctor" required>
             <input type="time" id="start-time" required>
             <input type="time" id="end-time" required>
             <input type="text" id="location" placeholder="Location" required>
-            <textarea type="text" id="notes" placeholder="Notes">
+            <textarea id="notes" placeholder="Notes" style="width: 100%; height: 100px; resize: vertical;"></textarea>
             <select id="status">
                 <option value="Scheduled">🟢 Scheduled</option>
                 <option value="Ongoing">🟡 Ongoing</option>
@@ -87,9 +94,6 @@
             <button onclick="closeModal()">Cancel</button>
         </div>
     </div>
-
-    <script src="/js/calendar.js"></script>
-    
-    <%- include("../partials/footer") %>
-</body>
+    <%- include("../partials/footer") %></body>   
+    <script src="/js/calendar.js"></script> 
 </html>
