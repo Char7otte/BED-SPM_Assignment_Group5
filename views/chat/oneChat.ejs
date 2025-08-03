@@ -9,7 +9,14 @@
     <body>
         <%- include("../partials/navbar")%>
         <main>
-            <h1 class="title sticky-header has-text-centered has-background-dark"><%= title %></h1>
+            <section class="sticky-header has-background-dark is-flex is-align-items-center is-justify-content-space-between p-4">
+                <form action="/chats">
+                    <button class="button is-outlined is-light" type="submit">Return</button>
+                </form>
+                <h1 class="title has-text-white m-0"><%= title %></h1>
+                <div></div>
+            </section>
+
             <div class="container">
                 <div class="columns">
                     <div class="column"></div>
