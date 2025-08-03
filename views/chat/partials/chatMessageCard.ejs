@@ -1,14 +1,71 @@
 <div class="card p-4 message-card">
-    <p>Sender ID: <%= senderID %></p>
-    <p>Message: <%= message %></p>
-    <p>Time: <%= sentDateTime %></p>
-    <form action="/chats/<%= chatID %>?_method=PATCH" method="POST" class="edit-message-form">
-        <input type="hidden" name="messageID" value="<%= messageID %>" />
-        <input type="hidden" name="message" value="<%= message %>" />
-        <button class="button" type="submit">Edit</button>
-    </form>
-    <form action="/chats/<%= chatID %>?_method=DELETE" method="POST" class="delete-message-form">
-        <input type="hidden" name="messageID" value="<%= messageID %>" />
-        <button class="button" type="submit">Delete</button>
-    </form>
+    <div class="card-content">
+        <div class="fixed-grid">
+            <div class="grid">
+                <div class="cell">
+                    <p class="title">
+                        <%= username %>
+                        <span class="chat-role-identifier is-size-6"><%= senderRole %></span>
+                    </p>
+                </div>
+                <div class="cell">
+                    <% if ((!isClosed && senderID == userID) || userRole =="A") { %>
+                    <div class="columns">
+                        <div class="column"></div>
+                        <div class="column is-flex is-justify-content-flex-end">
+                            <div class="dropdown">
+                                <div class="dropdown-trigger">
+                                    <button class="button dropdown-trigger-button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                        <span class="icon is-small">
+                                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                    <div class="dropdown-content">
+                                        <% if (senderID == userID) { %>
+                                        <div class="dropdown-item">
+                                            <form
+                                                action="/chats/<%= chatID %>?_method=PATCH"
+                                                method="POST"
+                                                class="edit-message-form card-footer-item"
+                                            >
+                                                <input type="hidden" name="messageID" value="<%= messageID %>" />
+                                                <input type="hidden" name="message" value="<%= message %>" />
+                                                <button class="has-text-info card-button" type="submit">
+                                                    <span class="icon"> <i class="fa-solid fa-pen-to-square"></i> </span>
+                                                    Edit
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <% } %>
+                                        <div class="dropdown-item">
+                                            <form
+                                                action="/chats/<%= chatID %>?_method=DELETE"
+                                                method="POST"
+                                                class="delete-message-form card-footer-item"
+                                            >
+                                                <input type="hidden" name="messageID" value="<%= messageID %>" />
+                                                <button class="has-text-danger card-button" type="submit">
+                                                    <span class="icon"> <i class="fa-solid fa-trash"></i> </span>
+                                                    Delete <% if (senderID != userID) { %>
+                                                    <span class="icon"> <i class="fa-solid fa-triangle-exclamation has-text-warning"></i> </span>
+                                                    <% } %>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+                <div class="cell"><p><%= message %></p></div>
+                <div class="cell">
+                    <p class="has-text-right bottom-right"><%= sentDateTime %></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
