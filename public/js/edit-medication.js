@@ -1,3 +1,16 @@
+function getCurrentUserId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
+
 function decodeJwtPayload(token) {
     try {
         const jwt = token.split(" ")[1] || token;
@@ -17,14 +30,7 @@ function isTokenExpired(token) {
 }
 
 function checkAuth() {
-    // Skip authentication for testing with TEST_USER_ID
-    if (TEST_USER_ID === 8) {
-        console.log('Test mode - skipping authentication');
-        return true;
-    }
-    
     const token = localStorage.getItem('token');
-    console.log("Token from localStorage:", token);
     
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem('token');
@@ -46,13 +52,19 @@ function checkAuth() {
     return true;
 }
 
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
 function logout() {
     localStorage.removeItem('token');
     document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     window.location.href = '/login';
 }
-
-const TEST_USER_ID = 8; // Test user ID
 
 let medicationId = null;
 
@@ -60,6 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication first
     if (!checkAuth()) {
         return; // Stop execution if not authenticated
+    }
+    
+    // Get current user ID from token
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) {
+        showError('Unable to get user information. Please log in again.');
+        logout();
+        return;
     }
     
     try {
@@ -85,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
             medicationId = parseInt(urlParams.get('id'));
         }
         
-        console.log('Extracted medication ID:', medicationId); // Debug log
+        console.log('Extracted medication ID:', medicationId);
         
         if (!medicationId) {
             if (window.showError) {
@@ -97,10 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Load medication data
-        loadMedicationData();
+        loadMedicationData(currentUserId);
         
         // Setup event listeners
-        setupEventListeners();
+        setupEventListeners(currentUserId);
         
         // Add readable date/time formatting
         setupDateTimeFormatting();
@@ -113,24 +133,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-async function loadMedicationData() {
+async function loadMedicationData(userId) {
     try {
-        // Check if showLoading function exists before calling it
         if (window.showLoading) {
             showLoading('Loading medication data...');
         } else {
             console.log('Loading medication data...');
         }
         
-        // Fix the URL to match your controller route
-        const response = await fetch(`/medications/user/${TEST_USER_ID}/${medicationId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+        const response = await fetch(`/medications/user/${userId}/${medicationId}`, {
+            headers: getAuthHeaders()
         });
         
-        console.log(`Fetching medication from: /medications/user/${TEST_USER_ID}/${medicationId}`); // Debug log
+        console.log(`Fetching medication from: /medications/user/${userId}/${medicationId}`);
         
         if (!response.ok) {
             if (response.status === 404) {
@@ -143,7 +158,6 @@ async function loadMedicationData() {
         const medication = await response.json();
         populateForm(medication);
         
-        // Use showAlert instead of showLoading(false)
         if (window.showAlert) {
             showAlert('Medication loaded successfully', 'success');
         } else {
@@ -201,11 +215,13 @@ function populateForm(medication) {
     }
 }
 
-function setupEventListeners() {
+function setupEventListeners(userId) {
     // Form submission
     const form = document.getElementById('edit-medication-form');
     if (form) {
-        form.addEventListener('submit', handleFormSubmit);
+        form.addEventListener('submit', function(e) {
+            handleFormSubmit(e, userId);
+        });
     }
     
     // Cancel button
@@ -221,7 +237,9 @@ function setupEventListeners() {
     // Delete button
     const deleteBtn = document.getElementById('delete-btn');
     if (deleteBtn) {
-        deleteBtn.addEventListener('click', handleDelete);
+        deleteBtn.addEventListener('click', function() {
+            handleDelete(userId);
+        });
     }
     
     // Logout button
@@ -237,7 +255,7 @@ function setupEventListeners() {
     setupFormValidation();
 }
 
-async function handleFormSubmit(event) {
+async function handleFormSubmit(event, userId) {
     event.preventDefault();
     
     if (!validateForm()) {
@@ -247,11 +265,9 @@ async function handleFormSubmit(event) {
     try {
         const formData = collectFormData();
         
-        const response = await fetch(`/medications/${TEST_USER_ID}/${medicationId}`, {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(formData)
         });
         
@@ -276,7 +292,6 @@ async function handleFormSubmit(event) {
 
 function collectFormData() {
     return {
-        // Change these from camelCase to snake_case to match your database schema
         medication_name: document.getElementById('medication_name').value.trim(),
         medication_dosage: document.getElementById('medication_dosage').value.trim(),
         medication_date: document.getElementById('medication_date').value,
@@ -290,17 +305,15 @@ function collectFormData() {
     };
 }
 
-async function handleDelete() {
+async function handleDelete(userId) {
     if (!confirm('Are you sure you want to delete this medication? This action cannot be undone.')) {
         return;
     }
     
     try {
-        const response = await fetch(`/medications/${TEST_USER_ID}/${medicationId}`, {
+        const response = await fetch(`/medications/${userId}/${medicationId}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: getAuthHeaders()
         });
         
         if (!response.ok) {
@@ -438,4 +451,38 @@ function updateReadableDates() {
       document.getElementById('medication-summary').style.display = 'block';
     }
   }
+}
+
+function showAlert(message, type = 'success') {
+  let alertContainer = document.getElementById('alert-container');
+  if (!alertContainer) {
+    alertContainer = document.createElement('div');
+    alertContainer.id = 'alert-container';
+    document.body.insertBefore(alertContainer, document.querySelector('main'));
+  }
+  
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} fade-in-up`;
+  alert.style.marginBottom = '1rem';
+  alert.innerHTML = `
+    <button type="button" class="close" onclick="this.parentElement.remove()">
+      <span>&times;</span>
+    </button>
+    ${message}
+  `;
+  alertContainer.appendChild(alert);
+  
+  setTimeout(() => {
+    if (alert.parentElement) {
+      alert.remove();
+    }
+  }, 5000);
+}
+
+function showError(message) {
+  showAlert(message, 'danger');
+}
+
+function showLoading(message) {
+  showAlert(message, 'info');
 }

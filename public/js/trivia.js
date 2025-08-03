@@ -1,3 +1,73 @@
+// Authentication functions
+function getCurrentUserId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
+
+function decodeJwtPayload(token) {
+    try {
+        const jwt = token.split(" ")[1] || token;
+        const payloadBase64 = jwt.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    const decoded = decodeJwtPayload(token);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp < Date.now() / 1000;
+}
+
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        
+        // Check for token in cookies if not found in localStorage
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        if (match) {
+            const cookieToken = decodeURIComponent(match[1]);
+            if (!isTokenExpired(cookieToken)) {
+                localStorage.setItem('token', cookieToken);
+                return true;
+            }
+        }
+        
+        window.location.href = '/login';
+        return false;
+    }
+    
+    return true;
+}
+
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/login';
+}
+
+// Trivia game functionality
 const questionEl = document.getElementById('question');
 const answersEl = document.getElementById('answers');
 const feedbackEl = document.getElementById('feedback');
@@ -7,6 +77,7 @@ let triviaData = [];
 let currentQuestionIndex = 0;
 let currentDifficulty = 'easy';
 let currentCategory = '9';
+let currentUserId = null;
 
 // Category mapping
 const categories = {
@@ -18,11 +89,87 @@ const categories = {
   '24': { name: 'Politics', icon: '🏛️' }
 };
 
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function() {
+  // Check authentication first
+  if (!checkAuth()) {
+    return; // Stop execution if not authenticated
+  }
+  
+  // Get current user ID from token
+  currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    console.error('Unable to get user ID from token');
+    showAlert('Authentication error. Please log in again.', 'danger');
+    logout();
+    return;
+  }
+  
+  try {
+    // Initialize the trivia game
+    initializeTrivia();
+  } catch (error) {
+    console.error('Initialization error:', error);
+    showAlert('Failed to initialize trivia game. Please refresh the page.', 'danger');
+  }
+});
+
+function initializeTrivia() {
+  // Start with category selection
+  startNewQuiz();
+  
+  // Set up next button event listener
+  nextBtn.addEventListener('click', () => {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < triviaData.length) {
+      showQuestion();
+    } else {
+      showQuizComplete();
+    }
+  });
+}
+
+function showAlert(message, type = 'success') {
+  // Create alert container if it doesn't exist
+  let alertContainer = document.getElementById('alert-container');
+  if (!alertContainer) {
+    alertContainer = document.createElement('div');
+    alertContainer.id = 'alert-container';
+    alertContainer.style.position = 'fixed';
+    alertContainer.style.top = '20px';
+    alertContainer.style.right = '20px';
+    alertContainer.style.zIndex = '9999';
+    document.body.appendChild(alertContainer);
+  }
+  
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} alert-dismissible`;
+  alert.style.marginBottom = '10px';
+  alert.innerHTML = `
+    <button type="button" class="close" onclick="this.parentElement.remove()">
+      <span>&times;</span>
+    </button>
+    ${message}
+  `;
+  alertContainer.appendChild(alert);
+  
+  setTimeout(() => {
+    if (alert.parentElement) {
+      alert.remove();
+    }
+  }, 5000);
+}
+
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
 function fetchTrivia(category, difficulty) {
+  // Check authentication before making API calls
+  if (!checkAuth()) {
+    return;
+  }
+  
   currentCategory = category;
   currentDifficulty = difficulty;
   const apiUrl = `https://opentdb.com/api.php?amount=10&category=${category}&difficulty=${difficulty}`;
@@ -109,7 +256,10 @@ function checkAnswer(selected, correct) {
 
 function showCategorySelection() {
   questionEl.innerHTML = `
-    <h3>Choose a Category</h3>
+    <div class="welcome-header">
+      <h2>🧠 Trivia Quiz</h2>
+      <p>Welcome! Choose a category to get started:</p>
+    </div>
     <div class="category-selection">
       ${Object.entries(categories).map(([id, info]) => `
         <button class="category-btn" onclick="showDifficultySelection('${id}')">
@@ -152,35 +302,41 @@ function showDifficultySelection(categoryId) {
   nextBtn.style.display = 'none';
 }
 
+function showQuizComplete() {
+  const categoryName = categories[currentCategory].name;
+  questionEl.innerHTML = `
+    <div class="quiz-complete">
+      🎊 Congratulations!
+      <br>
+      You've completed all ${categoryName} - ${currentDifficulty.toUpperCase()} questions!
+      <br><br>
+      <button onclick="showDifficultySelection('${currentCategory}')" class="new-quiz-btn">
+        Try Different Difficulty
+      </button>
+      <button onclick="startNewQuiz()" class="new-quiz-btn secondary">
+        Choose New Category
+      </button>
+      <button onclick="window.location.href='/homepage'" class="new-quiz-btn tertiary">
+        Back to Home
+      </button>
+    </div>
+  `;
+  answersEl.innerHTML = '';
+  feedbackEl.textContent = '';
+  nextBtn.style.display = 'none';
+}
+
 function startNewQuiz() {
+  // Check authentication before starting
+  if (!checkAuth()) {
+    return;
+  }
+  
   showCategorySelection();
 }
 
-nextBtn.addEventListener('click', () => {
-  currentQuestionIndex++;
-  if (currentQuestionIndex < triviaData.length) {
-    showQuestion();
-  } else {
-    const categoryName = categories[currentCategory].name;
-    questionEl.innerHTML = `
-      <div class="quiz-complete">
-        🎊 Congratulations!
-        <br>
-        You've completed all ${categoryName} - ${currentDifficulty.toUpperCase()} questions!
-        <br><br>
-        <button onclick="showDifficultySelection('${currentCategory}')" class="new-quiz-btn">
-          Try Different Difficulty
-        </button>
-        <button onclick="startNewQuiz()" class="new-quiz-btn secondary">
-          Choose New Category
-        </button>
-      </div>
-    `;
-    answersEl.innerHTML = '';
-    feedbackEl.textContent = '';
-    nextBtn.style.display = 'none';
-  }
-});
-
-// Start with category selection
-startNewQuiz();
+// Make functions available globally
+window.fetchTrivia = fetchTrivia;
+window.showDifficultySelection = showDifficultySelection;
+window.startNewQuiz = startNewQuiz;
+window.logout = logout;
