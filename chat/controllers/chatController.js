@@ -69,7 +69,7 @@ async function markChatAsAnswered(req, res) {
     try {
         const chatID = req.params.chatID;
         const isUpdated = await chatModel.markChatAsAnswered(chatID);
-        if (isUpdated) res.redirect("/chats");
+        if (isUpdated) res.redirect(`/chats/${chatID}`);
         else res.status(500).send("Error updating chat status");
     } catch (error) {
         console.error("Controller error: ", error);
