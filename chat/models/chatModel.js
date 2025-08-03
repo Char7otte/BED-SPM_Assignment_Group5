@@ -170,6 +170,28 @@ async function searchClosedChats(searchQuery) {
     }
 }
 
+async function updateLastActivityTime(chatID) {
+    let connection;
+    try {
+        connection = await sql.connect(config);
+        const query = `UPDATE Chats SET last_activity_date_time = GETDATE() WHERE chat_id = @chatID`;
+        const request = connection.request();
+        request.input("chatID", chatID);
+        const result = await request.query(query);
+        return result.rowsAffected == 1;
+    } catch (error) {
+        console.error("Database error:", error);
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (error) {
+                console.error("Error closing connection:", error);
+            }
+        }
+    }
+}
+
 module.exports = {
     getAllChats,
     getAllChatsByHelpeeID,
@@ -178,4 +200,5 @@ module.exports = {
     deleteChat,
     markChatAsAnswered,
     searchClosedChats,
+    updateLastActivityTime,
 };

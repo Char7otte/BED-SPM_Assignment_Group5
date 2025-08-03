@@ -48,6 +48,13 @@ async function createMessage(req, res) {
         const isSent = await chatMessageModel.createMessage(chatID, senderID, message);
 
         if (!isSent) return res.status(400).send("Error sending message");
+
+        const isUpdated = await chatModel.updateLastActivityTime(chatID);
+        if (!isUpdated) {
+            //Not a critical failure so it's unnecessary to throw an error or a response
+            console.error(`Error updating chat activity time. ChatID: ${chatID}`);
+        }
+
         return res.redirect(`/chats/${chatID}`);
     } catch (error) {
         console.error("Controller error: ", error);
