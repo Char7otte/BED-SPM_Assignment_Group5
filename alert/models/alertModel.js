@@ -6,7 +6,7 @@ const dbConfig = require(path.join(__dirname, "..", "..", "dbConfig.js"));
 
 
 async function getAllAlerts() {
-  console.log("Fetching all alerts from the database...");
+  
     let conn;
     try {
         conn = await sql.connect(dbConfig);
@@ -31,7 +31,7 @@ async function getAlertById(id) {
   try {
     conn = await sql.connect(dbConfig);
 
-    const query = "SELECT AlertID, Title, Category, Message, Severity FROM Alert WHERE AlertID = @id";
+    const query = "SELECT AlertID, Title, Category, Message, Severity, Date FROM Alert WHERE AlertID = @id";
     const request = conn.request();
     request.input("id", sql.Int, id);
     const result = await request.query(query);
@@ -80,7 +80,7 @@ async function getAlertById(id) {
 
 async function createAlert(alertData) {
   let conn;
-  console.log("modelCreating alert:", alertData);
+  
   
   try {
     conn = await sql.connect(dbConfig);
@@ -171,7 +171,7 @@ async function updateAlert(id, alertData) {
 }
 
 async function deleteAlert(id) {
-  console.log("Marking alert as inactive with ID:", id);
+  
   let conn;
   try {
     conn = await sql.connect(dbConfig);
@@ -316,7 +316,7 @@ async function checkifAlertAddedToNotes(alertId, userId) {
       .input("alertId", sql.Int, alertId)
       .input("userId", sql.Int, userId);
     const result = await request.query(query);
-    console.log("Checking if alert is added to notes:", result.recordset);
+    
     if (result.recordset.length === 0) {
       return false; // No note with the given title exists
     }else {

@@ -291,7 +291,7 @@ async function changePassword(id, newPassword) {
     }
 } 
 async function searchUserByUsernameNid(username, id) {
-    console.log("modelSearching user by username or ID:", username, id);
+    
     let conn;
     try {
         conn = await sql.connect(dbConfig);

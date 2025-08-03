@@ -123,28 +123,27 @@ app.use(methodOverride("_method"));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-//ALERT SEARCH + READ STATUS (specific paths FIRST)/
-app.get("/alerts/search", alertController.searchAlerts); //  Search alerts by title or category
-app.get("/alerts/readstatus/:id", alertController.getreadAlerts); //  Get read status of an alert by ID
-app.post("/alerts/updatestatus/:id", validateAlertId, alertController.updateAlertStatus); //  Mark alert as read/unread
-app.post("/alerts/checkhasnoties/:id", alertController.checkHasNotiesAdded); // Check if alert has notes added
+// ===== ALERTS ROUTES ===== //
+// --- User-specific Operations --- //
+app.get("/alerts/search",verifyJWT, alertController.searchAlerts); // Search by title/category
+app.get("/alerts/readstatus/:id", verifyJWT, alertController.getreadAlerts); // Get read status
+app.post("/alerts/updatestatus/:id", verifyJWT, validateAlertId, alertController.updateAlertStatus); // Mark as read/unread
+app.post("/alerts/checkhasnoties/:id", verifyJWT, alertController.checkHasNotiesAdded); // Check if alert has notes
 
-// CREATE ALERT (Admin only)
-app.post("/alerts", validateAlert, alertController.createAlert); //  Create a new alert
+// --- Admin-only Operations --- //
+app.post("/alerts", verifyJWT, validateAlert, alertController.createAlert); // Create new alert
+app.put("/alerts/:id", verifyJWT, validateAlertId, validateAlert, alertController.updateAlert); // Update alert
+app.put("/alerts/delete/:id", verifyJWT, validateAlertId, alertController.deleteAlert); // Delete alert
 
-// UPDATE + DELETE ALERT (Admin only)
-app.put("/alerts/:id", validateAlertId, validateAlert, alertController.updateAlert); // Update an existing alert
-app.put("/alerts/delete/:id", validateAlertId, alertController.deleteAlert); //  Delete alert
+// --- General Fetch Operations --- //
+app.get("/alerts", verifyJWT, alertController.getAllAlerts); // Get all alerts
+app.get("/alerts/:id", verifyJWT, validateAlertId, alertController.getAlertById); // Get alert by ID
 
-// BASIC ALERT FETCHING
-
-app.get("/alerts", alertController.getAllAlerts); //  List all alerts (user/admin)
-app.get("/alerts/:id", validateAlertId, alertController.getAlertById); // View alert by ID (last!)
 
 //routes for users
 app.post("/users/register", validateUserInput, userController.createUser); // User registration #okay
 app.post("/users/login", userController.loginUser); // User login #okay
-app.put("/users/changepassword/:id", verifyJWT, userController.changePassword); // Change user password #okay
+app.put("/users/changepassword/:id", userController.changePassword); // Change user password #okay
 //rotes for user management
 app.get("/users", verifyJWT, userController.getAllUsers); // Get all users #okay
 app.get("/users/username/:username", verifyJWT, userController.getUserByUsername); // Get user by username

@@ -38,7 +38,7 @@ async function getAlertById(req, res) {
 // Create a new alert
 async function createAlert(req, res) {
     const { Title, Category, Message, Severity } = req.body;
-    console.log("Creating alert:", { Title, Category, Message, Severity });
+    
     if (!Title || !Category || !Message || !Severity) {
         return res.status(400).json({ error: "Title, category, message, and severity are required" });
     }
@@ -58,7 +58,7 @@ async function createAlert(req, res) {
 // Update an existing alert
 async function updateAlert(req, res) {
     const alertId = parseInt(req.params.id);
-    console.log("Updating alert with ID:", alertId);
+    
     if (isNaN(alertId)) {
         return res.status(400).json({ error: "Invalid alert ID" });
     }
@@ -110,7 +110,7 @@ async function deleteAlert(req, res) {
 async function updateAlertStatus(req, res) {
     const userId = parseInt(req.body.userId);
     const alertId = parseInt(req.params.id);
-    console.log("Updating alert status for user:", userId, "and alert:", alertId);
+    
     
     if (isNaN(userId) || isNaN(alertId)) {
         return res.status(400).json({ error: "Invalid user ID or alert ID" });
@@ -143,7 +143,7 @@ async function getreadAlerts(req, res) {
 }
 async function searchAlerts(req, res) {
     const { title, category } = req.query;
-    console.log("Search parameters:", { title, category });
+    
     if (!title && !category) {
         return res.status(400).json({ error: "At least one search parameter (title or category) is required" });
     }
@@ -165,17 +165,17 @@ async function checkHasNotiesAdded(req, res) {
         const alertTitle = req.params.id;
         const userId = req.body.userId;
 
-        console.log("Checking if notes are added for alert title controller:", alertTitle);
+        
         if (!alertTitle) {
             return res.status(400).json({ error: "Alert title is required" });
         }
         const hasNoties = await alertModel.checkifAlertAddedToNotes(alertTitle, userId);
         if (hasNoties) {
-            console.log("Alert has notes added:", hasNoties);
+            
             return res.status(200).json({ hasNoties: true });
         }
         else {
-            console.log("Alert has no notes added:", hasNoties);
+            
             return res.status(200).json({ hasNoties: false });
         }
     } catch (error) {

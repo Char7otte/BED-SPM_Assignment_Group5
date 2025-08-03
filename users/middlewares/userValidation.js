@@ -55,7 +55,7 @@ function verifyJWT(req, res, next) {
 
         const authorizedRoles = {
             //user
-            "POST /users/register": ["A", "U"], // Admin and User can register
+            // "POST /users/register": ["A", "U"], // Admin and User can register
             "PUT /users/changepassword/[0-9]+": ["A", "U"], // Admin and User can change password
             "GET /users/username/[a-zA-Z0-9]+": ["A", "U"], // Admin and User can get user by username
             //user management
@@ -76,12 +76,15 @@ function verifyJWT(req, res, next) {
             "DELETE /med-appointments/[0-9]+": ["U"],
 
             // Alerts
-            "GET /alerts": ['A', 'U'], // Admin and User can get all alerts
-            "GET /alerts/search": ['A', 'U'], // Admin and User can search alerts
-            "POST /alerts": ['A'], // Only Admin can create alerts
-            "PUT /alerts/[0-9]+": ['A'], // Only Admin can update alerts
-            "PUT /alerts/delete/[0-9]+": ['A'], // Only Admin can delete alerts
-
+            "GET /alerts": ['A', 'U'], // All alerts
+            "GET /alerts/search": ['A', 'U'], // Search alerts
+            "GET /alerts/readstatus/[0-9]+": ['U'], // Read status by ID
+            "POST /alerts/updatestatus/[0-9]+": ['U'], // Mark as read/unread
+            "POST /alerts/checkhasnoties/[0-9]+": ['U'], // Check if notes exist
+            "POST /alerts": ['A'], // Create alert
+            "PUT /alerts/[0-9]+": ['A'], // Update alert
+            "PUT /alerts/delete/[0-9]+": ['A'], // Delete alert
+            "GET /alerts/[0-9]+": ['A', 'U'], // View alert by ID
 
             // Feedback
             "GET /feedback": ["A", "U"], // Admin and User can get all feedback

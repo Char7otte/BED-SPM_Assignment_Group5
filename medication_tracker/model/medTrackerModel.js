@@ -69,6 +69,7 @@ async function getAllMedicationByUser(userId) {
 
 async function getDailyMedicationByUser(userId) {
     let connection; 
+    
     try {
         connection = await sql.connect(dbConfig);
 

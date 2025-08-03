@@ -48,7 +48,7 @@ async function getAllMedicationByUser(req, res) {
 async function getDailyMedicationByUser(req, res) {
     try {
         const userId = parseInt(req.params.userId);
-
+        
         if (isNaN(userId)) {
             return res.status(400).json({ error: "Invalid user ID" });
         }

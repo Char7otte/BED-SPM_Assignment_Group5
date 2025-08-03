@@ -57,7 +57,7 @@ body {
 .bottom1-btn {
     background-color: #072978;
     border: none;
-    border-radius: 0px;
+    border-radius: 5px;
 }
 
 .alerD {
@@ -73,12 +73,67 @@ body {
     background-color: #cac6c6;
    
 }
+#quick-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.upcoming-med {
+    background-color: #ffffff; /* light red */
+    color: #000000;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+.name-container {
+    
+    margin-bottom: 20px;
+    width : 50%;
+    margin: 0 auto;
+    text-align: left;
+    display: flex;
+    
+}
+.name-con {
+    font-size: 2rem;
+    color: #072978; /* dark blue */
+    font-weight: bold;
+    text-align: center;
+}
+
+.search-con {
+    width: 50%;
+    margin-bottom: 20px;
+}
+.top-container {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+}
+.no-underline {
+    text-decoration: none;
+    font-size: 2rem;
+    color: #072978;
+
+}
+.no-underline h1 {
+    text-decoration: none;
+    color: #072978;
+}
+
 @media screen and (max-width: 768px) {
     .alert-box {
         width: 100%;
     }
     .alert-box-right {
-        display: none;
+        display:block;
+        width: 100%;
+        margin-left: 0;
+        position: relative;
+    }
+    .upcoming-med{
+        width: 100%;
+        margin-bottom: 20px;
     }
     .alerD {
         width: 90%;
@@ -89,6 +144,7 @@ body {
     .top1-btn, .bottom1-btn {
         width: 100%;
         margin-bottom: 10px;
+
     }
     .main-container {
         padding: 10px;
@@ -101,6 +157,11 @@ body {
     }
     .alert-item {
         padding: 10px;
+    }
+    .line-down {
+        width:90%;
+        height: 1px;
+        margin: 0 auto;
     }
 }
 
