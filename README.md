@@ -76,6 +76,27 @@
 | `PUT` Edit an appointment         | `/med-appointments/:appointment_id`   | User  |`appointment_id` |  | `date`, `title`, `doctor`, `start_time`, `end_time`, `location`, `status`, `notes` |
 | `DELETE` Delete an appointment    | `/med-appointments/:appointment_id`   | User  | `appointment_id` |
 
+### Medication API
+
+| Method | URL                                         | User Type | Path Parameters                | Body Parameters                                                        | Function Used                |
+|--------|---------------------------------------------|-----------|-------------------------------|------------------------------------------------------------------------|------------------------------|
+| GET    | `/medications/user/:userId/reminders`       | User      | `userId`                      | —                                                                      | `remindMedication`           |
+| GET    | `/medications/user/:userId/daily`           | User      | `userId`                      | —                                                                      | `getDailyMedicationByUser`   |
+| GET    | `/medications/user/:userId/weekly`          | User      | `userId`                      | —                                                                      | `getWeeklyMedicationByUser`  |
+| GET    | `/medications/user/:userId/search`          | User      | `userId`                      | `searchTerm`                                                           | `searchMedicationByName`     |
+| GET    | `/medications/user/:userId/low-quantity`    | User      | `userId`                      | —                                                                      | `getLowQuantityMedication`   |
+| GET    | `/medications/user/:userId/expired`         | User      | `userId`                      | —                                                                      | `getExpiredMedications`      |
+| GET    | `/medications/user/:userId`                 | User      | `userId`                      | —                                                                      | `getAllMedicationByUser`     |
+| GET    | `/medications/user/:userId/:medicationId`   | User      | `userId`, `medicationId`      | —                                                                      | `getMedicationById`          |
+| PUT    | `/medications/:userId/tick-all`             | User      | `userId`                      | —                                                                      | `tickAllMedications`         |
+| POST   | `/medications`                              | User      | —                             | `name`, `dosage`, `quantity`, `start_date`, `end_date`, `instructions` | `createMedication`           |
+| PUT    | `/medications/:userId/:medicationId`        | User      | `userId`, `medicationId`      | `name`, `dosage`, `quantity`, `start_date`, `end_date`, `instructions` | `updateMedication`           |
+| PUT    | `/medications/:userId/:medicationId/is-taken`| User     | `userId`, `medicationId`      | —                                                                      | `tickOffMedication`          |
+| PUT    | `/medications/:userId/:id/refill`           | User      | `userId`, `id`                | `quantity`                                                             | `refillMedication`           |
+| PUT    | `/medications/:userId/:id/missed`           | User      | `userId`, `id`                | —                                                                      | `markMedicationAsMissed`     |
+| DELETE | `/medications/:userId/:medicationId`        | User      | `userId`, `medicationId`      | —                                                                      | `deleteMedication`           |
+
+
 ### Feedback API
 
 | Request                       | URL                      | User Type   | Path Parameters   | Query Parameters  | Body Parameters   |
