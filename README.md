@@ -93,7 +93,7 @@
 | `GET`       | `/alerts/search`              | User        | —                      | `title`, `category`       | —                                  |
 | `GET`       | `/alerts/readstatus/:id`      | User        | `id` = UserID          | —                         | —                                  |
 | `POST`      | `/alerts/updatestatus/:id`    | User        | `id` = AlertID         | —                         | `status` (`true` / `false`)       |
-| `POST`      | `/alerts/checkhasnoties/:id`  | User        | `id` = AlertID         | —                         | —                                  |
+| `POST`      | `/alerts/checkhasnoties/:id`  | User        | `id` = AlertID         | —                         | `UserID`                                  |
 | `POST`      | `/alerts`                     | Admin       | —                      | —                         | `title`, `catergory`, `severity`,`description`           |
 | `PUT`       | `/alerts/:id`                 | Admin       | `id` = AlertID         | —                         | `title`, `catergory`, `severity`,`description`           |
 | `PUT`       | `/alerts/delete/:id`          | Admin       | `id` = AlertID         | —                         | —                                  |
