@@ -174,6 +174,7 @@ function displayDailyAppointments(dateKey) {
         li.className = `appointment-item ${getStatusClass(appt.status)}`;
         li.innerHTML = `
             <div class="appointment-details">
+                ${formatDateFancy(dateKey)} <br>
                 <strong>${appt.title}</strong> <br>
                 Time: ${formatTimeForDisplay(appt.startTime)} - ${formatTimeForDisplay(appt.endTime)} <br>
                 Doctor: ${appt.doctor} <br>
