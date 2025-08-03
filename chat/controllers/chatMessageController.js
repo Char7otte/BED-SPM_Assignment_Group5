@@ -6,6 +6,7 @@ async function getAllMessagesInAChat(req, res) {
     try {
         const { id, role } = req.user;
         const chatID = req.params.chatID;
+        const isClosed = req.chatStatusClosed ? true : false;
 
         const chat = await chatModel.getChatByID(chatID); //This query can't be inner joined with the chat messages query in the event there are no chat messages sent
         const title = chat.title;
@@ -32,7 +33,8 @@ async function getAllMessagesInAChat(req, res) {
                     break;
             }
         });
-        return res.render("chat/oneChat", { chatID, messageData: messages, title, userID: id, userRole: role });
+
+        return res.render("chat/oneChat", { chatID, messageData: messages, title, userID: id, userRole: role, isClosed });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error getting chat messages");

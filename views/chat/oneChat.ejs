@@ -24,6 +24,7 @@
                                         Return
                                     </button>
                                 </form>
+                                <% if (!isClosed) { %>
                                 <form action="/chats/status/<%=  chatID %>?_method=PATCH" method="POST" class="is-inline-block">
                                     <button type="submit" class="button is-outlined is-primary">
                                         <span class="icon button-icon">
@@ -32,6 +33,7 @@
                                         Mark as answered
                                     </button>
                                 </form>
+                                <% } %>
                             </section>
                             <div class="fixed-grid has-1-cols">
                                 <div class="grid">
@@ -45,6 +47,7 @@
                             </div>
                         </section>
                         <section class="messaging mt-2">
+                            <% if (!isClosed) { %>
                             <form action="/chats/<%= chatID %>" method="POST">
                                 <input type="text" hidden value="<%= userID %>" name="senderID" />
                                 <div class="field">
@@ -59,6 +62,9 @@
                                     </div>
                                 </div>
                             </form>
+                            <% }else {%>
+                            <p class="title mb-2">This chat has been marked as Answered. No further messages can be sent.</p>
+                            <% } %>
                         </section>
                     </div>
                     <div class="column"></div>

@@ -153,7 +153,7 @@ app.post("/chats/create/:userID", verifyJWT, onlyAllowUser, validateUserID, chat
 app.patch("/chats/delete/:chatID", verifyJWT, validateChatID, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
 app.patch("/chats/status/:chatID", verifyJWT, validateChatID, chatController.markChatAsAnswered);
 
-app.get("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.getAllMessagesInAChat);
+app.get("/chats/:chatID", verifyJWT, validateChatID, chatController.checkIfChatIsAnswered, chatMessageController.getAllMessagesInAChat);
 app.post("/chats/:chatID", verifyJWT, validateChatID, validateSenderID, validateChatMessage, chatMessageController.createMessage);
 app.patch("/chats/:chatID", verifyJWT, validateChatID, validateChatMessage, chatMessageController.editMessage);
 app.delete("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.deleteMessage);

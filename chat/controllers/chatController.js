@@ -76,10 +76,26 @@ async function markChatAsAnswered(req, res) {
     }
 }
 
+async function checkIfChatIsAnswered(req, res, next) {
+    try {
+        const chatID = req.params.chatID;
+        const chat = await chatModel.getChatByID(chatID);
+
+        if (!chat) return res.status(404).send("Chat not found");
+        if (chat.chat_status == "Closed") req.chatStatusClosed = true;
+
+        next();
+    } catch (error) {
+        console.error("Controller error: ", error);
+        return res.status(500).send("Error verifying chat status");
+    }
+}
+
 module.exports = {
     getAllChats,
     getChatByID,
     createChat,
     deleteChat,
     markChatAsAnswered,
+    checkIfChatIsAnswered,
 };
