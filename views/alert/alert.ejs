@@ -2,26 +2,50 @@
 <html lang="en">
 <head>
   <%- include('../partials/head') %>
-  <title>Alert Page</title>
+  <a href="#"><title>📢Alertify</title></a>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/alert.css">
 </head>
 <body>
   <%- include('../partials/navbar') %>
   <div class="main-container">
-    <div class="d-flex justify-content-end mb-3">
-      <form class="d-flex" role="search" onsubmit="handleSearch(event)">
+    <div class="top-container">
+      <div class="name-container">
+        <a href="/alert" class="no-underline"><h1 class="text-center mb-4 name-con">📢Alertify</h1></a>
+      </div>
+      <div class="d-flex justify-content-end mb-3 search-con">
+        <form class="d-flex" role="search" onsubmit="handleSearch(event)">
   <input class="form-control me-2" id="searchInput" type="search" placeholder="Search alerts..." aria-label="Search">
   <button class="btn btn-outline-primary" type="submit">Search</button>
     </form>
     </div>
+  </div>
     <div class="sub-container">
       <div class="alert-box" id="alert-box">
         <!-- Alert content -->
       </div>
-    </div>
-  </div>
+      <div class = "line-down" ></div>
 
+      <div class="alert-box-right" id="alert-box-right">
+        <form id="quick-note-form" class="mb-3">
+          <div class="mb-2">
+            <label for="quickNote" class="form-label">Quick Note📝</label>
+            <input type="text" class="form-control mb-2" id="noteTitle" name="noteTitle" placeholder="Title">
+            <textarea class="form-control" id="quickNote" name="quickNote" rows="3" placeholder="Type your note here..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-warning submit-quick-note">Add Note📝</button>
+        </form>
+        <div id="quick-notes-list"></div>
+        <div class = "upcoming-med" id = "upcoming-med">
+          <h3 class="text-center">💊Upcoming Medication💊</h3>
+          <div class="medication-list">
+           </div>
+          <div class="text-center">
+            <button class="btn btn-secondary" id="view-all-medications">View All Medications</button>
+          </div>  
+      </div>
+  </div>
+</div>
   <!-- Correct place for JS -->
   <script src="/js/alert.js" defer></script>
   <%- include('../partials/footer') %>

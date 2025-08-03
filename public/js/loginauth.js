@@ -12,10 +12,8 @@ document.getElementById("logbtn").addEventListener("click", login);
 document.getElementById("regbtn").addEventListener("click", register);
 
 function login() {
-    console.log("Login button clicked");
-
-    const username = document.getElementById("logname").value;
-    const password = document.getElementById("logpass").value;
+    const username = document.getElementById("logname").value.trim();
+    const password = document.getElementById("logpass").value.trim();
     console.log(username, password);
 
     fetch(`${apiurl}/users/login`, {
@@ -62,12 +60,11 @@ async function displayJWT() {
 }
 
 async function register() {
-    console.log("Register button clicked");
-    const username = document.getElementById("regname").value;
-    const phone_number = document.getElementById("regnum").value;
-    const password = document.getElementById("regpass").value;
-    const gender = document.getElementById("reggender").value;
-    const age = document.getElementById("regage").value;
+    const username = document.getElementById("regname").value.trim();
+    const phone_number = document.getElementById("regnum").value.trim();
+    const password = document.getElementById("regpass").value.trim();
+    const gender = document.getElementById("reggender").value.trim();
+    const age = document.getElementById("regage").value.trim();
     console.log(username, phone_number, password, gender, age);
 
     const response = await fetch(`${apiurl}/users/register`, {
