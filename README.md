@@ -88,15 +88,16 @@
 
 ### Alerts API Routes
 
-| Request                          | URL                            | Path Parameters       | Body Parameters                    |
-|----------------------------------|--------------------------------|------------------------|------------------------------------|
-| `GET` Search alerts              | `/alerts/search`              | —                      | `title`, `category` (query)        |
-| `GET` Get read status            | `/alerts/readstatus/:id`      | `id` = UserID          | —                                  |
-| `POST` Update read status        | `/alerts/updatestatus/:id`    | `id` = AlertID         | `status` (`read` / `unread`)       |
-| `POST` Check notes added         | `/alerts/checkhasnoties/:id`  | `id` = AlertID         | —                                  |
-| `POST` Create new alert          | `/alerts`                     | —                      | `title`, `content`, etc.           |
-| `PUT` Update alert               | `/alerts/:id`                 | `id` = AlertID         | `title`, `content`, etc.           |
-| `PUT` Delete alert               | `/alerts/delete/:id`          | `id` = AlertID         | —                                  |
-| `GET` Get all alerts             | `/alerts`                     | —                      | —                                  |
-| `GET` Get alert by ID            | `/alerts/:id`                 | `id` = AlertID         | —                                  |
+| Request     | URL                            | User Type   | Path Parameters       | Query Parameters         | Body Parameters                    |
+|-------------|--------------------------------|-------------|------------------------|---------------------------|------------------------------------|
+| `GET`       | `/alerts/search`              | User        | —                      | `title`, `category`       | —                                  |
+| `GET`       | `/alerts/readstatus/:id`      | User        | `id` = UserID          | —                         | —                                  |
+| `POST`      | `/alerts/updatestatus/:id`    | User        | `id` = AlertID         | —                         | `status` (`true` / `false`)       |
+| `POST`      | `/alerts/checkhasnoties/:id`  | User        | `id` = AlertID         | —                         | —                                  |
+| `POST`      | `/alerts`                     | Admin       | —                      | —                         | `title`, `catergory`, `severity`,`description`           |
+| `PUT`       | `/alerts/:id`                 | Admin       | `id` = AlertID         | —                         | `title`, `catergory`, `severity`,`description`           |
+| `PUT`       | `/alerts/delete/:id`          | Admin       | `id` = AlertID         | —                         | —                                  |
+| `GET`       | `/alerts`                     | All         | —                      | —                         | —                                  |
+| `GET`       | `/alerts/:id`                 | All         | `id` = AlertID         | —                         | —                                  |
+
 
