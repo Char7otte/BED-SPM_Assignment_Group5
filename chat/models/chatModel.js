@@ -31,7 +31,11 @@ async function getAllChatsByHelpeeID(userID) {
     let connection;
     try {
         connection = await sql.connect(config);
-        const query = `SELECT * FROM Chats WHERE helpee_id = @userID`;
+        const query = `SELECT c.*, u.username
+        FROM Chats c
+        INNER JOIN Users u
+        ON c.helpee_id = u.user_id
+        WHERE is_deleted = 0 and helpee_id = @userID
         const request = connection.request();
         request.input("userID", userID);
         const result = await request.query(query);
