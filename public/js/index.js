@@ -140,6 +140,37 @@ async function weather() {
                 xtraInfo.innerText = "It's a sunny day! Enjoy the weather! ☀️";
             }
         }
+        else {
+            const xtraInfo = document.getElementsByClassName('xtra-info')[0];
+            if (xtraInfo) {
+                const messages = [
+                    "Such a weather isn't it? 🌤️, go for a walk!",
+                    "Perfect time for a stroll outside! 🚶‍♂️",
+                    "Enjoy the fresh air today! 🌳",
+                    "Maybe read a book by the window? 📖",
+                    "Take a moment to relax and unwind! 😌",
+                    "Call a friend and catch up! 📞",
+                    "Try a new recipe today! 🍲",
+                    "Listen to your favorite music! 🎶",
+                    "Do some gentle stretching exercises! 🧘‍♂️",
+                    "Write in your journal or diary! 📝",
+                    "Watch a classic movie! 🎬",
+                    "Try a puzzle or brain game! 🧩",
+                    "Enjoy a cup of tea or coffee! ☕",
+                    "Take a nap and recharge! 😴",
+                    "Look at old photos and reminisce! 🖼️",
+                    "Do some gardening or water your plants! 🌱",
+                    "Practice deep breathing for relaxation! 🌬️",
+                    "Sketch or draw something! 🎨",
+                    "Feed the birds outside! 🐦",
+                    "Plan your week ahead! 📅",
+                    "Drink plenty of water to stay hydrated! 💧",
+                    "Drink a bo ohw o wo er to stay hydrated! 💧",
+                ];
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                xtraInfo.innerText = randomMsg;
+            }
+        }
 
     }
 
