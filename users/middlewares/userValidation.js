@@ -124,12 +124,18 @@ function onlyAllowUser(req, res, next) {
     next();
 }
 
+function onlyAllowAdmin(req, res, next) {
+    if (req.user.role != "A") return res.status(403).send("Forbidden");
+    next();
+}
+
 module.exports = {
     validateUserInput,
     validateUserInputForUpdate,
     verifyJWT,
     validateUserID,
     onlyAllowUser,
+    onlyAllowAdmin,
 };
 
 // --bed_spm db v1.05
