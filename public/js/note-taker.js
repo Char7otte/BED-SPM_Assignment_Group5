@@ -1,4 +1,5 @@
-let selectedNoteId = null;
+let selectedNoteIds = [];
+let lastSelectedIndex = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -63,26 +64,73 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        notes.forEach((note) => {
+        notes.forEach((note, index) => {
             const noteDiv = document.createElement('div');
             noteDiv.className = 'note-item';
             noteDiv.dataset.NoteID = note.NoteID;
             noteDiv.innerHTML = `
-            <strong>${note.NoteTitle}</strong><br>
-            <small>${note.NoteContent}...</small>
-        `;
+        <strong>${note.NoteTitle}</strong><br>
+        <small>${note.NoteContent}...</small>
+    `;
 
-            if (!selectedNoteId || note.NoteID !== selectedNoteId) {
-                noteDiv.addEventListener('click', async () => {
-                    selectedNoteId = note.NoteID;
-                    renderNoteList(notes); // no animation on selection
-                    updateDeleteButtonState();
-                    await loadNoteById(note.NoteID);
-                    console.log("Selected note ID:", selectedNoteId);
-                });
-            } else {
+            // Highlight if selected
+            if (selectedNoteIds.includes(note.NoteID)) {
                 noteDiv.classList.add('selected');
             }
+
+            noteDiv.addEventListener('click', async (e) => {
+                if (e.shiftKey && lastSelectedIndex !== null) {
+                    // Shift-click: select or unselect range
+                    const start = Math.min(lastSelectedIndex, index);
+                    const end = Math.max(lastSelectedIndex, index);
+                    const rangeIds = notes.slice(start, end + 1).map(n => n.NoteID);
+
+                    // Check if all in range are already selected
+                    const allSelected = rangeIds.every(id => selectedNoteIds.includes(id));
+                    if (allSelected) {
+                        // Unselect the range, but prevent unselecting the last note
+                        if (selectedNoteIds.length === rangeIds.length) {
+                            // Prevent unselecting all notes
+                            // Optionally, give feedback here
+                        } else {
+                            selectedNoteIds = selectedNoteIds.filter(id => !rangeIds.includes(id));
+                        }
+                    } else {
+                        // Select the range (merge with existing selection, no duplicates)
+                        selectedNoteIds = Array.from(new Set([...selectedNoteIds, ...rangeIds]));
+                    }
+                    lastSelectedIndex = index; // <-- Always update on shift-click
+                } else if (e.ctrlKey || e.metaKey) {
+                    // Ctrl/Cmd-click: toggle selection
+                    if (selectedNoteIds.includes(note.NoteID)) {
+                        if (selectedNoteIds.length === 1) {
+                            // Prevent unselecting the last note
+                        } else {
+                            selectedNoteIds = selectedNoteIds.filter(id => id !== note.NoteID);
+                        }
+                    } else {
+                        selectedNoteIds.push(note.NoteID);
+                    }
+                    lastSelectedIndex = index;
+                } else {
+                    // Single click: select only this note
+                    if (selectedNoteIds.length === 1 && selectedNoteIds[0] === note.NoteID) {
+                        // Do nothing: prevent unselecting the last note
+                    } else {
+                        selectedNoteIds = [note.NoteID];
+                        lastSelectedIndex = index;
+                    }
+                }
+                renderNoteList(notes);
+                updateDeleteButtonState();
+                if (selectedNoteIds.length === 1) {
+                    await loadNoteById(note.NoteID);
+                } else {
+                    noteTitleField.value = '';
+                    noteContentField.value = '';
+                }
+                console.log("Selected note IDs:", selectedNoteIds);
+            });
 
             noteListContainer.appendChild(noteDiv);
         });
@@ -229,6 +277,45 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchNotes(); // refresh note list
     });
 
+    // Delete button: Delete selected note
+    const deleteBtn = document.getElementById('toolbarDeleteBtn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            if (!selectedNoteIds.length) {
+                alert('No notes selected for deletion.');
+                return;
+            }
+            if (!confirm(`Are you sure you want to delete ${selectedNoteIds.length} note(s)?`)) {
+                return;
+            }
+            try {
+                const res = await fetch(`/notes-api/bulk`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ noteIds: selectedNoteIds })
+                });
+
+                if (!res.ok) {
+                    throw new Error('Failed to delete notes');
+                }
+
+                alert('Notes deleted successfully!');
+                selectedNoteIds = [];
+                fetchNotes(); // Refresh note list
+                noteTitleField.value = '';
+                noteContentField.value = '';
+                noteTitleField.readOnly = true;
+                noteContentField.readOnly = true;
+                updateDeleteButtonState();
+            } catch (err) {
+                console.error('Error deleting notes:', err);
+                alert('Error deleting notes.');
+            }
+        });
+    }
+
     // Edit button: Clear fields and set to editable, and disable delete button if no note selected
     const editBtn = document.getElementById('toolbarCreateBtn');
     editBtn.addEventListener('click', () => {
@@ -259,7 +346,7 @@ function updateDeleteButtonState() {
     const deleteBtn = document.getElementById('toolbarDeleteBtn');
     if (!deleteBtn) return;
 
-    if (selectedNoteId === null) {
+    if (!selectedNoteIds.length) {
         deleteBtn.disabled = true;
         deleteBtn.classList.add('disabled');
     } else {
