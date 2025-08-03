@@ -15,14 +15,21 @@ const alertController = require("./alert/controllers/alertController");
 const { validateAlert, validateAlertId } = require("./alert/middlewares/alertValidation");
 // Import functions from userRoutes
 const userController = require("./users/controllers/userController");
-const { validateUserInput, validateUserInputForUpdate, verifyJWT, validateUserID } = require("./users/middlewares/userValidation");
+const {
+    validateUserInput,
+    validateUserInputForUpdate,
+    verifyJWT,
+    validateUserID,
+    onlyAllowUser,
+    onlyAllowAdmin,
+} = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
 
 // Import chat functions
 const chatController = require("./chat/controllers/chatController");
 const chatMessageController = require("./chat/controllers/chatMessageController");
-const { validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase } = require("./chat/middleware/ChatValidation");
+const { validateChatID } = require("./chat/middleware/ChatValidation");
 const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
 
@@ -213,13 +220,15 @@ app.get("/users/logout", userController.logoutUser); // Get user roles by ID #ok
 //routes for chats
 
 app.get("/chats", verifyJWT, chatController.getAllChats);
-app.post("/chats/create/:userID", validateUserID, chatController.createChat);
-app.patch("/chats/delete/:chatID", validateChatID, checkIfChatIDIsInDatabase, checkIfChatIsDeletedInDatabase, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
+app.post("/chats/create/:userID", verifyJWT, onlyAllowUser, validateUserID, chatController.createChat);
+app.patch("/chats/delete/:chatID", verifyJWT, validateChatID, chatController.deleteChat); //This is patch in order to maintain the chat in the backend.
+app.patch("/chats/status/:chatID", verifyJWT, validateChatID, chatController.markChatAsAnswered);
+app.get("/chats/closed", chatController.searchClosedChats);
 
-app.get("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.getAllMessagesInAChat);
-app.post("/chats/:chatID", validateChatID, validateSenderID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.createMessage);
-app.patch("/chats/:chatID", validateChatID, validateChatMessage, checkIfChatIDIsInDatabase, chatMessageController.editMessage);
-app.delete("/chats/:chatID", validateChatID, checkIfChatIDIsInDatabase, chatMessageController.deleteMessage);
+app.get("/chats/:chatID", verifyJWT, validateChatID, chatController.checkIfChatIsAnswered, chatMessageController.getAllMessagesInAChat);
+app.post("/chats/:chatID", verifyJWT, validateChatID, validateSenderID, validateChatMessage, chatMessageController.createMessage);
+app.patch("/chats/:chatID", verifyJWT, validateChatID, validateChatMessage, chatMessageController.editMessage);
+app.delete("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.deleteMessage);
 
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
