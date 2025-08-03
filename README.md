@@ -1,4 +1,4 @@
-# BED & SPM Assignment Group 5
+# BED & SPM Assignment Group 5 :bubble_tea:
 
 ## Install node dependencies
 
