@@ -6,6 +6,7 @@ const methodOverride = require("method-override");
 const cookieParser = require("cookie-parser");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
+const router = express.Router();
 
 dotenv.config();
 
@@ -271,6 +272,11 @@ app.get("/calendar", (req, res) => {
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
 app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
+
+// Trivia Quiz 3rd Party routes
+app.get('/trivia', (req, res) => {
+  res.render('trivia-quiz/trivia');
+});
 
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

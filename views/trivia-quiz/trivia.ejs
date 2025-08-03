@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("../partials/head") %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia Game - The Old People App</title>
+  <link rel="stylesheet" href="/css/trivia.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+  <div id="app">
+    <!-- Header with navigation -->
+    <header class="trivia-header">
+      <a href="/homepage" class="back-link">← Back to Home</a>
+      <h1>🎉 Trivia Time!</h1>
+      <p class="subtitle">Test your knowledge with fun questions across different categories</p>
+    </header>
+
+    <!-- Main quiz container -->
+    <div id="question-box" class="quiz-container">
+      <div id="question" class="question-text">
+        Welcome! Choose a category to begin your trivia adventure.
+      </div>
+      
+      <ul id="answers" class="answers-list"></ul>
+      
+      <div id="feedback" class="feedback-message"></div>
+      
+      <div class="quiz-controls">
+        <button id="next-btn" class="next-button" style="display:none;">
+          Next Question →
+        </button>
+      </div>
+    </div>
+
+    <!-- Instructions for elderly users -->
+    <div class="instructions">
+      <h3>How to Play:</h3>
+      <ul>
+        <li>🎯 Choose your favorite category</li>
+        <li>📊 Select your preferred difficulty level</li>
+        <li>📖 Read each question carefully</li>
+        <li>🖱️ Click on your answer choice</li>
+        <li>✅ See if you got it right!</li>
+        <li>➡️ Click "Next Question" to continue</li>
+        <li>🔄 Try different categories and difficulties!</li>
+      </ul>
+      
+      <div class="categories-info">
+        <h4>Available Categories:</h4>
+        <div class="category-list">
+          <span class="category-tag">🧠 General Knowledge</span>
+          <span class="category-tag">🎵 Music</span>
+          <span class="category-tag">🎬 Film</span>
+          <span class="category-tag">📚 History</span>
+          <span class="category-tag">🌍 Geography</span>
+          <span class="category-tag">🏛️ Politics</span>
+        </div>
+      </div>
+      
+      <div class="difficulty-info">
+        <h4>Difficulty Levels:</h4>
+        <div class="difficulty-list">
+          <span class="difficulty-tag easy">🟢 Easy - Perfect for beginners</span>
+          <span class="difficulty-tag medium">🟡 Medium - A good challenge</span>
+          <span class="difficulty-tag hard">🔴 Hard - For trivia experts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score tracking (you can add this later) -->
+    <div id="score-display" class="score-display" style="display:none;">
+      <span id="current-score">Score: 0/0</span>
+    </div>
+  </div>
+
+  <script src="/js/trivia.js"></script>
+<%- include("../partials/footer") %></body>
+</html>

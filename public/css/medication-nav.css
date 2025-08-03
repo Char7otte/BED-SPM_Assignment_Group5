@@ -1,0 +1,228 @@
+/* Breadcrumb Navigation Styling */
+.breadcrumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  margin-bottom: 0;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.breadcrumb-item {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.breadcrumb-item a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
+.breadcrumb-item a:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.breadcrumb-item.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0 8px;
+}
+
+/* Medication Navigation Tabs Styling */
+.medication-nav-tabs {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 1px solid #e8ecf3;
+}
+
+.medication-nav-tabs .nav-tabs {
+  border-bottom: none;
+  margin-bottom: 0;
+  background: #f8fafc;
+  padding: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.medication-nav-tabs .nav-item {
+  flex: 1;
+}
+
+.medication-nav-tabs .nav-link {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  text-decoration: none;
+  display: block;
+}
+
+.medication-nav-tabs .nav-link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transform: translateY(-1px);
+}
+
+.medication-nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  font-weight: 600;
+}
+
+.medication-nav-tabs .nav-link.active::before {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 2px;
+}
+
+/* Icon additions for nav links */
+.medication-nav-tabs .nav-link[href="/medications"]::before {
+  content: "📋 ";
+  margin-right: 6px;
+}
+
+.medication-nav-tabs .nav-link[href="/medications/daily"]::before {
+  content: "📅 ";
+  margin-right: 6px;
+}
+
+.medication-nav-tabs .nav-link[href="/medications/weekly"]::before {
+  content: "📊 ";
+  margin-right: 6px;
+}
+
+.medication-nav-tabs .nav-link[href="/medications/create"]::before {
+  content: "➕ ";
+  margin-right: 6px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .breadcrumb {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+  
+  .breadcrumb-item + .breadcrumb-item::before {
+    padding: 0 6px;
+  }
+  
+  .medication-nav-tabs .nav-tabs {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .medication-nav-tabs .nav-link {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+  
+  .medication-nav-tabs .nav-link::before {
+    display: none; /* Hide icons on mobile for cleaner look */
+  }
+}
+
+@media (max-width: 576px) {
+  .breadcrumb {
+    padding: 8px 12px;
+    margin-left: -15px;
+    margin-right: -15px;
+    border-radius: 0;
+  }
+  
+  .medication-nav-tabs {
+    margin-left: -15px;
+    margin-right: -15px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  .medication-nav-tabs .nav-tabs {
+    padding: 6px;
+  }
+  
+  .medication-nav-tabs .nav-link {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Animation for smooth transitions */
+.medication-nav-tabs .nav-link {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced container spacing */
+.container > nav[aria-label="breadcrumb"] {
+  margin-top: 20px;
+}
+
+.medication-nav-tabs + .card,
+.medication-nav-tabs + .alert,
+.medication-nav-tabs + .daily-header,
+.medication-nav-tabs + .weekly-header {
+  margin-top: 25px;
+}
+
+/* Loading state for nav links */
+.medication-nav-tabs .nav-link.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.medication-nav-tabs .nav-link.loading::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
