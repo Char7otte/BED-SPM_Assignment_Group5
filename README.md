@@ -86,3 +86,17 @@
 | `DELETE` Delete a feedback    | `/feedback/:feedback_id`      | User  | `feedback_id` | 
 | `DELETE` Delete user feedback | `/feedback/admin/:feedback_id`| Admin | `feedback_id` |
 
+### Alerts API Routes
+
+| Request                          | URL                            | Path Parameters       | Body Parameters                    |
+|----------------------------------|--------------------------------|------------------------|------------------------------------|
+| `GET` Search alerts              | `/alerts/search`              | —                      | `title`, `category` (query)        |
+| `GET` Get read status            | `/alerts/readstatus/:id`      | `id` = UserID          | —                                  |
+| `POST` Update read status        | `/alerts/updatestatus/:id`    | `id` = AlertID         | `status` (`read` / `unread`)       |
+| `POST` Check notes added         | `/alerts/checkhasnoties/:id`  | `id` = AlertID         | —                                  |
+| `POST` Create new alert          | `/alerts`                     | —                      | `title`, `content`, etc.           |
+| `PUT` Update alert               | `/alerts/:id`                 | `id` = AlertID         | `title`, `content`, etc.           |
+| `PUT` Delete alert               | `/alerts/delete/:id`          | `id` = AlertID         | —                                  |
+| `GET` Get all alerts             | `/alerts`                     | —                      | —                                  |
+| `GET` Get alert by ID            | `/alerts/:id`                 | `id` = AlertID         | —                                  |
+
