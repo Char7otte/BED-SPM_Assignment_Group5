@@ -16,12 +16,12 @@ const { validateAlert, validateAlertId } = require("./alert/middlewares/alertVal
 // Import functions from userRoutes
 const userController = require("./users/controllers/userController");
 const {
-    validateUserInput,
-    validateUserInputForUpdate,
-    verifyJWT,
-    validateUserID,
-    onlyAllowUser,
-    onlyAllowAdmin,
+  validateUserInput,
+  validateUserInputForUpdate,
+  verifyJWT,
+  validateUserID,
+  onlyAllowUser,
+  onlyAllowAdmin,
 } = require("./users/middlewares/userValidation");
 const { authenticateToken } = require("./users/middlewares/auth");
 
@@ -52,7 +52,7 @@ const {
 
 // Import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
-const { validateNoteInput, validateNoteID, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
+const { validateNoteInput, validateNoteID, validateCreateNoteInput, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
 
 
 const jwt = require("jsonwebtoken");
@@ -111,7 +111,7 @@ app.get('/homepage', (req, res) => {
   res.render('index', { user: res.locals.user });
 });
 app.get('/admin', (req, res) => {
-    res.render('indexadmin', { user: res.locals.user });
+  res.render('indexadmin', { user: res.locals.user });
 });
 
 // Alert routes
@@ -147,25 +147,25 @@ app.get("/calendar", (req, res) => {
 
 // Medication tracker routes
 app.get("/medications", (req, res) => {
-    res.render("medication-tracker/all-medications");
+  res.render("medication-tracker/all-medications");
 });
 app.get("/medications/daily", (req, res) => {
-    res.render("medication-tracker/daily_medication");
+  res.render("medication-tracker/daily_medication");
 });
 app.get("/medications/weekly", (req, res) => {
-    res.render("medication-tracker/weekly_medication");
+  res.render("medication-tracker/weekly_medication");
 });
 app.get("/medications/create", (req, res) => {
-    res.render("medication-tracker/create-medication");
+  res.render("medication-tracker/create-medication");
 });
+
 
 app.get('/medications/edit/:id', (req, res) => {
   res.render('medication-tracker/edit-medication');
 });
-  
 // Route to serve the notes page
 app.get('/notes', (req, res) => {
-  res.render('note-taker/notes');
+  res.render('note-taker/notes', { user: res.locals.user });
 });
 
 // Feedback routes
@@ -199,7 +199,7 @@ app.get('/credits', (req, res) => {
 
 // ===== ALERTS ROUTES ===== //
 // --- User-specific Operations --- //
-app.get("/alerts/search",verifyJWT, alertController.searchAlerts); // Search by title/category
+app.get("/alerts/search", verifyJWT, alertController.searchAlerts); // Search by title/category
 app.get("/alerts/readstatus/:id", verifyJWT, alertController.getreadAlerts); // Get read status
 app.post("/alerts/updatestatus/:id", verifyJWT, validateAlertId, alertController.updateAlertStatus); // Mark as read/unread
 app.post("/alerts/checkhasnoties/:id", verifyJWT, alertController.checkHasNotiesAdded); // Check if alert has notes
@@ -273,7 +273,7 @@ app.get("/notes-api", noteTakerController.getAllNotes);
 app.delete("/notes-api/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
 app.get("/notes-api/search", noteTakerController.searchNotes);
 app.get("/notes-api/:id", validateNoteID, noteTakerController.getNotesById);
-app.post("/notes-api", noteTakerController.createNote);
+app.post("/notes-api", validateCreateNoteInput, noteTakerController.createNote);
 app.delete("/notes-api/:id", validateNoteID, noteTakerController.deleteNote);
 app.put("/notes-api/:id", validateNoteInput, noteTakerController.updateNote);
 app.get("/notes-api/export-md/:id", noteTakerController.exportNoteAsMarkdown);

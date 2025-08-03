@@ -5,8 +5,8 @@ const { parse } = require("dotenv");
 
 const schema = joi.object({
     user_id: joi.number().integer().positive().required(),
-    NoteTitle: joi.string().min(1).max(100).required(),
-    NoteContent: joi.string().min(1).max(5000).required()
+    NoteTitle: joi.string().min(1).required(),
+    NoteContent: joi.string().min(1).required()
 });
 
 const idSchema = joi.object({
@@ -24,10 +24,30 @@ function validateNoteID(req, res, next) {
     next();
 }
 
+const createNoteSchema = joi.object({
+    NoteTitle: joi.string().allow('').required(),
+    NoteContent: joi.string().allow('').required()
+});
+
+function validateCreateNoteInput(req, res, next) {
+    const { error } = createNoteSchema.validate(req.body);
+    console.log("Validating create note input:", req.body);
+    if (error) {
+        console.log("Validation error:", error.details[0].message);
+        return res.status(400).json({ message: error.details[0].message });
+    }
+    next();
+}
+
+const noteInputSchema = joi.object({
+    NoteTitle: joi.string().allow('').required(),
+    NoteContent: joi.string().allow('').required()
+});
+
 function validateNoteInput(req, res, next) {
     //user_id, NoteTitle, NoteContent, CreatedDate, LastEditedDate
 
-    const { error } = schema.validate(req.body);
+    const { error } = noteInputSchema.validate(req.body);
     if (error) {
         console.log("Validation error:", error.details[0].message);
         return res.status(400).json({ message: error.details[0].message });
@@ -61,5 +81,6 @@ function bulkValidateNoteIDs(req, res, next) {
 module.exports = {
     validateNoteID,
     bulkValidateNoteIDs,
-    validateNoteInput
+    validateNoteInput,
+    validateCreateNoteInput
 };
