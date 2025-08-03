@@ -27,7 +27,7 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 if (token) {
@@ -90,6 +90,18 @@ function getStatusBadgeClass(status) {
     return normalizedStatus === 'Reviewed' ? 'success' : 'warning';
 }
 
+function formatDateFancy(dateString) {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayName = days[dateObj.getDay()];
+    const day = dateObj.getDate();
+    const month = months[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    return `${dayName}, ${day} ${month} ${year}`;
+}
+
 // Function to display feedback items
 function displayFeedbackItems(feedbackList) {
     // Clear previous content
@@ -140,11 +152,7 @@ function displayFeedbackItems(feedbackList) {
                     }
 
                     if (!isNaN(date.getTime())) {
-                        formattedDate = date.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        });
+                        formattedDate = formatDateFancy(date);
                     } else {
                         formattedDate = 'Invalid date';
                     }
@@ -253,7 +261,6 @@ async function fetchAllFeedback() {
         feedbackDiv.innerHTML = "Loading all feedback..."; // Show loading state
         messageDiv.textContent = ""; // Clear any previous messages
 
-        // Make a GET request to your API endpoint for all feedback
         const response = await fetch(`${apiBaseUrl}/feedback/admin`);
 
         if (!response.ok) {

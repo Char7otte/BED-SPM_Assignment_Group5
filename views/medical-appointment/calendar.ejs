@@ -3,7 +3,6 @@
 <head>
     <%- include("../partials/head") %>
     <link rel="stylesheet" href="/css/calendar.css" type="text/css">
-    <script src="/js/calendar.js" defer></script> <!-- moved here since it cannot load at the end of the <body> -->
     <title>Medical Appointment Calendar</title>
 </head>
 <body>
@@ -41,8 +40,8 @@
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <button onclick="renderAllAppointments()" style="background-color: #6c2fd3; color: white;">View All Appointments</button>
-                <button onclick="openNewAppointment()" style="background: #2ecc71;">+ Add</button> 
+                <button onclick="renderAllAppointments()" style="background-color: #19899e; color: white;">View All Appointments</button>
+                <button onclick="openNewAppointment()" style="background: #1c458c;">+ Add</button> 
             </div>
             
             <div id="monthly-appointments">
@@ -60,6 +59,15 @@
                 <button onclick="changeMonth(1)">Next Month →</button>
             </div>
 
+            <div id="calendar-days-row" class="calendar-days-row">
+                <div class="calendar-day-name">Sunday</div>
+                <div class="calendar-day-name">Monday</div>
+                <div class="calendar-day-name">Tuesday</div>
+                <div class="calendar-day-name">Wednesday</div>
+                <div class="calendar-day-name">Thursday</div>
+                <div class="calendar-day-name">Friday</div>
+                <div class="calendar-day-name">Saturday</div>
+            </div>
             <div id="calendar"></div> <!-- Calendar grid goes here -->
         </div>
     </div>
@@ -86,6 +94,6 @@
             <button onclick="closeModal()">Cancel</button>
         </div>
     </div>
-
-    <%- include("../partials/footer") %></body>
+    <%- include("../partials/footer") %></body>   
+    <script src="/js/calendar.js"></script> 
 </html>

@@ -1,4 +1,15 @@
-const TEST_USER_ID = 8; // Global constant for consistent user ID
+function getCurrentUserId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const decoded = decodeJwtPayload(token);
+        return decoded ? decoded.id : null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+}
 
 function decodeJwtPayload(token) {
     try {
@@ -19,14 +30,7 @@ function isTokenExpired(token) {
 }
 
 function checkAuth() {
-    // Skip authentication for testing with TEST_USER_ID
-    if (TEST_USER_ID === 8) {
-        console.log('Test mode - skipping authentication');
-        return true;
-    }
-    
     const token = localStorage.getItem('token');
-    console.log("Token from localStorage:", token);
     
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem('token');
@@ -48,26 +52,47 @@ function checkAuth() {
     return true;
 }
 
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/login';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Check authentication first
   if (!checkAuth()) {
     return; // Stop execution if not authenticated
   }
   
-  // Skip authentication for testing - use hardcoded user ID
+  // Get current user ID from token
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('Unable to get user information. Please log in again.', 'danger');
+    logout();
+    return;
+  }
+  
   try {
     // Initialize current date display
     updateCurrentDate();
     
     // Load daily medications
-    loadDailyMedications(TEST_USER_ID);
+    loadDailyMedications(currentUserId);
     
     // Setup event listeners
-    setupEventListeners(TEST_USER_ID);
+    setupEventListeners(currentUserId);
     
     // Initialize notification system
     if (window.medicationNotificationSystem) {
-      window.medicationNotificationSystem.setUserId(TEST_USER_ID);
+      window.medicationNotificationSystem.setUserId(currentUserId);
     }
     
   } catch (error) {
@@ -75,11 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
     showAlert('Failed to initialize application. Please refresh the page.', 'danger');
   }
 });
-
-function logout() {
-  // For testing, just redirect to a placeholder or reload page
-  window.location.reload();
-}
 
 function showAlert(message, type = 'success') {
   let alertContainer = document.getElementById('alert-container');
@@ -128,138 +148,306 @@ function updateCurrentDate() {
 
 async function loadDailyMedications(userId) {
   try {
-    // Remove authorization header for testing
+    // Show loading state
+    const loadingMessage = document.getElementById('loading-message');
+    if (loadingMessage) {
+      loadingMessage.style.display = 'block';
+      loadingMessage.innerHTML = '<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Loading medications...</div>';
+    }
+    
     const response = await fetch(`/medications/user/${userId}/daily`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        showAlert('Session expired. Please log in again.', 'danger');
+        logout();
+        return;
+      }
       if (response.status === 404) {
+        // No medications found - display empty state
         displayDailyMedications([]);
+        if (loadingMessage) {
+          loadingMessage.style.display = 'none';
+        }
         return;
       }
       const errorText = await response.text();
       throw new Error(`Server error: ${response.status} - ${errorText}`);
     }
     
-    const medications = await response.json();
+    const data = await response.json();
+    
+    // Validate that data is an array
+    let medications = [];
+    if (Array.isArray(data)) {
+      medications = data;
+    } else if (data && Array.isArray(data.medications)) {
+      medications = data.medications;
+    } else if (data && typeof data === 'object') {
+      console.warn('Unexpected response format:', data);
+      // Try to extract medications from common response patterns
+      if (data.data && Array.isArray(data.data)) {
+        medications = data.data;
+      } else if (data.results && Array.isArray(data.results)) {
+        medications = data.results;
+      } else {
+        throw new Error('Invalid response format: medications data is not an array');
+      }
+    } else {
+      throw new Error('Invalid response format: expected array or object with medications');
+    }
+    
+    console.log('Loaded medications:', medications); // Debug log
+    
     displayDailyMedications(medications);
+    
+    // Check for reminders
+    checkReminders(userId);
+    
+    // Hide loading message
+    if (loadingMessage) {
+      loadingMessage.style.display = 'none';
+    }
     
   } catch (error) {
     console.error('Error loading daily medications:', error);
-    showAlert(error.message, 'danger');
+    const loadingMessage = document.getElementById('loading-message');
+    if (loadingMessage) {
+      loadingMessage.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fa fa-exclamation-triangle"></i>
+          Error loading medications: ${error.message}
+          <br><button class="btn btn-sm btn-primary" onclick="location.reload()">Retry</button>
+        </div>
+      `;
+    }
+    showAlert(`Error loading medications: ${error.message}`, 'danger');
   }
 }
 
 function displayDailyMedications(medications) {
-  const timeContainers = {
-    morning: document.getElementById('morning-meds-container'),
-    afternoon: document.getElementById('afternoon-meds-container'),
-    evening: document.getElementById('evening-meds-container'),
-    night: document.getElementById('night-meds-container')
-  };
+  const loadingMessage = document.getElementById('loading-message');
+  const noMedsMessage = document.getElementById('no-medications-message');
+  const errorMessage = document.getElementById('error-message');
   
-  // Clear all containers
-  Object.values(timeContainers).forEach(container => {
-    if (container) container.innerHTML = '';
-  });
+  // Hide all status messages
+  if (loadingMessage) loadingMessage.style.display = 'none';
+  if (noMedsMessage) noMedsMessage.style.display = 'none';
+  if (errorMessage) errorMessage.style.display = 'none';
   
-  if (!medications || medications.length === 0) {
-    Object.values(timeContainers).forEach(container => {
-      if (container) {
-        container.innerHTML = '<p class="no-medications">No medications scheduled</p>';
-      }
+  // Validate medications is an array
+  if (!Array.isArray(medications)) {
+    console.error('displayDailyMedications: medications is not an array', medications);
+    showAlert('Error: Invalid medication data format', 'danger');
+    return;
+  }
+  
+  if (medications.length === 0) {
+    // Show no medications message
+    const noMedsDiv = document.createElement('div');
+    noMedsDiv.className = 'no-medications';
+    noMedsDiv.innerHTML = `
+      <div class="alert alert-info">
+        <h4><i class="fa fa-info-circle"></i> No medications scheduled for today</h4>
+        <p>You don't have any medications scheduled for today.</p>
+        <a href="/medications/create" class="btn btn-primary">Add Medication</a>
+      </div>
+    `;
+    
+    // Clear existing content
+    const containers = ['morning-medications', 'afternoon-medications', 'evening-medications', 'night-medications'];
+    containers.forEach(containerId => {
+      const container = document.getElementById(containerId);
+      if (container) container.innerHTML = '';
     });
+    
+    // Add to morning section
+    const morningContainer = document.getElementById('morning-medications');
+    if (morningContainer) {
+      morningContainer.appendChild(noMedsDiv);
+    }
+    
+    return;
+  }
+  
+  // Get current user ID for actions
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    showAlert('User authentication error', 'danger');
     return;
   }
   
   // Group medications by time of day
   const groupedMeds = groupMedicationsByTimeOfDay(medications);
   
-  Object.entries(groupedMeds).forEach(([timeOfDay, meds]) => {
-    const container = timeContainers[timeOfDay];
-    if (container && meds.length > 0) {
-      container.innerHTML = meds.map(med => createMedicationCard(med)).join('');
-    } else if (container) {
-      container.innerHTML = '<p class="no-medications">No medications scheduled</p>';
-    }
-  });
+  // Display medications in their respective time periods
+  displayTimeGroupMedications('morning-medications', groupedMeds.morning, 'Morning', currentUserId);
+  displayTimeGroupMedications('afternoon-medications', groupedMeds.afternoon, 'Afternoon', currentUserId);
+  displayTimeGroupMedications('evening-medications', groupedMeds.evening, 'Evening', currentUserId);
+  displayTimeGroupMedications('night-medications', groupedMeds.night, 'Night', currentUserId);
 }
 
 function groupMedicationsByTimeOfDay(medications) {
+  // Validate input
+  if (!Array.isArray(medications)) {
+    console.error('groupMedicationsByTimeOfDay: medications is not an array', medications);
+    return {
+      morning: [],
+      afternoon: [],
+      evening: [],
+      night: []
+    };
+  }
+  
   const grouped = {
-    morning: [],
-    afternoon: [],
-    evening: [],
-    night: []
+    morning: [],    // 6:00 AM - 11:59 AM
+    afternoon: [],  // 12:00 PM - 5:59 PM
+    evening: [],    // 6:00 PM - 9:59 PM
+    night: []       // 10:00 PM - 5:59 AM
   };
   
   medications.forEach(med => {
-    const time = med.medication_time;
-    const hour = parseInt(time.split(':')[0]);
-    
-    if (hour >= 6 && hour < 12) {
+    try {
+      const timeStr = med.medication_time || '12:00';
+      const timeParts = timeStr.split(':');
+      const hour = parseInt(timeParts[0]) || 12;
+      
+      if (hour >= 6 && hour < 12) {
+        grouped.morning.push(med);
+      } else if (hour >= 12 && hour < 18) {
+        grouped.afternoon.push(med);
+      } else if (hour >= 18 && hour < 22) {
+        grouped.evening.push(med);
+      } else {
+        grouped.night.push(med);
+      }
+    } catch (error) {
+      console.error('Error processing medication time:', med, error);
+      // Default to morning if there's an error
       grouped.morning.push(med);
-    } else if (hour >= 12 && hour < 17) {
-      grouped.afternoon.push(med);
-    } else if (hour >= 17 && hour < 21) {
-      grouped.evening.push(med);
-    } else {
-      grouped.night.push(med);
     }
+  });
+  
+  // Sort each group by time
+  Object.keys(grouped).forEach(timeOfDay => {
+    grouped[timeOfDay].sort((a, b) => {
+      const timeA = a.medication_time || '12:00';
+      const timeB = b.medication_time || '12:00';
+      return timeA.localeCompare(timeB);
+    });
   });
   
   return grouped;
 }
 
-function createMedicationCard(med) {
-  const statusClass = med.is_taken ? 'taken' : 'pending';
-  const statusIcon = med.is_taken ? 'check-circle' : 'clock';
-  const statusText = med.is_taken ? 'Taken' : 'Pending';
+function displayTimeGroupMedications(containerId, medications, timeLabel, userId) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.warn(`Container ${containerId} not found`);
+    return;
+  }
   
-  const TEST_USER_ID = 8;
+  // Validate medications is an array
+  if (!Array.isArray(medications)) {
+    console.error(`displayTimeGroupMedications: medications for ${timeLabel} is not an array`, medications);
+    container.innerHTML = `<div class="alert alert-warning">Error loading ${timeLabel.toLowerCase()} medications</div>`;
+    return;
+  }
   
-  // Use DateUtils for time formatting
-  const formattedTime = window.DateUtils ? 
-    DateUtils.formatTime(med.medication_time) : 
-    formatTimeForDisplay(med.medication_time);
+  if (medications.length === 0) {
+    container.innerHTML = `
+      <div class="time-period-header">
+        <h3><i class="fa fa-clock-o"></i> ${timeLabel}</h3>
+        <span class="badge">0</span>
+      </div>
+      <div class="no-medications-time">
+        <p class="text-muted">No medications scheduled for ${timeLabel.toLowerCase()}</p>
+      </div>
+    `;
+    return;
+  }
   
-  // Calculate relative time for next dose
-  const relativeTime = window.DateUtils ? 
-    DateUtils.getRelativeTime(med.medication_date, med.medication_time) : '';
+  let html = `
+    <div class="time-period-header">
+      <h3><i class="fa fa-clock-o"></i> ${timeLabel}</h3>
+      <span class="badge">${medications.length}</span>
+    </div>
+    <div class="medications-list">
+  `;
+  
+  medications.forEach(med => {
+    try {
+      html += createMedicationCard(med, userId);
+    } catch (error) {
+      console.error('Error creating medication card:', med, error);
+      html += `<div class="alert alert-warning">Error displaying medication: ${med.medication_name || 'Unknown'}</div>`;
+    }
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function createMedicationCard(med, userId) {
+  // Validate medication object
+  if (!med || typeof med !== 'object') {
+    console.error('Invalid medication object:', med);
+    return '<div class="alert alert-warning">Invalid medication data</div>';
+  }
+  
+  const medicationId = med.medication_id || med.id;
+  const medicationName = med.medication_name || 'Unknown Medication';
+  const medicationDosage = med.medication_dosage || 'No dosage specified';
+  const medicationTime = med.medication_time || '00:00';
+  const medicationNotes = med.medication_notes || '';
+  const isTaken = med.is_taken || false;
+  const quantity = med.medication_quantity || 0;
+  
+  // Validate required fields
+  if (!medicationId || !userId) {
+    console.error('Missing required fields:', { medicationId, userId, med });
+    return '<div class="alert alert-warning">Missing medication information</div>';
+  }
+  
+  const statusClass = isTaken ? 'taken' : 'pending';
+  const statusIcon = isTaken ? 'check-circle' : 'clock-o';
+  const statusText = isTaken ? 'Taken' : 'Pending';
+  const lowQuantityClass = quantity < 5 ? 'low-quantity' : '';
   
   return `
-    <div class="medication-card ${statusClass}" data-medication-id="${med.medication_id}">
-      <div class="med-info">
-        <h4>${med.medication_name}</h4>
-        <p class="dosage">${med.medication_dosage}</p>
-        <p class="time">${formattedTime}</p>
-        ${relativeTime ? `<p class="relative-time" style="font-size: 0.8em; color: #666;">${relativeTime}</p>` : ''}
-        ${med.medication_notes ? `<p class="notes">${med.medication_notes}</p>` : ''}
+    <div class="medication-item ${statusClass} ${lowQuantityClass}" data-medication-id="${medicationId}">
+      <div class="medication-info">
+        <div class="medication-name">${medicationName}</div>
+        <div class="medication-details">
+          <div><i class="fa fa-pills"></i> ${medicationDosage}</div>
+          <div><i class="fa fa-clock-o"></i> ${formatTimeForDisplay(medicationTime)}</div>
+          ${medicationNotes ? `<div><i class="fa fa-sticky-note"></i> ${medicationNotes}</div>` : ''}
+          <div><i class="fa fa-archive"></i> Quantity: ${quantity}</div>
+        </div>
       </div>
-      <div class="med-actions">
-        <span class="status ${statusClass}">
+      <div class="medication-status">
+        <span class="status-badge ${statusClass}">
           <i class="fa fa-${statusIcon}"></i> ${statusText}
         </span>
-        <div class="action-buttons">
-          ${!med.is_taken ? `
-            <button class="btn btn-success btn-sm" onclick="takeMedication(${med.medication_id}, ${TEST_USER_ID})">
-              <i class="fa fa-check"></i> Take
-            </button>
-          ` : `
-            <button class="btn btn-warning btn-sm" onclick="markAsMissed(${med.medication_id}, ${TEST_USER_ID})">
-              <i class="fa fa-undo"></i> Mark Not Taken
-            </button>
-          `}
-          <button class="btn btn-info btn-sm" onclick="editMedication(${med.medication_id})">
-            <i class="fa fa-edit"></i> Edit
+      </div>
+      <div class="medication-actions">
+        ${!isTaken ? `
+          <button class="btn btn-success btn-sm" onclick="takeMedication(${medicationId}, ${userId})">
+            <i class="fa fa-check"></i> Take
           </button>
-          <button class="btn btn-danger btn-sm" onclick="deleteMedication(${med.medication_id})">
-            <i class="fa fa-trash"></i> Delete
+        ` : `
+          <button class="btn btn-warning btn-sm" onclick="markAsMissed(${medicationId}, ${userId})">
+            <i class="fa fa-undo"></i> Undo
           </button>
-        </div>
+        `}
+        <button class="btn btn-info btn-sm" onclick="editMedication(${medicationId})">
+          <i class="fa fa-edit"></i> Edit
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMedication(${medicationId})">
+          <i class="fa fa-trash"></i> Delete
+        </button>
       </div>
     </div>
   `;
@@ -296,22 +484,10 @@ async function takeMedication(medicationId, userId) {
         showAlert('Invalid user ID', 'danger');
         return;
     }
-    
-    if (!medicationId || medicationId === 'undefined') {
-        showAlert('Invalid medication ID', 'danger');
-        return;
-    }
-
-    if (!userId || userId === 'undefined') {
-        showAlert('Invalid user ID', 'danger');
-        return;
-    }
 
     const response = await fetch(`/medications/${userId}/${medicationId}/is-taken`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -324,7 +500,6 @@ async function takeMedication(medicationId, userId) {
     
     // Reload medications to update display
     await loadDailyMedications(userId);
-    await loadLowQuantityMedications(userId);
 
     // Show low quantity warning if applicable
     if (result.isLowQuantity) {
@@ -342,12 +517,9 @@ async function markAsMissed(medicationId, userId) {
   try {
     console.log(`Marking medication ${medicationId} as missed for user ${userId}`);
     
-    // Use the markMedicationAsMissed endpoint
     const response = await fetch(`/medications/${userId}/${medicationId}/missed`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -370,12 +542,9 @@ async function markAllAsTaken(userId) {
   if (!confirm('Mark all pending medications as taken?')) return;
   
   try {
-    // Remove authorization header for testing
-    const response = await fetch(`/medications/user/${userId}/tick-all`, {
+    const response = await fetch(`/medications/${userId}/tick-all`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -394,11 +563,8 @@ async function markAllAsTaken(userId) {
 
 async function checkReminders(userId) {
   try {
-    // Remove authorization header for testing
     const response = await fetch(`/medications/user/${userId}/reminders`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) return;
@@ -416,12 +582,12 @@ function displayReminders(reminders) {
   const container = document.getElementById('reminders-container');
   if (!container) return;
   
-  const TEST_USER_ID = 8; // Use consistent test user ID
+  const currentUserId = getCurrentUserId();
   
   const reminderHTML = reminders.map(reminder => `
     <div class="alert alert-warning reminder-alert">
       <strong>Reminder:</strong> It's time to take ${reminder.medication_name} (${reminder.medication_dosage})
-      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, ${TEST_USER_ID})">
+      <button class="btn btn-sm btn-success" onclick="takeMedication(${reminder.medication_id}, ${currentUserId})">
         Take Now
       </button>
     </div>
@@ -452,20 +618,17 @@ function setupEventListeners(userId) {
 }
 
 async function deleteMedication(medicationId) {
-    // Validate inputs
     if (!medicationId || medicationId === 'undefined') {
         showAlert('Invalid medication ID', 'error');
         return;
     }
 
-    const userId = TEST_USER_ID;
-    
-    if (!userId || userId === 'undefined') {
+    const userId = getCurrentUserId();
+    if (!userId) {
         showAlert('User ID not found', 'error');
         return;
     }
 
-    // Show confirmation dialog
     if (!confirm('Are you sure you want to delete this medication?')) {
         return;
     }
@@ -473,9 +636,7 @@ async function deleteMedication(medicationId) {
     try {
         const response = await fetch(`/medications/${userId}/${medicationId}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) {
@@ -483,7 +644,6 @@ async function deleteMedication(medicationId) {
             throw new Error(errorData.error || 'Failed to delete medication');
         }
 
-        // Refresh the daily view after successful deletion
         await loadDailyMedications(userId);
         showAlert('Medication deleted successfully', 'success');
         
@@ -498,4 +658,3 @@ window.takeMedication = takeMedication;
 window.markAsMissed = markAsMissed;
 window.editMedication = editMedication;
 window.deleteMedication = deleteMedication;
-window.editMedication = editMedication;

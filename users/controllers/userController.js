@@ -35,6 +35,20 @@ async function getUserById(req, res) {
     }
 }
 
+//Deemed unnecessary, call from userModel instead
+// async function getUserByIDBoolean(req, res) {
+//     try {
+//         const userID = req.params.userID;
+//         const user = await userModel.getUserById(userID);
+//         console.log(user);
+//         if (!user) return false;
+//         return true;
+//     } catch (err) {
+//         console.error("Error fetching user:", err);
+//         return res.status(500).json({ message: "Internal server error" });
+//     }
+// }
+
 async function getUserByUsername(req, res) {
     const username = req.params.username;
     if (!username) {
@@ -76,7 +90,7 @@ async function createUser(req, res) {
             { expiresIn: '3600s' }
         );
 
-        console.log("User created successfully, token generated:", token);
+        
 
         // Set cookie before sending the final response
         res.cookie('token', token, {
@@ -92,7 +106,7 @@ async function createUser(req, res) {
         });
 
     } catch (err) {
-        console.log('Error creating user:', err);
+        console.error("Error creating user:", err);
 
         if (err.message && err.message.includes('Violation of UNIQUE KEY')) {
             return res.status(409).json({ message: 'Username already exists' });
@@ -111,7 +125,7 @@ async function updateUser(req, res) {
         return res.status(400).json({ message: "Invalid user ID" });
     }
     const { username, phone_number, password, age, gender } = req.body;
-    console.log("Update user data control:", req.body);
+   ;
 
     try {
         if (!password) {
@@ -166,7 +180,7 @@ async function getUserRolesById(req, res) {
     }
 }
 async function loginUser(req, res) {
-    console.log("Login attempt:", req.body);
+    
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -186,7 +200,7 @@ async function loginUser(req, res) {
         }
 
         const isPasswordValid = await userModel.verifyPassword(password, user.password);
-        console.log("Password valid:", isPasswordValid);
+        
 
         if (!isPasswordValid) {
             return res.status(401).json({
@@ -240,7 +254,7 @@ async function changePassword(req, res) {
 
 async function searchUserByUsernameNid(req, res) {
     const { username, id } = req.body;
-    console.log("Search user by username or ID:", req.body);
+    
 
     if (!username && !id) {
         return res.status(400).json({ message: "Username or ID is required" });
@@ -267,6 +281,7 @@ function logoutUser(req, res) {
 module.exports = {
     getAllUsers,
     getUserById,
+    // getUserByIDBoolean,
     getUserByUsername,
     getUserRolesById,
     createUser,

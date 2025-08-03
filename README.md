@@ -1,10 +1,10 @@
-# BED & SPM Assignment Group 5
+# BED & SPM Assignment Group 5 :bubble_tea:
 
 ## Install node dependencies
 
 > npm i
 
-## Node apps used
+## Node apps used :gear:
 
 -   [Express](https://www.npmjs.com/package/express) - Web framework
 -   [mssql](https://www.npmjs.com/package/mssql) - Connecting to SQL databases
@@ -12,11 +12,11 @@
 -   [method-override](https://www.npmjs.com/package/method-override) - Enables HTTP verbs like PUT and DELETE in forms
 -   [dotenv](https://www.npmjs.com/package/dotenv) - Loads environment variables
 
-## Other tools used
+## Other tools used :toolbox:
 
 -   [Bulma](https://bulma.io/) - CSS Framework for styling
 
-## Folder structure
+## Folder structure :file_folder:
 
 - **public** - CSS, JS, images, and other assets
 - **views** - HTML & ejs files
@@ -37,28 +37,32 @@
 
 ### User Management API
 
-| Method   | URL                                 | User Type   | Path Parameters        | Body Parameters                   | Function Used        |
-|----------|--------------------------------------|-------------|-------------------------|------------------------------------|-----------------------|
-| `POST`   | `/users/register`                    | User        |                         | `username`, `password`, `email`   | `createUser`          |
-| `POST`   | `/users/login`                       | All         |                         | `username`, `password`            | `loginUser`           |
-| `PUT`    | `/users/changepassword/:id`          | All         | `id` (User ID)          | `newPassword`                     | `changePassword`      |
-| `GET`    | `/users`                             | Admin       |                         |                                    | `getAllUsers`         |
-| `GET`    | `/users/username/:username`          | Admin       | `username`              |                                    | `getUserByUsername`   |
-| `PUT`    | `/users/updatedetail/:id`            | Admin        | `id` (User ID)          | `username`, `email`, etc.         | `updateUser`          |
-| `DELETE` | `/users/:id`                         | Admin       | `id` (User ID)          |                                    | `deleteUser`          |
+| Method | URL                              | User Type | Path Parameters       | Body Parameters                               | Function Used                 |
+|--------|----------------------------------|-----------|------------------------|------------------------------------------------|------------------------------|
+| POST   | `/users/register`                | All      | —                      | `username`, `password`, `email`, `age`, `number`, `gender` | `createUser`      |
+| POST   | `/users/login`                   | All       | —                      | `username`, `password`                         | `loginUser`                 |
+| GET    | `/users/logout`                  | All       | —                      | —                                              | `logoutUser`                |
+| PUT    | `/users/changepassword/:id`      | All       | `id` = User ID         | `newPassword`                                  | `changePassword`            |
+| GET    | `/users`                         | Admin     | —                      | —                                              | `getAllUsers`               |
+| GET    | `/users/username/:username`      | Admin     | `username`             | —                                              | `getUserByUsername`         |
+| GET    | `/users/:id`                     | Admin     | `id` = User ID         | —                                              | `getUserById`               |
+| PATCH  | `/users/updatedetail/:id`        | Admin     | `id` = User ID         | `username`, `email`, `number`                  | `updateUser`                |
+| PUT    | `/users/delete/:id`              | Admin     | `id` = User ID         | —                                              | `deleteUser`                |
+| POST   | `/users/search`                  | Admin     | —                      | `username`, `UserID`                             | `searchUserByUsernameNid`   |
+
 
 ### Note Taker API
 
 | Request                          | URL                      | Path Parameters                        | Body Parameters |
 | -------------------------------- | ------------------------ | -------------------------------------- | --------------- |
-| `GET` Get all notes              | `/notes`                 |                                        | 
-| `POST` Create a new note         | `/notes`                 |                                        | `user_id`, `NoteTitle`, `NoteContent`
-| `DELETE` Delete a note           | `/notes/:id`             | `id` (Note ID)                         | `noteId` 
-| `GET` Get notes by note id       | `/notes/:id`             | `id` (Note ID)                         | `id` (Note ID)
-| `GET` Get notes by search term   | `/notes/search`          | `search`                               | `search`
-| `PUT` Edit a note                | `/notes/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
-| `DELETE` Bulk delete notes       | `/notes/bulk`            | `bulk`                                 | `noteIds`        |
-| `GET` Export note as markdown    | `/notes/export-md/:id`   | `bulk`                                 |                  |
+| `GET` Get all notes              | `/notes-api`                 |                                        | 
+| `POST` Create a new note         | `/notes-api`                 |                                        | `NoteTitle`, `NoteContent`
+| `DELETE` Delete a note           | `/notes-api/:id`             | `id` (Note ID)                         | `noteId` 
+| `GET` Get notes by note id       | `/notes-api/:id`             | `id` (Note ID)                         | `id` (Note ID)
+| `GET` Get notes by search term   | `/notes-api/search`          | `search`                               | `search`
+| `PUT` Edit a note                | `/notes-api/:id`             | `id` (Note ID)                         |  `NoteTitle`, `NoteContent`
+| `DELETE` Bulk delete notes       | `/notes-api/bulk`            | `bulk`                                 | `noteIds`        |
+| `GET` Export note as markdown    | `/notes-api/export-md/:id`   | `bulk`                                 |                  |
 
 ### Medical Appointment API
 
@@ -85,4 +89,19 @@
 | `PUT` Edit feedback status    | `/feedback/admin/:feedback_id`| Admin | `feedback_id` |              | `status` |
 | `DELETE` Delete a feedback    | `/feedback/:feedback_id`      | User  | `feedback_id` | 
 | `DELETE` Delete user feedback | `/feedback/admin/:feedback_id`| Admin | `feedback_id` |
+
+### Alerts API Routes
+
+| Request     | URL                            | User Type   | Path Parameters       | Query Parameters         | Body Parameters                    |
+|-------------|--------------------------------|-------------|------------------------|---------------------------|------------------------------------|
+| `GET`       | `/alerts/search`              | User        | —                      | `title`, `category`       | —                                  |
+| `GET`       | `/alerts/readstatus/:id`      | User        | `id` = UserID          | —                         | —                                  |
+| `POST`      | `/alerts/updatestatus/:id`    | User        | `id` = AlertID         | —                         | `UserID`                           |
+| `POST`      | `/alerts/checkhasnoties/:id`  | User        | `id` = AlertID         | —                         | `UserID`                                  |
+| `POST`      | `/alerts`                     | Admin       | —                      | —                         | `title`, `catergory`, `severity`,`description`           |
+| `PUT`       | `/alerts/:id`                 | Admin       | `id` = AlertID         | —                         | `title`, `catergory`, `severity`,`description`           |
+| `PUT`       | `/alerts/delete/:id`          | Admin       | `id` = AlertID         | —                         | —                                  |
+| `GET`       | `/alerts`                     | All         | —                      | —                         | —                                  |
+| `GET`       | `/alerts/:id`                 | All         | `id` = AlertID         | —                         | —                                  |
+
 

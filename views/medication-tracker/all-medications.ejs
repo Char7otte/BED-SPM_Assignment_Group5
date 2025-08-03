@@ -1,44 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%- include('../partials/head') %>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Medications</title>
   <link rel="stylesheet" href="/css/all-medications.css">
+  <link rel="stylesheet" href="/css/medication-nav.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <%- include('../partials/head') %>
-  <script>
-    window.currentUserId = 8; // Test user ID
-  </script>
   <script src="/js/medication-utils.js"></script>
   <script src="/js/date-utils-safe.js"></script>
   <script src="/js/notification-system.js"></script>
 </head>
-<%- include('../partials/navbar') %>
 <body>
-  <header>
-    <div class="container">
-      <nav class="navbar">
-        <div class="logo">MedTrack</div>
-        <div class="nav-links">
-          <a href="/medications" class="active">All Medications</a>
-          <a href="/medications/daily">Daily View</a>
-          <a href="/medications/weekly">Weekly View</a>
-          <a href="/medications/create">Add Medication</a>
-          <a href="#" id="logout">Logout</a>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <%- include('../partials/navbar') %>
 
   <main class="container">
-    <div id="alert-container"></div>
+    <!-- Add breadcrumb navigation instead -->
+    <nav aria-label="breadcrumb" style="margin-bottom: 20px;">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/homepage">Home</a></li>
+        <li class="breadcrumb-item"><a href="/medications">Medications</a></li>
+        <li class="breadcrumb-item active">All Medications</li>
+      </ol>
+    </nav>
     
-    <!-- Add testing notice -->
-    <div class="alert alert-info" style="margin-bottom: 20px;">
-      <strong>Testing Mode:</strong> Authentication disabled. Using test user ID: 1
+    <!-- Add sub-navigation tabs -->
+    <div class="medication-nav-tabs" style="margin-bottom: 20px;">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" href="/medications">All Medications</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/medications/daily">Daily View</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/medications/weekly">Weekly View</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/medications/create">Add Medication</a>
+        </li>
+      </ul>
     </div>
-    
+
     <!-- Search and Filter Section -->
     <div class="card">
       <div class="card-header">
@@ -102,6 +106,6 @@
   </main>
 
   <script src="/js/medication_script.js"></script>
+  <%- include('../partials/footer') %>
 </body>
-<%- include('../partials/footer') %>
 </html>

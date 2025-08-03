@@ -5,7 +5,7 @@ const alertSchema = Joi.object({
     "string.base": "Title must be a string",
     "string.empty": "Title cannot be empty",
     "string.min": "Title must be at least 1 character long",
-    "string.max": "Title cannot exceed 100 characters",
+    "string.max": "Title cannot exceed 255 characters",
     "any.required": "Title is required",
   }),
   Message: Joi.string().min(1).max(500).required().messages({
@@ -15,11 +15,14 @@ const alertSchema = Joi.object({
     "string.max": "Message cannot exceed 500 characters",
     "any.required": "Message is required",
   }),
-  Category: Joi.string().required().messages({
-    "string.base": "Category must be a string",
-    "any.only": "Category must be one of: general, emergency, maintenance",
-    "any.required": "Category is required",
-  }),
+  Category: Joi.string()
+    .valid("Health", "Safety", "Medication", "General")
+    .required()
+    .messages({
+      "string.base": "Category must be a string",
+      "any.only": "Category must be one of: Health, Safety, Medication, General",
+      "any.required": "Category is required",
+    }),
   Severity: Joi.string()
     .valid("low", "medium", "high", "Low", "Medium", "High")
     .required()
@@ -48,14 +51,7 @@ function validateAlertId(req, res, next) {
         return res.status(400).json({ error: "Invalid alert ID" });
     }
     req.alertId = id;
-    console.log('validateAlertId:', req.params.id);
-    next();
-}
-
-function vaildAdmin (req, res, next) {
-    // Placeholder for admin validation logic
-    // This function should check if the user is an admin
-    // For now, we will just call next() to proceed
+    
     next();
 }
 
