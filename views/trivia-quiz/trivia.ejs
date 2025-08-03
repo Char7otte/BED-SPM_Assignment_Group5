@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%- include("../partials/head") %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trivia Game - The Old People App</title>
   <link rel="stylesheet" href="/css/trivia.css">
 </head>
 <body>
+  <%- include("../partials/navbar") %>
   <div id="app">
     <!-- Header with navigation -->
     <header class="trivia-header">
@@ -74,5 +76,5 @@
   </div>
 
   <script src="/js/trivia.js"></script>
-</body>
+<%- include("../partials/footer") %></body>
 </html>

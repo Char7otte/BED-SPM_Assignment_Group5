@@ -295,6 +295,11 @@ app.get("/calendar", (req, res) => {
 app.get('/external', weatherController.fetchExternalData);
 app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
 
+// Trivia Quiz 3rd Party routes
+app.get('/trivia', (req, res) => {
+  res.render('trivia-quiz/trivia');
+});
+
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
