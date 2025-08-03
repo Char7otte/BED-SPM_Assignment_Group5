@@ -91,9 +91,6 @@ async function createNote(req, res) {
 // Update an existing note
 async function updateNote(req, res) {
     try {
-        // get userId
-        const userId = res.locals.user?.id;
-
         const noteId = req.params.id;
         const updatedNoteData = req.body;
         console.log("Updating note with ID:", noteId, "with data:", updatedNoteData);
@@ -102,7 +99,7 @@ async function updateNote(req, res) {
             return res.status(400).json({ error: "Note ID and updated data are required" });
         }
 
-        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData, userId);
+        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData);
         if (!updatedNote) {
             return res.status(404).json({ error: "Note not found" });
         }

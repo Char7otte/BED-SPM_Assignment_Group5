@@ -174,14 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const newNote = {
-            NoteTitle: noteTitle,
-            NoteContent: noteContent
-        };
-
         try {
             if (selectedNoteId !== null) {
-                // Update existing note
+                // Update existing note (NO user_id)
+                const newNote = {
+                    NoteTitle: noteTitle,
+                    NoteContent: noteContent
+                };
                 console.log("Updating note ID:", selectedNoteId, newNote);
                 const res = await fetch(`/notes-api/${Number(selectedNoteId)}`, {
                     method: 'PUT',
@@ -198,8 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 alert('Note updated successfully!');
+                // ...existing code...
             } else {
-                // Create new note
+                const newNote = {
+                    NoteTitle: noteTitle,
+                    NoteContent: noteContent
+                };
                 const res = await fetch('/notes-api', {
                     method: 'POST',
                     headers: {
@@ -215,16 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 alert('Note created successfully!');
-                // Make the newly created note the selected one and reload it
                 selectedNoteId = result.note.NoteID;
                 await loadNoteById(selectedNoteId);
             }
 
-            fetchNotes(); // refresh note list
         } catch (err) {
             console.error(selectedNoteId !== null ? 'Error updating note:' : 'Error creating note:', err);
             alert(selectedNoteId !== null ? 'Error updating note.' : 'Error creating note.');
         }
+        fetchNotes(); // refresh note list
     });
 
     // Edit button: Clear fields and set to editable, and disable delete button if no note selected

@@ -125,7 +125,7 @@ async function createNote(noteData, userId) {
 }
 
 // update note
-async function updateNote(noteId, updatedNoteData, userId) {
+async function updateNote(noteId, updatedNoteData) {
     let connection; // Declare connection outside try for finally access
     try {
         connection = await sql.connect(dbConfig);
@@ -134,10 +134,9 @@ async function updateNote(noteId, updatedNoteData, userId) {
             SET NoteTitle = @NoteTitle,
                 NoteContent = @NoteContent,
                 LastEditedDate = GETDATE()
-            WHERE NoteID = @noteId AND user_id = @userId;
+            WHERE NoteID = @noteId;
         `;
         const request = connection.request();
-        request.input("userId", sql.Int, userId);
         request.input("noteId", sql.Int, noteId);
         request.input("NoteTitle", sql.NVarChar, updatedNoteData.NoteTitle);
         request.input("NoteContent", sql.NVarChar, updatedNoteData.NoteContent);

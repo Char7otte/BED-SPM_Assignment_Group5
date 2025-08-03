@@ -44,7 +44,7 @@ const {
 
 // Import note taker functions
 const noteTakerController = require("./note_taker/controllers/noteTakerController");
-const { validateNoteInput, validateNoteID, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
+const { validateNoteInput, validateNoteID, validateCreateNoteInput, bulkValidateNoteIDs } = require("./note_taker/middlewares/noteValidation");
 
 
 const jwt = require("jsonwebtoken");
@@ -156,7 +156,7 @@ app.get("/medications/weekly", (req, res) => {
 
 // Route to serve teh notes page
 app.get('/notes', (req, res) => {
-  res.render('note-taker/notes');
+  res.render('note-taker/notes', { user: res.locals.user });
 });
 
 // Feedback pages
@@ -282,7 +282,7 @@ app.get("/notes-api", noteTakerController.getAllNotes);
 app.delete("/notes-api/bulk", bulkValidateNoteIDs, noteTakerController.bulkDeleteNotes);
 app.get("/notes-api/search", noteTakerController.searchNotes);
 app.get("/notes-api/:id", validateNoteID, noteTakerController.getNotesById);
-app.post("/notes-api", noteTakerController.createNote);
+app.post("/notes-api", validateCreateNoteInput, noteTakerController.createNote);
 app.delete("/notes-api/:id", validateNoteID, noteTakerController.deleteNote);
 app.put("/notes-api/:id", validateNoteInput, noteTakerController.updateNote);
 app.get("/notes-api/export-md/:id", noteTakerController.exportNoteAsMarkdown);
