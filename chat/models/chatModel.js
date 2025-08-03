@@ -9,7 +9,8 @@ async function getAllChats() {
         FROM Chats c
         INNER JOIN Users u
         ON c.helpee_id = u.user_id
-        WHERE is_deleted = 0`;
+        WHERE is_deleted = 0
+        ORDER BY chat_status desc`;
         const request = connection.request();
         const result = await request.query(query);
         return result.recordset;
@@ -36,6 +37,7 @@ async function getAllChatsByHelpeeID(userID) {
         INNER JOIN Users u
         ON c.helpee_id = u.user_id
         WHERE is_deleted = 0 and helpee_id = @userID
+        ORDER BY chat_status desc`;
         const request = connection.request();
         request.input("userID", userID);
         const result = await request.query(query);
