@@ -189,6 +189,9 @@ app.get('/trivia', (req, res) => {
   res.render('trivia-quiz/trivia');
 });
 
+app.get('/credits', (req, res) => {
+  res.render('credits');
+});
 
 // ===== ALERTS ROUTES ===== //
 // --- User-specific Operations --- //
@@ -289,7 +292,6 @@ app.delete("/feedback/admin/:feedback_id", verifyJWT, validateFeedbackId, feedba
 //app.get("/weather", weatherController.fetchExternalData); // Fetch weather data from external API
 app.get('/external', weatherController.fetchExternalData);
 app.get('/forecast', weatherController.sendForecastData); // Fetch and send forecast data
-
 
 //Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
