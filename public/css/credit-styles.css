@@ -1,0 +1,126 @@
+:root {
+  --primary: #5D70F9;
+  --secondary: #7F8DFF;
+  --light: #F5F7FF;
+  --dark: #1A1D2B;
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --danger: #F44336;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--dark);
+    background-color: var(--light);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--secondary);
+}
+
+h1 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-size: 3rem; /* Increased from default */
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    color: var(--secondary);
+    font-style: italic;
+    font-size: 1.4rem; /* Increased from default */
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.credit-section {
+    margin-bottom: 2rem;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.credit-section h2 {
+    color: var(--primary);
+    margin-top: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--light);
+    font-size: 1.8rem; /* Also increased section headers */
+}
+
+.credit-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.credit-list li {
+    margin-bottom: 0.8rem;
+    padding-left: 1.2rem;
+    position: relative;
+}
+
+.credit-list li:before {
+    content: "•";
+    color: var(--secondary);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.credit-list a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.credit-list a:hover {
+    color: var(--secondary);
+    text-decoration: underline;
+}
+
+.credit-list span {
+    color: var(--dark);
+    font-style: italic;
+}
+
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--secondary);
+    color: var(--secondary);
+    font-style: italic;
+    font-size: 1.1rem; /* Also increased footer text */
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    h1 {
+        font-size: 2.2rem; /* Responsive scaling */
+    }
+    
+    .subtitle {
+        font-size: 1.2rem; /* Responsive scaling */
+    }
+    
+    .credit-section h2 {
+        font-size: 1.5rem; /* Responsive scaling */
+    }
+}

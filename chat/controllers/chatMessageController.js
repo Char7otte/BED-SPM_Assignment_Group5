@@ -1,10 +1,41 @@
 const chatMessageModel = require("../models/chatMessageModel");
+const chatModel = require("../models/chatModel");
+const { format, addHours } = require("date-and-time");
 
 async function getAllMessagesInAChat(req, res) {
     try {
+        const { id, role } = req.user;
         const chatID = req.params.chatID;
+        const isClosed = req.chatStatusClosed ? true : false;
+
+        const chat = await chatModel.getChatByID(chatID); //This query can't be inner joined with the chat messages query in the event there are no chat messages sent
+        const title = chat.title;
+
+        if (role == "U" && !id == chat.helpee_id) {
+            //Verify that the user is the helpee
+            return res.status(403).send("Forbidden");
+        }
+
         const messages = await chatMessageModel.getAllMessagesInAChat(chatID);
-        return res.render("chat/oneChat", { chatID, messageData: messages });
+        messages.forEach((message) => {
+            message.sent_date_time = addHours(message.sent_date_time, -8);
+            message.sent_date_time = format(message.sent_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+
+            //This is kind of a scuffed solution but having to update everyone's code this late into development  is too much trouble
+            switch (message.sender_role) {
+                case "A":
+                    message.sender_role = "Admin";
+                    break;
+                case "V":
+                    message.sender_role = "Volunteer";
+                    break;
+                case "U":
+                    message.sender_role = "User";
+                    break;
+            }
+        });
+
+        return res.render("chat/oneChat", { chatID, messageData: messages, title, userID: id, userRole: role, isClosed });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error getting chat messages");
@@ -18,6 +49,13 @@ async function createMessage(req, res) {
         const isSent = await chatMessageModel.createMessage(chatID, senderID, message);
 
         if (!isSent) return res.status(400).send("Error sending message");
+
+        const isUpdated = await chatModel.updateLastActivityTime(chatID);
+        if (!isUpdated) {
+            //Not a critical failure so it's unnecessary to throw an error or a response
+            console.error(`Error updating chat activity time. ChatID: ${chatID}`);
+        }
+
         return res.redirect(`/chats/${chatID}`);
     } catch (error) {
         console.error("Controller error: ", error);

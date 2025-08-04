@@ -27,14 +27,14 @@ if (!localStorage.getItem('token')) {
     if (match) {
         localStorage.setItem('token', decodeURIComponent(match[1]));
     } else {
-        window.location.href = "/login.html";
+        window.location.href = "/login";
     }
 }
 if (token) {
     const decoded = decodeJwtPayload(token);
     console.log(decoded);
     if (decoded.role === "A") {
-        window.location.href = "/adminindex"; // Redirect admin
+        window.location.href = "/admin"; // Redirect admin
     }
 }
 
@@ -51,7 +51,7 @@ function getDisplayFeatureName(featureValue) {
         'Alert': 'Alert',
         'Weather': 'Weather',
         'Feedback': 'Feedback',
-        'Quiz': 'Quiz',
+        'Trivia Quiz': 'Trivia Quiz',
         'News': 'News',
         'Other': 'Other'
     };
@@ -322,7 +322,7 @@ function editFeedback(feedbackId) {
             'Alert': 'Alert',
             'Weather': 'Weather',
             'Feedback': 'Feedback',
-            'Quiz': 'Quiz',
+            'Trivia Quiz': 'Trivia Quiz',
             'News': 'News'
         };
         

@@ -1,9 +1,19 @@
 #submit-btn {
     background-color: blue;
     color: white;
+    font-size: 18px;
 }
 
 #cancel-btn {
     background-color: orange;
     color: white;
+    font-size: 18px;
+}
+
+body{
+    background-color:#F5F7FF !important;
+}
+
+form{
+    background-color:#dee0e8 !important;
 }
