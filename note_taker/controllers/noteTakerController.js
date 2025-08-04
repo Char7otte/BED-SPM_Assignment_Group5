@@ -1,3 +1,4 @@
+const { user } = require("../../dbConfig.js");
 const noteTakerModel = require("../models/noteTakerModel.js");
 
 // Get all notes
@@ -25,7 +26,7 @@ async function getNotesById(req, res) {
         // if (searchTerm === "") {
         //     return res.status(400).json({ error: "Search term cannot be empty" });
         // }
-        console.log("Searching for notes with term:", noteId);
+        console.log("Searching for notes with note id:", noteId);
         const note = await noteTakerModel.getNotesById(noteId, userId);
         // check if there are notes with the searchTerm
         if (!note) {
@@ -73,8 +74,8 @@ async function createNote(req, res) {
         console.log("Creating note with data:", noteData);
 
         //basic validation
-        if (!noteData.user_id || !noteData.NoteTitle || !noteData.NoteContent) {
-            return res.status(400).json({ error: "missing required fields" });
+        if (!userId) {
+            return res.status(400).json({ error: "Missing userId, need to test in browser" });
         }
 
         const newNote = await noteTakerModel.createNote(noteData, userId);
@@ -88,15 +89,15 @@ async function createNote(req, res) {
 // Update an existing note
 async function updateNote(req, res) {
     try {
+        const userId = res.locals.user?.id;  // ADD THIS LINE
         const noteId = req.params.id;
         const updatedNoteData = req.body;
         console.log("Updating note with ID:", noteId, "with data:", updatedNoteData);
-        // Basic validation for noteId and updatedNoteData
         if (!noteId || !updatedNoteData || Object.keys(updatedNoteData).length === 0) {
             return res.status(400).json({ error: "Note ID and updated data are required" });
         }
 
-        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData);
+        const updatedNote = await noteTakerModel.updateNote(noteId, updatedNoteData, userId);
         if (!updatedNote) {
             return res.status(404).json({ error: "Note not found" });
         }

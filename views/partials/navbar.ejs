@@ -1,9 +1,10 @@
 <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
+
         <a class="navbar-item" href="/homepage">
             <img src="/images/ChatGPT_image6.png" alt="Logo" style="height: 80px;">
                 
-            
+           
         </a>
 
         <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
@@ -28,7 +29,7 @@
                     <a class="navbar-item" href="/chats"> Chats </a>
                     <a class="navbar-item" href="/calendar"> Medical Appointments Calendar </a>
                     <a class="navbar-item" href="/medications"> Medication Tracker </a>
-                    <a class="navbar-item" href="/notes-tracker"> Notes Tracker </a>
+                    <a class="navbar-item" href="/notes"> Notes </a>
                     <a class="navbar-item" href="/trivia"> Trivia Quiz </a>
 
                     <hr class="navbar-divider" />
@@ -39,28 +40,28 @@
 
         <div class="navbar-end">
             <div class="navbar-item">
-            <div class="buttons">
-                <% if (!user || tokenExpired) { %>
-                <a class="button is-primary" href ="/login">
-                    <strong>Sign up</strong>
-                </a>
-                <a class="button is-light" href="/login"> Log in </a>
-                <% } else { %>
-                <a class="navbar-item" href="/account">Welcome, <%= user.username %></a>
-                <a class="button is-light" onclick="logout()">Log out</a>
-                <% } %>
-            </div>
+                <div class="buttons">
+                    <% if (!user || tokenExpired) { %>
+                        <a class="button is-primary" href="/login">
+                            <strong>Sign up</strong>
+                        </a>
+                        <a class="button is-light" href="/login"> Log in </a>
+                        <% } else { %>
+                            <a class="navbar-item" href="/account">Welcome, <%= user.username %></a>
+                            <a class="button is-light" onclick="logout()">Log out</a>
+                            <% } %>
+                </div>
             </div>
         </div>
     </div>
 </nav>
 <script>
     function logout() {
-    localStorage.removeItem("token");
-    document.cookie.split(";").forEach(function(c) {
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
-    });
-    window.location.href = "/login";
-}
+        localStorage.removeItem("token");
+        document.cookie.split(";").forEach(function (c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
+        });
+        window.location.href = "/login";
+    }
 
 </script>
