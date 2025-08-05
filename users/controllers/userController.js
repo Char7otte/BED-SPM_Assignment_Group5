@@ -70,6 +70,7 @@ async function getUserByUsername(req, res) {
 async function createUser(req, res) {
 
     const { username, phone_number, password, age, gender, status = 'active' } = req.body;
+    
 
     if (!username || !phone_number || !password || !age || !gender) {
         return res.status(400).json({ message: "All fields are required" });
@@ -124,15 +125,14 @@ async function updateUser(req, res) {
     if (isNaN(userId)) {
         return res.status(400).json({ message: "Invalid user ID" });
     }
-    const { username, phone_number, password, age, gender } = req.body;
-   ;
+    const { username, phone_number, password, age, gender, status, role } = req.body;
 
     try {
         if (!password) {
             // If password is not provided, do not update it
-            await userModel.updateUser(userId, { username, phone_number, age, gender });
+            await userModel.updateUser(userId, { username, phone_number, age, gender, status, role });
         } else {
-            await userModel.updateUser(userId, { username, phone_number, password, age, gender });
+            await userModel.updateUser(userId, { username, phone_number, password, age, gender, status, role });
         }
         res.status(200).json({ message: "User updated successfully" });
     } catch (err) {
@@ -234,16 +234,16 @@ async function loginUser(req, res) {
 
 async function changePassword(req, res) {
     const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-    }
+    console.log("Changing password for user ID:", userId);
     const { newPassword } = req.body;
+    console.log("New password:", newPassword);
     if (!newPassword) {
         return res.status(400).json({ message: "New password is required" });
     }
 
     try {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
+        console.log("Hashed password:", hashedPassword);
         await userModel.changePassword(userId, hashedPassword);
         res.status(200).json({ message: "Password changed successfully" });
     } catch (err) {
