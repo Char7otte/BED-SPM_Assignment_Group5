@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const downloadBtn = document.getElementById('shareMarkdownBtn');
+    const downloadBtn = document.getElementById('downloadMarkdownBtn');
 
     if (downloadBtn) {
         downloadBtn.addEventListener('click', () => {
