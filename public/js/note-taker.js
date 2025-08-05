@@ -493,6 +493,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const downloadBtn = document.getElementById('shareMarkdownBtn');
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            if (!selectedNoteId) {
+                alert("Please select a note to download.");
+                return;
+            }
+
+            const downloadUrl = `/notes-api/export-md/${selectedNoteId}`;
+
+            const tempLink = document.createElement('a');
+            tempLink.href = downloadUrl;
+            tempLink.download = ''; // Let server set filename
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+        });
+    }
+
 
     // Delete selected note
 
