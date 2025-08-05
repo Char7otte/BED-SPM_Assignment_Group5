@@ -169,6 +169,7 @@ h3 {
 
     border: none;
     background: var(--transparent-bg);
+    border-radius: var(--border-radius);
     padding: 4px 8px;
     text-align: center;
     width: auto;
@@ -286,4 +287,23 @@ button:hover {
 
 .fade-in-message {
     animation: fadeInUp 0.4s ease-out forwards;
+}
+
+#downloadMarkdownBtn {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    /* Match this to the search bar border */
+    background-color: white;
+    color: #333;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+#downloadMarkdownBtn:hover {
+    background-color: var(--primary-color);
+    /* Replace with your main blue color variable or hex code */
+    color: white;
+    border-color: var(--primary-color);
+    /* Optional: make border match on hover */
 }

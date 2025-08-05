@@ -134,29 +134,27 @@ async function deleteNote(req, res) {
 async function exportNoteAsMarkdown(req, res) {
     try {
         const noteId = req.params.id;
-        console.log("Exporting note with ID:", noteId);
+        const userId = res.locals.user?.id;
+        console.log("Exporting note ID:", noteId, "for user ID:", userId);
 
-        // basic validation for noteId
         if (!noteId) {
             return res.status(400).json({ error: "Note ID is required" });
         }
 
-        const note = await noteTakerModel.getNotesById(noteId);
-        console.log("Fetched note:", note);
+        const note = await noteTakerModel.getNotesById(noteId, userId);
+
         if (!note) {
             return res.status(404).json({ error: "Note not found" });
         }
 
-        // Logic to convert note to markdown format
         const markdownContent = `# ${note.NoteTitle}\n\n${note.NoteContent}`;
 
-        // Set headers for file download
         res.setHeader('Content-disposition', `attachment; filename=Note-${note.NoteTitle}-${noteId}.md`);
         res.setHeader('Content-type', 'text/markdown');
 
         res.send(markdownContent);
     } catch (error) {
-        console.error("Controller error in expostNoteAsMarkdown:", error.message, error.stack);
+        console.error("Error exporting note:", error);
         res.status(500).json({ error: "Error exporting note" });
     }
 }
