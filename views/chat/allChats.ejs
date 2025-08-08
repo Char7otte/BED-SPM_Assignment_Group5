@@ -15,6 +15,16 @@
                     <div class="column is-three-quarters">
                         <h1 class="title">Chats</h1>
                         <form action="/chats/create/<%= userID%>" class="mb-5 create-new-chat-form" method="POST">
+                        <form action="/chats/closed" class="">
+                            <div class="field has-addons">
+                                <div class="control is-expanded">
+                                    <input class="input" type="text" placeholder="Search if your question has already been answered!" name="q" />
+                                </div>
+                                <div class="control">
+                                    <button class="button is-info">Search</button>
+                                </div>
+                            </div>
+                        </form>
                             <input type="hidden" name="question" id="question" />
                             <div class="field"><button class="button is-primary">Start a new chat</button></div>
                         </form>
