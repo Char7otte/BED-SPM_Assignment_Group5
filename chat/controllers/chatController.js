@@ -94,10 +94,18 @@ async function checkIfChatIsAnswered(req, res, next) {
 
 async function searchClosedChats(req, res) {
     try {
-        const searchQuery = `%${req.query.q || ""}%`;
-        const chats = await chatModel.searchClosedChats(searchQuery);
+        const { id, role } = req.user;
+        const searchQuery = req.query.q || "";
+        const chats = await chatModel.searchClosedChats(`%${searchQuery}%`);
 
-        return res.json(chats);
+        chats.forEach((chat) => {
+            chat.created_date_time = addHours(chat.created_date_time, -8);
+            chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.last_activity_date_time = addHours(chat.last_activity_date_time, -8);
+            chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+        });
+
+        return res.render("chat/allChatsSearch", { chatData: chats, userID: id, searchQuery, userRole: role });
     } catch (error) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error getting all closed chats");
