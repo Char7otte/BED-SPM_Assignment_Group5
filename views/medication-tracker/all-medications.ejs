@@ -1,111 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <%- include('../partials/head') %>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>All Medications</title>
-  <link rel="stylesheet" href="/css/all-medications.css">
-  <link rel="stylesheet" href="/css/medication-nav.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="/js/medication-utils.js"></script>
-  <script src="/js/date-utils-safe.js"></script>
-  <script src="/js/notification-system.js"></script>
-</head>
-<body>
-  <%- include('../partials/navbar') %>
+    <head>
+        <%- include('../partials/head') %>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>All Medications</title>
+        <link rel="stylesheet" href="/css/all-medications.css" />
+        <link rel="stylesheet" href="/css/medication-nav.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+        <script src="/js/medication-utils.js"></script>
+        <script src="/js/date-utils-safe.js"></script>
+        <script src="/js/notification-system.js"></script>
+    </head>
+    <body>
+        <%- include('../partials/navbar') %>
 
-  <main class="container">
-    <!-- Add breadcrumb navigation instead -->
-    <nav aria-label="breadcrumb" style="margin-bottom: 20px;">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/homepage">Home</a></li>
-        <li class="breadcrumb-item"><a href="/medications">Medications</a></li>
-        <li class="breadcrumb-item active">All Medications</li>
-      </ol>
-    </nav>
-    
-    <!-- Add sub-navigation tabs -->
-    <div class="medication-nav-tabs" style="margin-bottom: 20px;">
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link active" href="/medications">All Medications</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/medications/daily">Daily View</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/medications/weekly">Weekly View</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/medications/create">Add Medication</a>
-        </li>
-      </ul>
-    </div>
+        <main class="container">
+            <!-- Add breadcrumb navigation instead -->
+            <nav aria-label="breadcrumb" style="margin-bottom: 20px">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/index.html">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/medications">Medications</a></li>
+                    <li class="breadcrumb-item active">All Medications</li>
+                </ol>
+            </nav>
 
-    <!-- Search and Filter Section -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Search & Filter</h2>
-      </div>
-      <div class="search-filter-section">
-        <div class="search-box">
-          <input type="text" id="search-input" placeholder="Search medications..." class="form-control">
-          <button id="search-btn" class="btn btn-primary">
-            <i class="fa fa-search"></i> Search
-          </button>
-        </div>
-        <div class="filter-box">
-          <select id="status-filter" class="form-control">
-            <option value="">All Medications</option>
-            <option value="taken">Taken</option>
-            <option value="not-taken">Not Taken</option>
-          </select>
-        </div>
-      </div>
-    </div>
+            <!-- Add sub-navigation tabs -->
+            <div class="medication-nav-tabs" style="margin-bottom: 20px">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/medications">All Medications</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/medications/daily">Daily View</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/medications/weekly">Weekly View</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/medications/create">Add Medication</a>
+                    </li>
+                </ul>
+            </div>
 
-    <!-- All Medications Section -->
-    <div class="card">
-      <div class="card-header">
-        <h2>All Medications</h2>
-        <a href="/medications/create" class="btn btn-primary">
-          <i class="fa fa-plus"></i> Add New Medication
-        </a>
-      </div>
-      <div id="medications-container" class="medications-grid">
-        <div class="loading-message">
-          <i class="fa fa-spinner fa-spin"></i> Loading medications...
-        </div>
-      </div>
-    </div>
+            <!-- Search and Filter Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Search & Filter</h2>
+                </div>
+                <div class="search-filter-section">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Search medications..." class="form-control" />
+                        <button id="search-btn" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
+                    </div>
+                    <div class="filter-box">
+                        <select id="status-filter" class="form-control">
+                            <option value="">All Medications</option>
+                            <option value="taken">Taken</option>
+                            <option value="not-taken">Not Taken</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Low Quantity Medications -->
-    <div class="card">
-      <div class="card-header">
-        <h2><i class="fa fa-exclamation-triangle text-warning"></i> Low Quantity Medications</h2>
-      </div>
-      <div id="low-quantity-container" class="medications-grid">
-        <div class="loading-message">
-          <i class="fa fa-spinner fa-spin"></i> Loading low quantity medications...
-        </div>
-      </div>
-    </div>
+            <!-- All Medications Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>All Medications</h2>
+                    <a href="/medications/create" class="btn btn-primary"> <i class="fa fa-plus"></i> Add New Medication </a>
+                </div>
+                <div id="medications-container" class="medications-grid">
+                    <div class="loading-message"><i class="fa fa-spinner fa-spin"></i> Loading medications...</div>
+                </div>
+            </div>
 
-    <!-- Expired Medications -->
-    <div class="card">
-      <div class="card-header">
-        <h2><i class="fa fa-calendar-times text-danger"></i> Expired Medications</h2>
-      </div>
-      <div id="expired-container" class="medications-grid">
-        <div class="loading-message">
-          <i class="fa fa-spinner fa-spin"></i> Loading expired medications...
-        </div>
-      </div>
-    </div>
-  </main>
+            <!-- Low Quantity Medications -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa fa-exclamation-triangle text-warning"></i> Low Quantity Medications</h2>
+                </div>
+                <div id="low-quantity-container" class="medications-grid">
+                    <div class="loading-message"><i class="fa fa-spinner fa-spin"></i> Loading low quantity medications...</div>
+                </div>
+            </div>
 
-  <script src="/js/medication_script.js"></script>
-  <%- include('../partials/footer') %>
-</body>
+            <!-- Expired Medications -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa fa-calendar-times text-danger"></i> Expired Medications</h2>
+                </div>
+                <div id="expired-container" class="medications-grid">
+                    <div class="loading-message"><i class="fa fa-spinner fa-spin"></i> Loading expired medications...</div>
+                </div>
+            </div>
+        </main>
+
+        <script src="/js/medication_script.js"></script>
+        <%- include('../partials/footer') %>
+    </body>
 </html>

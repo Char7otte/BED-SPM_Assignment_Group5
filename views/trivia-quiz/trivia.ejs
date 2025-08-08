@@ -1,50 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <%- include('../partials/head') %>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trivia Quiz</title>
-  <link rel="stylesheet" href="/css/trivia.css">
-  <link rel="stylesheet" href="/css/medication-nav.css"> <!-- For consistent navigation styling -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-  <%- include('../partials/navbar') %>
+    <head>
+        <%- include('../partials/head') %>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Trivia Quiz</title>
+        <link rel="stylesheet" href="/css/trivia.css" />
+        <link rel="stylesheet" href="/css/medication-nav.css" />
+        <!-- For consistent navigation styling -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    </head>
+    <body>
+        <%- include('../partials/navbar') %>
 
-  <main class="container">
-    <!-- Breadcrumb navigation -->
-    <nav aria-label="breadcrumb" style="margin-bottom: 20px;">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/homepage">Home</a></li>
-        <li class="breadcrumb-item active">Trivia Quiz</li>
-      </ol>
-    </nav>
+        <main class="container">
+            <!-- Breadcrumb navigation -->
+            <nav aria-label="breadcrumb" style="margin-bottom: 20px">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/index.html">Home</a></li>
+                    <li class="breadcrumb-item active">Trivia Quiz</li>
+                </ol>
+            </nav>
 
-    <!-- Alert container for notifications -->
-    <div id="alert-container"></div>
+            <!-- Alert container for notifications -->
+            <div id="alert-container"></div>
 
-    <!-- Trivia Game Container -->
-    <div class="trivia-container">
-      <div class="question-section">
-        <div id="question"></div>
-      </div>
-      
-      <div class="answers-section">
-        <ul id="answers"></ul>
-      </div>
-      
-      <div class="feedback-section">
-        <div id="feedback"></div>
-      </div>
-      
-      <div class="controls-section">
-        <button id="next-btn" style="display: none;">Next Question</button>
-      </div>
-    </div>
-  </main>
+            <!-- Trivia Game Container -->
+            <div class="trivia-container">
+                <div class="question-section">
+                    <div id="question"></div>
+                </div>
 
-  <script src="/js/trivia.js"></script>
-  <%- include('../partials/footer') %>
-</body>
+                <div class="answers-section">
+                    <ul id="answers"></ul>
+                </div>
+
+                <div class="feedback-section">
+                    <div id="feedback"></div>
+                </div>
+
+                <div class="controls-section">
+                    <button id="next-btn" style="display: none">Next Question</button>
+                </div>
+            </div>
+        </main>
+
+        <script src="/js/trivia.js"></script>
+        <%- include('../partials/footer') %>
+    </body>
 </html>
