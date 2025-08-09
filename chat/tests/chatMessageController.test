@@ -1,3 +1,5 @@
+//Outdated
+
 const chatMessageController = require("../controllers/chatMessageController");
 const ChatMessage = require("../models/chatMessageModel");
 
