@@ -407,10 +407,26 @@ describe("chatController searchClosedChats", () => {
 
         await chatController.searchClosedChats(req, res);
 
+        // Expected chats with formatted dates
+        const expectedChats = [
+            {
+                chatID: 1,
+                title: "Title1",
+                created_date_time: "Fri, 9 Aug 2025 02:30 AM",
+                last_activity_date_time: "Fri, 9 Aug 2025 02:30 AM",
+            },
+            {
+                chatID: 2,
+                title: "Title2",
+                created_date_time: "Fri, 9 Aug 2025 02:30 AM",
+                last_activity_date_time: "Fri, 9 Aug 2025 02:30 AM",
+            },
+        ];
+
         expect(Chat.searchClosedChats).toHaveBeenCalledTimes(1);
         expect(Chat.searchClosedChats).toHaveBeenCalledWith("%searchQuery%");
         expect(res.render).toHaveBeenCalledWith("chat/allChatsSearch", {
-            chatData: mockChats,
+            chatData: expectedChats,
             userID: 17,
             searchQuery: "searchQuery",
             userRole: "U",
