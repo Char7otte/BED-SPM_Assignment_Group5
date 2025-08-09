@@ -43,7 +43,7 @@ async function createChat(req, res) {
         const chatTitle = req.body.question;
         const newChat = await chatModel.createChat(userID, chatTitle);
 
-        if (!newChat) return res.status(404).send("Error creating chat.");
+        if (!newChat) return res.status(400).send("Error creating chat.");
         return res.redirect(`/chats/${newChat.chat_id}`);
     } catch (error) {
         console.error("Controller error: ", error);
@@ -104,7 +104,7 @@ async function searchClosedChats(req, res) {
         return res.render("chat/allChatsSearch", { chatData: chats, userID: id, searchQuery, userRole: role });
     } catch (error) {
         console.error("Controller error: ", error);
-        return res.status(500).send("Error getting all closed chats");
+        return res.status(500).send("Error getting chats");
     }
 }
 
