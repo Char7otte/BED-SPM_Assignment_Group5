@@ -13,10 +13,8 @@ async function getAllChats(req, res) {
         }
 
         chats.forEach((chat) => {
-            chat.created_date_time = addHours(chat.created_date_time, -8);
-            chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
-            chat.last_activity_date_time = addHours(chat.last_activity_date_time, -8);
-            chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.created_date_time = formatDateTime(chat.created_date_time);
+            chat.last_activity_date_time = formatDateTime(chat.last_activity_date_time);
         });
 
         return res.render("chat/allChats", { chatData: chats, userID: id, userRole: role });
@@ -99,10 +97,8 @@ async function searchClosedChats(req, res) {
         const chats = await chatModel.searchClosedChats(`%${searchQuery}%`);
 
         chats.forEach((chat) => {
-            chat.created_date_time = addHours(chat.created_date_time, -8);
-            chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
-            chat.last_activity_date_time = addHours(chat.last_activity_date_time, -8);
-            chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.created_date_time = formatDateTime(chat.created_date_time);
+            chat.last_activity_date_time = formatDateTime(chat.last_activity_date_time);
         });
 
         return res.render("chat/allChatsSearch", { chatData: chats, userID: id, searchQuery, userRole: role });
@@ -110,6 +106,11 @@ async function searchClosedChats(req, res) {
         console.error("Controller error: ", error);
         return res.status(500).send("Error getting all closed chats");
     }
+}
+
+function formatDateTime(dt) {
+    dt = addHours(dt, -8);
+    return format(dt, "ddd, D MMM YYYY hh:mm A");
 }
 
 module.exports = {
