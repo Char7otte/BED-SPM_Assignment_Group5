@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <%- include("../partials/head") %>
+        <link rel="stylesheet" href="css/cat/catStyles.css" />
+        <title>Cat Images</title>
+    </head>
+    <body>
+        <%- include("../partials/navbar") %>
+        <main>
+            <div class="columns">
+                <div class="column"></div>
+                <div class="column is-three-quarters">
+                    <div class="fixed-grid has-2-cols">
+                        <div class="grid">
+                            <% for (const d of data) { %>
+                            <div class="cell is-flex is-justify-content-center is-align-items-center">
+                                <img src="<%= d.url %>" alt="" class="cat-img mt-0" />
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="column"></div>
+            </div>
+        </main>
+        <%- include("../partials/footer") %>
+    </body>
+</html>
