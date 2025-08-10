@@ -38,7 +38,12 @@ describe("chatModel", () => {
 
             const chats = await Chat.getAllChats();
 
-            expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("SELECT c.chat_id, c.helpee_id, u.username"));
+            expect(mockRequest.query).toHaveBeenCalledWith(`SELECT c.*, u.username
+        FROM Chats c
+        INNER JOIN Users u
+        ON c.helpee_id = u.user_id
+        WHERE is_deleted = 0
+        ORDER BY chat_status desc`);
             expect(chats).toEqual(mockChats);
             expect(mockConnection.close).toHaveBeenCalledTimes(1);
         });
@@ -91,7 +96,7 @@ describe("chatModel", () => {
 
             expect(mockRequest.input).toHaveBeenCalledWith("creatorUserID", 4);
             expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("INSERT INTO Chats"));
-            expect(chatID).toBe(newChatID);
+            expect(chatID).toStrictEqual({ newChatID });
             expect(mockConnection.close).toHaveBeenCalledTimes(1);
         });
 

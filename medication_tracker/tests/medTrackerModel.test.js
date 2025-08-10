@@ -1,5 +1,5 @@
 const sql = require("mssql");
-const medTrackerModel = require("../models/medTrackerModel");
+const medTrackerModel = require("../model/medTrackerModel");
 
 jest.mock("mssql");
 
@@ -14,14 +14,14 @@ describe("medTrackerModel", () => {
             const mockMedication = {
                 medication_id: 1,
                 medication_name: "Aspirin",
-                user_id: 1
+                user_id: 1,
             };
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: [mockMedication] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getMedicationById(1, 1);
@@ -33,7 +33,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: [] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getMedicationById(999, 1);
@@ -52,14 +52,14 @@ describe("medTrackerModel", () => {
         it("should return all medications for a user", async () => {
             const mockMedications = [
                 { medication_id: 1, medication_name: "Aspirin", user_id: 1 },
-                { medication_id: 2, medication_name: "Ibuprofen", user_id: 1 }
+                { medication_id: 2, medication_name: "Ibuprofen", user_id: 1 },
             ];
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: mockMedications }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getAllMedicationByUser(1);
@@ -76,18 +76,17 @@ describe("medTrackerModel", () => {
     // Test for getDailyMedicationByUser
     describe("getDailyMedicationByUser", () => {
         it("should return daily medications with current date", async () => {
-            const currentDate = new Date().toISOString().split('T')[0];
-            const mockMedications = [
-                { medication_id: 1, medication_name: "Aspirin", medication_date: currentDate }
-            ];
+            const currentDate = new Date().toISOString().split("T")[0];
+            const mockMedications = [{ medication_id: 1, medication_name: "Aspirin", medication_date: currentDate }];
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
-                query: jest.fn()
+                query: jest
+                    .fn()
                     .mockResolvedValueOnce({}) // For the update query
                     .mockResolvedValueOnce({ recordset: mockMedications }), // For the select query
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getDailyMedicationByUser(1);
@@ -112,7 +111,7 @@ describe("medTrackerModel", () => {
                 medication_time: "10:00",
                 medication_dosage: "500mg",
                 medication_quantity: 30,
-                is_taken: false
+                is_taken: false,
             };
 
             const mockResult = { ...newMedication, medication_id: 1 };
@@ -121,7 +120,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: [mockResult] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.createMedication(newMedication);
@@ -133,7 +132,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: [] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             await expect(medTrackerModel.createMedication({})).rejects.toThrow("Medication creation failed");
@@ -150,14 +149,14 @@ describe("medTrackerModel", () => {
                 medicationTime: "10:00",
                 medicationDosage: "500mg",
                 medicationQuantity: 30,
-                isTaken: false
+                isTaken: false,
             };
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ rowsAffected: [1] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.updateMedication(1, updatedData);
@@ -169,7 +168,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ rowsAffected: [0] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.updateMedication(999, {});
@@ -184,7 +183,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ rowsAffected: [1] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.deleteMedication(1, 1);
@@ -196,7 +195,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ rowsAffected: [0] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.deleteMedication(999, 1);
@@ -209,16 +208,17 @@ describe("medTrackerModel", () => {
         it("should mark medication as taken and decrement quantity", async () => {
             const mockMedication = {
                 medication_quantity: 10,
-                medication_name: "Aspirin"
+                medication_name: "Aspirin",
             };
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
-                query: jest.fn()
+                query: jest
+                    .fn()
                     .mockResolvedValueOnce({ recordset: [mockMedication] }) // For the select
                     .mockResolvedValueOnce({ rowsAffected: [1] }), // For the update
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.tickOffMedication(1, 1);
@@ -231,7 +231,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: [] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.tickOffMedication(999, 1);
@@ -244,14 +244,14 @@ describe("medTrackerModel", () => {
         it("should return medications with quantity < 5", async () => {
             const mockMedications = [
                 { medication_id: 1, medication_name: "Aspirin", medication_quantity: 3 },
-                { medication_id: 2, medication_name: "Ibuprofen", medication_quantity: 2 }
+                { medication_id: 2, medication_name: "Ibuprofen", medication_quantity: 2 },
             ];
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: mockMedications }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getLowQuantityMedication(1);
@@ -263,7 +263,7 @@ describe("medTrackerModel", () => {
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: [] }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getLowQuantityMedication(1);
@@ -276,22 +276,23 @@ describe("medTrackerModel", () => {
         it("should refill medication and return updated quantity", async () => {
             const mockMedication = {
                 medication_quantity: 5,
-                medication_name: "Aspirin"
+                medication_name: "Aspirin",
             };
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
-                query: jest.fn()
+                query: jest
+                    .fn()
                     .mockResolvedValueOnce({ recordset: [mockMedication] }) // For the select
                     .mockResolvedValueOnce({ rowsAffected: [1] }), // For the update
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const refillData = {
                 userId: 1,
                 refillQuantity: 10,
-                refillDate: "2025-07-11"
+                refillDate: "2025-07-11",
             };
 
             const result = await medTrackerModel.refillMedication(1, refillData);
@@ -303,16 +304,14 @@ describe("medTrackerModel", () => {
     // Test for getExpiredMedications
     describe("getExpiredMedications", () => {
         it("should return expired medications", async () => {
-            const currentDate = new Date().toISOString().split('T')[0];
-            const mockMedications = [
-                { medication_id: 1, medication_name: "Aspirin", prescription_enddate: "2025-01-01" }
-            ];
+            const currentDate = new Date().toISOString().split("T")[0];
+            const mockMedications = [{ medication_id: 1, medication_name: "Aspirin", prescription_enddate: "2025-01-01" }];
 
             sql.connect.mockResolvedValue({
                 request: jest.fn().mockReturnThis(),
                 input: jest.fn().mockReturnThis(),
                 query: jest.fn().mockResolvedValue({ recordset: mockMedications }),
-                close: jest.fn()
+                close: jest.fn(),
             });
 
             const result = await medTrackerModel.getExpiredMedications(1);

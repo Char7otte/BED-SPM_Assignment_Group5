@@ -13,10 +13,8 @@ async function getAllChats(req, res) {
         }
 
         chats.forEach((chat) => {
-            chat.created_date_time = addHours(chat.created_date_time, -8);
-            chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
-            chat.last_activity_date_time = addHours(chat.last_activity_date_time, -8);
-            chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.created_date_time = formatDateTime(chat.created_date_time);
+            chat.last_activity_date_time = formatDateTime(chat.last_activity_date_time);
         });
 
         return res.render("chat/allChats", { chatData: chats, userID: id, userRole: role });
@@ -45,7 +43,7 @@ async function createChat(req, res) {
         const chatTitle = req.body.question;
         const newChat = await chatModel.createChat(userID, chatTitle);
 
-        if (!newChat) return res.status(404).send("Error creating chat.");
+        if (!newChat) return res.status(400).send("Error creating chat.");
         return res.redirect(`/chats/${newChat.chat_id}`);
     } catch (error) {
         console.error("Controller error: ", error);
@@ -99,17 +97,20 @@ async function searchClosedChats(req, res) {
         const chats = await chatModel.searchClosedChats(`%${searchQuery}%`);
 
         chats.forEach((chat) => {
-            chat.created_date_time = addHours(chat.created_date_time, -8);
-            chat.created_date_time = format(chat.created_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
-            chat.last_activity_date_time = addHours(chat.last_activity_date_time, -8);
-            chat.last_activity_date_time = format(chat.last_activity_date_time, "ddd, D MMM YYYY hh:mm A"); //Fri, 1 Aug 2025 05:48 AM
+            chat.created_date_time = formatDateTime(chat.created_date_time);
+            chat.last_activity_date_time = formatDateTime(chat.last_activity_date_time);
         });
 
         return res.render("chat/allChatsSearch", { chatData: chats, userID: id, searchQuery, userRole: role });
     } catch (error) {
         console.error("Controller error: ", error);
-        return res.status(500).send("Error getting all closed chats");
+        return res.status(500).send("Error getting chats");
     }
+}
+
+function formatDateTime(dt) {
+    dt = addHours(dt, -8);
+    return format(dt, "ddd, D MMM YYYY hh:mm A");
 }
 
 module.exports = {

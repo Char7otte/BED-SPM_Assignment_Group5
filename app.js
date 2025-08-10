@@ -31,6 +31,8 @@ const chatMessageController = require("./chat/controllers/chatMessageController"
 const { validateChatID } = require("./chat/middleware/ChatValidation");
 const { validateChatMessage, validateChatMessageID, validateSenderID } = require("./chat/middleware/ChatMessageValidation");
 
+const catAPI = require("./cat/catAPI");
+
 // Import medical appointment functions
 const medAppointmentController = require("./medical-appointment/controllers/medAppointmentController");
 const { validateMedAppointment, validateMedAppointmentId } = require("./medical-appointment/middlewares/medAppointmentValidation");
@@ -232,6 +234,8 @@ app.get("/chats/:chatID", verifyJWT, validateChatID, chatController.checkIfChatI
 app.post("/chats/:chatID", verifyJWT, validateChatID, validateSenderID, validateChatMessage, chatMessageController.createMessage);
 app.patch("/chats/:chatID", verifyJWT, validateChatID, validateChatMessage, chatMessageController.editMessage);
 app.delete("/chats/:chatID", verifyJWT, validateChatID, chatMessageController.deleteMessage);
+
+app.get("/cats", catAPI.getCatImg);
 
 //routes for medical appointments
 app.get("/med-appointments", verifyJWT, medAppointmentController.getAllAppointmentsByUser);
