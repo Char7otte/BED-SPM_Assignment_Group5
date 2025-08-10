@@ -32,3 +32,24 @@
 .button-icon {
     margin-right: 0.1em !important;
 }
+
+.card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.main-title {
+    color: black;
+}
+
+.is-white {
+    color: white;
+}
+
+body {
+    background-image: linear-gradient(135deg, #f5f7fa 0%, #8ea2c2 100%);
+    color: #2c2929;
+    height: 100%;
+}

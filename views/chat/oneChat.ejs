@@ -17,7 +17,7 @@
                         <section class="messages">
                             <section class="mb-4">
                                 <form action="/chats" method="GET" class="is-inline-block">
-                                    <button type="submit" class="button is-outlined is-light">
+                                    <button type="submit" class="button is-dark">
                                         <span class="icon button-icon">
                                             <i class="fa-solid fa-arrow-left"></i>
                                         </span>
@@ -26,7 +26,7 @@
                                 </form>
                                 <% if (!isClosed) { %>
                                 <form action="/chats/status/<%=  chatID %>?_method=PATCH" method="POST" class="is-inline-block">
-                                    <button type="submit" class="button is-outlined is-primary">
+                                    <button type="submit" class="button is-primary">
                                         <span class="icon button-icon">
                                             <i class="fa-solid fa-check"></i>
                                         </span>
@@ -52,7 +52,7 @@
                             <form action="/chats/<%= chatID %>" method="POST">
                                 <input type="text" hidden value="<%= userID %>" name="senderID" />
                                 <div class="field">
-                                    <label class="label" for="message">Send a message:</label>
+                                    <label class="label main-title" for="message">Send a message:</label>
                                     <div class="control">
                                         <textarea class="textarea" placeholder="Write your message here" id="message" name="message"></textarea>
                                     </div>
